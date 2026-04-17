@@ -1,0 +1,85 @@
+/* ========================================== */
+/* ESTILOS DE LA CALCULADORA B2B              */
+/* ========================================== */
+
+body { background-color: #f8f9fa; overflow-y: auto; }
+
+/* Navegación B2B */
+.b2b-navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.badge-pro { background: var(--blue-elegant); color: white; font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; vertical-align: top; margin-left: 5px; }
+.btn-outline { background: transparent; border: 2px solid var(--blue-elegant); color: var(--blue-elegant); box-shadow: none; font-weight: bold; }
+.btn-outline:hover { background: #f0f8ff; }
+
+/* Contenedores Principales */
+.calc-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+.calc-header { text-align: center; margin-bottom: 50px; }
+.calc-header h1 { color: var(--blue-elegant); font-size: 2.2rem; margin-bottom: 15px; }
+.calc-header p { color: var(--blue-elegant); font-size: 1.1rem; max-width: 700px; margin: 0 auto; line-height: 1.5; opacity: 0.9; }
+
+.calc-grid { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }
+.calc-controls { flex: 1.2; min-width: 320px; background: white; border-radius: 30px; padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+.calc-results-area { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 30px; }
+
+/* Panel Controles (Izquierda) */
+.section-title-blue { color: var(--blue-elegant); margin-bottom: 5px; font-size: 1.2rem; }
+.helper-text { font-size: 0.9rem; color: var(--blue-elegant); opacity: 0.8; margin-bottom: 20px; line-height: 1.4; }
+.calc-divider { border: 0; height: 1px; background: #eee; margin: 30px 0; }
+
+.slider-container, .input-container { margin-bottom: 25px; }
+.slider-container label, .input-container label { display: flex; justify-content: space-between; font-weight: 500; color: var(--blue-elegant); margin-bottom: 12px; }
+.highlight-val { color: var(--pixar-cyan); font-weight: bold; font-size: 1.1rem; }
+
+/* Sliders */
+.apple-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 5px; background: #e0e0e0; outline: none; }
+.apple-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--pixar-cyan); cursor: pointer; box-shadow: 0 2px 6px rgba(0, 168, 255, 0.4); transition: transform 0.1s; }
+.apple-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+/* Inputs Numéricos */
+.input-with-icon { display: flex; align-items: center; background: #f5f5f7; padding: 12px 20px; border-radius: 20px; border: 1px solid transparent; transition: border 0.3s; }
+.input-with-icon:focus-within { border-color: var(--pixar-cyan); background: white; }
+.input-with-icon span { color: var(--blue-elegant); margin-right: 10px; }
+.input-with-icon input { width: 100%; background: transparent; border: none; outline: none; font-size: 1.1rem; color: var(--blue-elegant); font-weight: bold; }
+
+/* Panel Resultados Arriendo (Derecha Arriba) */
+.calc-results { background: linear-gradient(145deg, var(--blue-elegant), #0d4a76); color: white; border-radius: 30px; padding: 40px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+.calc-results h2 { margin-bottom: 25px; font-size: 1.4rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+.result-card { background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+.result-label { font-size: 0.9rem; opacity: 0.9; }
+.result-value { font-size: 1.3rem; font-weight: bold; color: var(--pixar-cyan); }
+.total-revenue-card { margin-top: 30px; text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+.total-revenue-card span { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+.total-revenue-card h3 { font-size: 3rem; margin-top: 10px; color: var(--green-success); text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.disclaimer-text { font-size: 0.75rem; opacity: 0.8; margin-top: 10px; }
+
+/* Tarjeta de Venta Tokens (Derecha Abajo) */
+.token-pitch-card { background: white; border-radius: 30px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 2px solid #f0f2f5; }
+.token-pitch-card h3 { color: #9b59b6; display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-size: 1.3rem; }
+.token-intro { font-size: 0.95rem; color: var(--blue-elegant); line-height: 1.5; margin-bottom: 25px; }
+.token-subtitle { font-size: 0.95rem; color: var(--blue-elegant); font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+
+/* 1. Grilla Paquetes de Compra */
+.token-packages { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.package-item { background: #f8f9fa; border: 1px solid #eee; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: transform 0.2s, border-color 0.2s; position: relative; }
+.package-item:hover { transform: translateY(-3px); border-color: #9b59b6; }
+.highlight-pkg { border: 2px solid #9b59b6; background: rgba(155, 89, 182, 0.05); }
+
+.pkg-cost { font-size: 1.1rem; font-weight: 900; color: #9b59b6; margin-bottom: 2px; }
+.pkg-price { font-size: 0.9rem; color: var(--blue-elegant); font-weight: bold; opacity: 0.8; }
+.pkg-discount { position: absolute; top: -8px; background: var(--green-success); color: white; font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+
+/* 2. Lista de Tarifario de Uso */
+.token-usage-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
+.token-usage-list li { display: flex; justify-content: space-between; align-items: center; background: #fafafa; padding: 10px 15px; border-radius: 12px; border: 1px solid #f0f0f0; font-size: 0.85rem; color: var(--blue-elegant); }
+.token-usage-list li span { font-weight: bold; color: #9b59b6; background: rgba(155, 89, 182, 0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; }
+
+/* Botones */
+.btn-book-large { background-color: var(--pixar-cyan); box-shadow: 0 4px 0 var(--pixar-cyan-shadow); color: white; border: none; padding: 15px; border-radius: 20px; font-weight: bold; font-size: 1.1rem; cursor: pointer; width: 100%; transition: transform 0.1s; }
+.btn-book-large:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+.mt-20 { margin-top: 20px; }
+
+/* Móviles */
+@media (max-width: 768px) {
+    .calc-header h1 { font-size: 1.8rem; }
+    .calc-controls, .calc-results, .token-pitch-card { padding: 25px; }
+    .calc-grid { gap: 20px; }
+}

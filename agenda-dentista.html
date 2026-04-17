@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">MiDental - Mi Agenda</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        /* Estilos de bloques de agenda */
+        .event-blocked { background: #f1f2f6; color: #a4b0be; border: 1px dashed #ced6e0; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        
+        /* ESTILOS CLAVE PARA LA SINCRONIZACIÓN */
+        .slot-workplace { background: #e0f7fa; border: 1px dashed var(--pixar-cyan); width: 100%; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s; }
+        .slot-workplace:hover { background: var(--pixar-cyan); color: white; border-style: solid; }
+        .watermark-text { color: inherit; opacity: 0.8; font-size: 0.75rem; font-weight: bold; text-align: center; pointer-events: none; }
+
+        .event-confirmed { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; padding: 5px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; }
+        .event-inprogress { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 5px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; }
+        .event-completed { background-color: #f3f4f6; border-left: 4px solid #6b7280; color: #374151; padding: 5px; border-radius: 4px; font-size: 0.8rem; text-decoration: line-through; width: 100%; height: 100%; display: flex; align-items: center; }
+
+        /* Estilos Presupuesto */
+        .presupuesto-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 20px; }
+        .presupuesto-table th { background-color: var(--blue-elegant); color: white; padding: 8px 5px; border: 1px solid #ccc; }
+        .presupuesto-table td { border: 1px solid #ccc; padding: 4px; }
+        .total-final-box { text-align: right; font-size: 1.2rem; color: var(--blue-elegant); padding: 10px; border-top: 2px solid var(--blue-elegant); margin-top: 10px; }
+
+        /* Layout Agenda */
+        .calendar-wrapper { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+        .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #f0f0f0; margin-bottom: 10px; }
+        .calendar-grid-container { flex: 1; overflow-y: auto; background: white; border-radius: 15px; border: 1px solid #eee; }
+        
+        .time-labels { display: flex; flex-direction: column; width: 60px; border-right: 1px solid #eee; }
+        .time-slot-label { height: 40px; display: flex; align-items: flex-start; justify-content: center; font-size: 0.7rem; color: #888; padding-top: 5px; border-bottom: 1px solid #f9f9f9; }
+        .days-container { display: grid; grid-template-columns: repeat(7, 1fr); flex: 1; }
+        .day-col { display: flex; flex-direction: column; border-right: 1px solid #eee; }
+        .day-header { height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--blue-elegant); border-bottom: 2px solid #ccc; background: #fafafa; position: sticky; top: 0; z-index: 10; }
+        .time-block { height: 40px; border-bottom: 1px solid #f0f0f0; padding: 2px; }
+        
+        /* CSS DE IMPRESIÓN PARA PRESUPUESTO */
+        @media print {
+            body * { visibility: hidden; }
+            #modalPresupuesto, #modalPresupuesto * { visibility: visible; }
+            #modalPresupuesto { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; background: white; }
+            .btn-close, .btn-group-dual, .btn-text, .sidebar, .topbar { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
+                <h2>MiDental</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="#" class="nav-item active"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
+                <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
+                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <header class="topbar" style="margin-bottom: 15px; padding: 10px 25px;">
+                <div class="welcome-text"><h1 id="headerTituloPagina">Mi Agenda 📅</h1></div>
+                <div class="topbar-right-area">
+                    <div class="token-monedero-header">
+                        <div class="token-info-header"><span>Monedero</span><small>Saldo activo</small></div>
+                        <div class="token-balance-header pulse-glow-purple">
+                            <span class="material-symbols-outlined">toll</span><strong id="displayTokens">--</strong>
+                        </div>
+                    </div>
+                    <div class="topbar-profile"><img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" class="profile-pic"></div>
+                </div>
+            </header>
+
+            <div class="calendar-wrapper">
+                <div class="calendar-toolbar-compact">
+                    <div class="cal-nav-buttons">
+                        <button class="icon-btn-cal"><span class="material-symbols-outlined">chevron_left</span></button>
+                        <h2 class="cal-current-week">Semana Actual</h2>
+                        <button class="icon-btn-cal"><span class="material-symbols-outlined">chevron_right</span></button>
+                    </div>
+                    <div class="cal-leyend-compact">
+                        <span class="leyend-item"><div class="dot" style="background:#00b4d8;"></div> Disponible</span>
+                        <span class="leyend-item"><div class="dot" style="background:#10b981;"></div> Confirmado</span>
+                        <span class="leyend-item"><div class="dot" style="background:#3b82f6;"></div> En Curso</span>
+                    </div>
+                </div>
+
+                <div class="calendar-grid-container" style="display: flex;">
+                    <div class="time-labels" id="timeLabelsContainer"></div>
+                    <div class="days-container" id="diasSemanaContainer"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="actionMenu" style="display:none; position:absolute; background:white; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2); padding:10px; z-index:100; flex-direction:column; gap:5px;">
+        <button class="btn-text" onclick="abrirAgendarCita()" style="text-align:left; padding:8px; width:100%; border-radius:4px; font-size:0.9rem;"><span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle; margin-right:5px;">edit_calendar</span> Agendar Cita Manual</button>
+        <button class="btn-text" onclick="bloquearEspacio()" style="text-align:left; padding:8px; width:100%; border-radius:4px; font-size:0.9rem; color:red;"><span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle; margin-right:5px;">block</span> Bloquear Espacio</button>
+    </div>
+
+    <div id="modalDetallePaciente" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <button class="btn-close" onclick="cerrarModal('modalDetallePaciente')"><span class="material-symbols-outlined">close</span></button>
+            <div class="patient-detail-header">
+                <div class="avatar-circle avatar-large" id="detalleAvatar">--</div>
+                <div class="patient-detail-title">
+                    <h2 class="modal-title" id="detalleNombre">Nombre</h2>
+                    <div class="app-status" id="detalleEstadoBadge">Estado</div>
+                </div>
+            </div>
+            <div class="patient-info-list mt-20">
+                <div class="info-row"><span class="material-symbols-outlined">calendar_today</span><strong id="detalleFecha">Fecha</strong></div>
+                <div class="info-row"><span class="material-symbols-outlined">medical_services</span><span id="detalleMotivo">Motivo</span></div>
+                <div class="info-row"><span class="material-symbols-outlined">location_on</span><span id="detalleWorkplace">Lugar</span></div>
+            </div>
+            <div id="contenedorBotonesAccion" class="mt-20"></div>
+            
+            <button class="btn-pixar btn-green-whatsapp btn-full mt-10" onclick="confirmarPorWhatsAppBoton()">
+                <span class="material-symbols-outlined">chat</span> Confirmar asistencia por WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <div id="modalCheckIn" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="text-align: center;">
+            <button class="btn-close" onclick="cerrarModal('modalCheckIn')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title">Código de Check-in</h2>
+            <p class="modal-subtitle">Ingresa el código OTP del paciente.</p>
+            <div class="otp-inputs mt-20">
+                <input type="text" maxlength="1" class="otp-box"> <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box"> <input type="text" maxlength="1" class="otp-box">
+            </div>
+            <button type="button" class="btn-pixar btn-ofertas btn-full mt-20" onclick="confirmarCheckIn()">Iniciar Consulta</button>
+        </div>
+    </div>
+
+    <div id="modalPresupuesto" class="modal-overlay" style="display:none;">
+        <div class="modal-content modal-xl">
+            <button class="btn-close" onclick="cerrarModal('modalPresupuesto')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="text-align:center;">Presupuesto Dental</h2>
+            <div class="header-presupuesto-info mt-20">
+                <div><strong>PACIENTE:</strong> <span id="presupuestoNombrePcte">---</span></div>
+            </div>
+            <table class="presupuesto-table">
+                <thead><tr><th>Diente</th><th>Tratamiento</th><th>Valor ($)</th></tr></thead>
+                <tbody id="tbodyPresupuesto">
+                    <tr><td><input type="text"></td><td><input type="text"></td><td><input type="number" class="ref-val" oninput="calcularGranTotal()"></td></tr>
+                </tbody>
+            </table>
+            <button class="btn-text" onclick="agregarFila()">+ Agregar Fila</button>
+            
+            <div class="total-final-box"><strong>TOTAL: $ <span id="granTotalPagar">0</span></strong></div>
+            
+            <div class="btn-group-dual mt-20">
+                <button class="btn-login-outline btn-full" onclick="window.print()">
+                    <span class="material-symbols-outlined">print</span> Imprimir / PDF
+                </button>
+                <button class="btn-pixar btn-search btn-full" onclick="enviarPresupuestoWhatsApp()">
+                    Guardar Ficha
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        let celdaSeleccionada = null;
+        let pNombre = "", pMotivo = "", pTelefono = "", pEstado = "", pWorkplace = "", diaHora = "";
+        let slotAccionMenu = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarGrillaSemanal();
+            if(typeof cargarAgendaDesdeSedes === 'function') {
+                cargarAgendaDesdeSedes();
+            }
+        });
+
+        // 1. Construir la Grilla HTML dinámicamente con fechas reales
+        function renderizarGrillaSemanal() {
+            const timeLabelsContainer = document.getElementById('timeLabelsContainer');
+            const daysContainer = document.getElementById('diasSemanaContainer');
+            if(!timeLabelsContainer || !daysContainer) return;
+
+            const hoy = new Date();
+            const lunes = new Date(hoy);
+            lunes.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 7 : hoy.getDay()) + 1);
+
+            const diasAbreviados = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            for(let h = 8; h <= 20; h++) {
+                timeLabelsContainer.innerHTML += `<div class="time-slot-label">${h}:00</div>`;
+            }
+
+            for (let i = 0; i < 7; i++) {
+                let fechaColumna = new Date(lunes);
+                fechaColumna.setDate(lunes.getDate() + i);
+                
+                let diaNum = fechaColumna.getDate();
+                let mesLetra = mesesCortos[fechaColumna.getMonth()];
+                let diaLetra = diasAbreviados[i];
+
+                let headerTexto = `${diaLetra} ${diaNum} ${mesLetra}`; 
+                let colHTML = `<div class="day-col"><div class="day-header">${headerTexto}</div>`;
+                
+                for(let hora = 8; hora <= 20; hora++) {
+                    let horaStr = `${hora}:00`;
+                    let slotId = `${diaLetra}-${horaStr}`; // El data-slot se mantiene como 'Lun-10:00' para cruzar con base de datos
+                    colHTML += `<div class="time-block" data-slot="${slotId}"></div>`;
+                }
+                colHTML += `</div>`;
+                daysContainer.innerHTML += colHTML;
+            }
+        }
+
+        // Lógica de Modales Locales (Presupuestos, Checkin)
+        function abrirDetallePaciente(nombre, motivo, telefono, estado, fecha, celdaHtml, lugar) {
+            celdaSeleccionada = celdaHtml; pNombre = nombre; pMotivo = motivo; pTelefono = telefono; pEstado = estado; diaHora = fecha; pWorkplace = lugar;
+            document.getElementById('detalleNombre').innerText = nombre;
+            document.getElementById('detalleFecha').innerText = fecha;
+            document.getElementById('detalleMotivo').innerText = motivo;
+            document.getElementById('detalleWorkplace').innerText = lugar;
+            const badge = document.getElementById('detalleEstadoBadge');
+            badge.innerText = estado;
+            badge.className = 'app-status ' + (estado === 'En Curso' ? 'status-inprogress' : 'status-confirmed');
+            
+            const contenedor = document.getElementById('contenedorBotonesAccion');
+            if (estado === 'Confirmado') {
+                contenedor.innerHTML = `<button class="btn-pixar btn-search btn-full" onclick="abrirCheckIn()">Hacer Check-in</button>`;
+            } else if (estado === 'En Curso') {
+                contenedor.innerHTML = `<div class="btn-group-dual"><button class="btn-login-outline btn-full" onclick="abrirPresupuesto()">Generar Ficha / Presupuesto</button><button class="btn-pixar btn-green-whatsapp btn-full" onclick="finalizarConsulta()">Finalizar Consulta</button></div>`;
+            }
+            document.getElementById('modalDetallePaciente').style.display = 'flex';
+        }
+
+        function confirmarPorWhatsAppBoton() {
+            // Llama a la función global de app.js
+            if(typeof confirmarPorWhatsApp === 'function') {
+                confirmarPorWhatsApp(pNombre, diaHora, pTelefono);
+            }
+        }
+
+        function abrirCheckIn() { document.getElementById('modalCheckIn').style.display = 'flex'; }
+        
+        function confirmarCheckIn() {
+            cerrarModal('modalCheckIn');
+            celdaSeleccionada.innerHTML = `<div class="event-inprogress" onclick="abrirDetallePaciente('${pNombre}', '${pMotivo}', '${pTelefono}', 'En Curso', '${diaHora}', this.parentElement, '${pWorkplace}')"><strong>${pNombre} (En curso)</strong></div>`;
+            abrirDetallePaciente(pNombre, pMotivo, pTelefono, 'En Curso', diaHora, celdaSeleccionada, pWorkplace);
+            // AQUÍ IRÍA EL UPDATE A SUPABASE (estado = 'en curso')
+        }
+
+        function abrirPresupuesto() {
+            document.getElementById('presupuestoNombrePcte').innerText = pNombre;
+            document.getElementById('modalPresupuesto').style.display = 'flex';
+        }
+
+        function enviarPresupuestoWhatsApp() {
+            const total = document.getElementById('granTotalPagar').innerText.replace(/\./g, '');
+            alert(`Presupuesto de $${document.getElementById('granTotalPagar').innerText} generado. Redirigiendo a la Ficha Clínica Definitiva...`);
+            cerrarModal('modalPresupuesto');
+            // Redirección para generar la ficha real
+            window.location.href = `mis-pacientes.html`;
+        }
+
+        function finalizarConsulta() {
+            if(confirm(`¿Finalizar atención de ${pNombre}?`)) {
+                celdaSeleccionada.innerHTML = `<div class="event-completed"><strong>${pNombre} (Fin)</strong></div>`;
+                cerrarModal('modalDetallePaciente');
+                // AQUÍ IRÍA EL UPDATE A SUPABASE (estado = 'finalizado')
+            }
+        }
+
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        function agregarFila() { document.getElementById('tbodyPresupuesto').insertAdjacentHTML('beforeend', '<tr><td><input type="text"></td><td><input type="text"></td><td><input type="number" class="ref-val" oninput="calcularGranTotal()"></td></tr>'); }
+        function calcularGranTotal() {
+            let total = 0;
+            document.querySelectorAll('.ref-val').forEach(i => total += (parseFloat(i.value) || 0));
+            document.getElementById('granTotalPagar').innerText = total.toLocaleString('es-CL');
+        }
+
+        window.addEventListener('click', (e) => {
+            const menu = document.getElementById('actionMenu');
+            if (menu && !e.target.closest('.slot-workplace') && !e.target.closest('#actionMenu')) {
+                menu.style.display = 'none';
+            }
+        });
+
+        function clicOpcionesSede(e, slotId) {
+            e.stopPropagation();
+            slotAccionMenu = slotId;
+            const menu = document.getElementById('actionMenu');
+            menu.style.display = 'flex';
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+        }
+
+        function bloquearEspacio() {
+            if(slotAccionMenu) {
+                const celda = document.querySelector(`[data-slot="${slotAccionMenu}"]`);
+                if(celda) {
+                    celda.innerHTML = '<div class="event-blocked">Bloqueado</div>';
+                }
+            }
+            document.getElementById('actionMenu').style.display = 'none';
+        }
+        function abrirAgendarCita() {
+            alert("Abriendo formulario para agendar paciente presencial en " + slotAccionMenu);
+            document.getElementById('actionMenu').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

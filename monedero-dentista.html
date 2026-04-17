@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDental - Monedero y Tienda B2B</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/calculadora.css">
+    <style>
+        /* Estilos de la Tienda Premium */
+        .premium-token-store { margin-top: 50px; background: linear-gradient(135deg, #0b132b, #1e272e, #2d3436); color: white; padding: 50px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); text-align: center; }
+        .package-item { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; cursor: pointer; transition: 0.3s; position: relative; }
+        .package-item:hover { border-color: var(--pixar-cyan); transform: translateY(-3px); }
+        .pkg-discount { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--green-success); color: white; font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        .token-stepper { display: flex; align-items: center; justify-content: center; background: #f8f9fa; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .token-stepper button { width: 60px; height: 60px; border: none; font-size: 1.5rem; cursor: pointer; color: var(--dentist-purple); }
+        .token-stepper input { width: 80px; text-align: center; border: none; font-size: 1.5rem; font-weight: bold; outline: none; background: transparent; color: #333; }
+        
+        /* Modificadores de la grilla */
+        .store-content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; text-align: left; }
+        @media (max-width: 768px) {
+            .store-content-grid { grid-template-columns: 1fr; }
+            .calc-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="b2b-navbar" style="display: flex; justify-content: space-between; padding: 15px 30px; background: white; border-bottom: 1px solid #eee;">
+        <div class="logo-small" style="display: flex; align-items: center; gap: 10px;">
+            <img src="assets/LogoMiDental.png" alt="Logo MiDental" style="height: 35px;">
+            <h2 style="margin: 0; color: var(--blue-elegant);">MiDental</h2>
+        </div>
+        <button class="btn-pixar btn-outline" onclick="window.location.href='dashboard-dentista.html'" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; background: white; cursor: pointer;">
+            <span class="material-symbols-outlined" style="vertical-align: middle;">arrow_back</span> Volver al Panel
+        </button>
+    </nav>
+
+    <main class="calc-container" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+        
+        <header class="calc-header" style="text-align: center; margin-bottom: 40px;">
+            <h1 style="color: var(--blue-elegant); font-size: 2.5rem; margin-bottom: 10px;">Rentabiliza tu Clínica al Máximo 📈</h1>
+            <p style="color: #666; font-size: 1.1rem;">Calcula tus ingresos extra por arriendo de box y potencia tu visibilidad con Tokens MiDental.</p>
+        </header>
+
+        <div class="calc-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            
+            <section class="calc-controls" style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.02);">
+                <h3 style="color: var(--blue-elegant); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Simulador de Arriendos B2B</h3>
+                
+                <div class="slider-group mt-20" style="margin-top: 20px;">
+                    <label style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #555;">Medias jornadas vacías/semana: <strong id="valJornadas" style="color: var(--pixar-cyan); font-size: 1.2rem;">3</strong></label>
+                    <input type="range" id="mediasJornadas" min="0" max="14" value="3" style="width: 100%;" oninput="calcularRentabilidad()">
+                </div>
+
+                <div class="input-group mt-20" style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-size: 0.9rem;">Precio arriendo sugerido (Media Jornada):</label>
+                    <input type="number" id="valorJornada" value="35000" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 1.1rem; font-weight: bold; color: var(--blue-elegant);" oninput="calcularRentabilidad()">
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 1px dashed #ddd;">
+
+                <div class="slider-group">
+                    <label style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #555;">Horas sueltas vacías/semana: <strong id="valHoras" style="color: var(--pixar-cyan); font-size: 1.2rem;">5</strong></label>
+                    <input type="range" id="horasSueltas" min="0" max="40" value="5" style="width: 100%;" oninput="calcularRentabilidad()">
+                </div>
+
+                <div class="input-group mt-20" style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: #555; font-size: 0.9rem;">Precio arriendo sugerido (Por Hora):</label>
+                    <input type="number" id="valorHora" value="10000" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 1.1rem; font-weight: bold; color: var(--blue-elegant);" oninput="calcularRentabilidad()">
+                </div>
+            </section>
+
+            <section class="calc-results" style="background: var(--blue-elegant); color: white; padding: 40px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; text-align: center; box-shadow: 0 10px 30px rgba(11, 25, 44, 0.2);">
+                <h2 style="font-size: 1.2rem; opacity: 0.8; margin-top: 0;">Ingreso Mensual Proyectado</h2>
+                <div id="resTotal" style="font-size: 3.5rem; font-weight: 900; margin: 20px 0; color: var(--pixar-cyan); text-shadow: 0 2px 10px rgba(0, 180, 216, 0.3);">$620.000</div>
+                <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 30px;">*Cálculo conservador basado en un mes de 4 semanas. Tus ingresos reales pueden ser mayores.</p>
+                <button style="background: white; color: var(--blue-elegant); border: none; padding: 15px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" onclick="window.location.href='mis-arriendos.html'">Publicar mi Box para Arriendo</button>
+            </section>
+        </div>
+
+        <section class="premium-token-store">
+            <h2 style="margin-top: 0;"><span class="material-symbols-outlined" style="vertical-align: text-bottom; font-size: 2rem; color: var(--pixar-orange);">toll</span> Monedero y Tienda de Tokens</h2>
+            <p style="opacity: 0.8; margin-bottom: 40px;">Utiliza tus tokens para publicar arriendos B2B o destacar Ofertas Flash a pacientes.</p>
+
+            <div class="store-content-grid">
+                
+                <div class="packages-area">
+                    <div class="token-packages" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                        <div class="package-item" onclick="abrirModalCompra(1, 1990)">
+                            <span class="material-symbols-outlined" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 10px; display: block;">monetization_on</span>
+                            <span style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 5px;">1 Token</span>
+                            <span style="display:block; color: var(--pixar-cyan); font-size: 1.2rem;">$1.990 <small style="color:#888; font-size:0.8rem;">CLP</small></span>
+                        </div>
+                        
+                        <div class="package-item" onclick="abrirModalCompra(5, 7990)" style="border-color: var(--dentist-purple); background: rgba(155, 89, 182, 0.1);">
+                            <span class="pkg-discount">Ahorro 20%</span>
+                            <span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--dentist-purple); margin-bottom: 10px; display: block;">workspace_premium</span>
+                            <span style="font-size: 1.5rem; font-weight: bold; display: block; margin-bottom: 5px;">5 Tokens</span>
+                            <span style="display:block; color: var(--pixar-cyan); font-size: 1.2rem;">$7.990 <small style="color:#888; font-size:0.8rem;">CLP</small></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rules-area" style="background: rgba(0,0,0,0.2); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="margin-top: 0; margin-bottom: 15px; color: var(--pixar-orange); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px;">Saldo de la Cuenta</h4>
+                    <div style="font-size: 3.5rem; font-weight: 900; line-height: 1;" id="displaySaldoGlobal">--</div>
+                    <p style="font-size: 0.85rem; opacity: 0.6; margin-top: 10px;">Los tokens comprados se asignan instantáneamente a tu perfil profesional y no caducan.</p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <div id="modalCompraTokens" class="modal-overlay" style="display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8);">
+        <div class="modal-content" style="max-width: 400px; text-align: center; border-radius: 25px; padding: 40px;">
+            <button class="btn-close" onclick="cerrarModalCompra()"><span class="material-symbols-outlined">close</span></button>
+            
+            <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--dentist-purple); margin-bottom: 10px;">shopping_cart_checkout</span>
+            <h2 class="modal-title" style="margin-top: 0;">Confirmar Compra</h2>
+            <p style="color: #666; font-size: 0.9rem;">Ajusta la cantidad de tokens que deseas adquirir.</p>
+            
+            <div class="token-stepper">
+                <button onclick="cambiarCantidad(-1)">-</button>
+                <input type="number" id="inputCantidad" value="1" readonly>
+                <button onclick="cambiarCantidad(1)">+</button>
+            </div>
+            
+            <div style="background: #fdf5ff; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 2px solid var(--dentist-purple);">
+                <small style="color: var(--dentist-purple); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Total a Pagar (Webpay)</small>
+                <div id="totalPagar" style="font-size: 2.5rem; font-weight: 900; color: var(--blue-elegant); margin-top: 5px;">$1.990</div>
+            </div>
+            
+            <button class="btn-pixar btn-full" id="btnProcesarPago" style="background: var(--dentist-purple); padding: 18px; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);" onclick="procesarPagoSimulado()">
+                <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">lock</span> Pagar de Forma Segura
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+
+    <script>
+        let precioBaseActual = 1990;
+        let saldoTokensActual = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            calcularRentabilidad(); // Inicializa el simulador de arriendo
+            cargarSaldoTokens();    // Lee de Supabase el monedero del dentista
+        });
+
+        // ==========================================
+        // 1. SIMULADOR DE ARRIENDOS
+        // ==========================================
+        function calcularRentabilidad() {
+            const jornadas = document.getElementById('mediasJornadas').value;
+            const valorJ = document.getElementById('valorJornada').value || 0;
+            const horas = document.getElementById('horasSueltas').value;
+            const valorH = document.getElementById('valorHora').value || 0;
+
+            document.getElementById('valJornadas').innerText = jornadas;
+            document.getElementById('valHoras').innerText = horas;
+
+            // Fórmula: (Jornadas x Precio x 4 semanas) + (Horas x Precio x 4 semanas)
+            const total = (jornadas * valorJ * 4) + (horas * valorH * 4);
+            document.getElementById('resTotal').innerText = "$" + total.toLocaleString('es-CL');
+        }
+
+        // ==========================================
+        // 2. CONEXIÓN BILLETERA (SUPABASE)
+        // ==========================================
+        async function cargarSaldoTokens() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            if (!dentistaId) return;
+
+            try {
+                const { data, error } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('tokens_disponibles')
+                    .eq('id', dentistaId)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    saldoTokensActual = data.tokens_disponibles || 0;
+                    document.getElementById('displaySaldoGlobal').innerText = saldoTokensActual;
+                }
+            } catch (err) {
+                console.error("Error al leer el saldo de tokens:", err.message);
+                document.getElementById('displaySaldoGlobal').innerText = "--";
+            }
+        }
+
+        // ==========================================
+        // 3. TIENDA Y PASARELA DE PAGO (SIMULADA)
+        // ==========================================
+        function abrirModalCompra(cantidadIncial, precioReferencia) {
+            document.getElementById('inputCantidad').value = cantidadIncial;
+            
+            // Lógica simple de descuento: si compra el pack de 5, el precio unitario base es menor
+            precioBaseActual = cantidadIncial >= 5 ? 1598 : 1990; 
+            
+            actualizarPrecio();
+            document.getElementById('modalCompraTokens').style.display = 'flex';
+        }
+
+        function cerrarModalCompra() { 
+            document.getElementById('modalCompraTokens').style.display = 'none'; 
+        }
+
+        function cambiarCantidad(delta) {
+            let val = parseInt(document.getElementById('inputCantidad').value) + delta;
+            if(val < 1) val = 1;
+            
+            // Si el usuario sube manualmente a 5 o más, le aplicamos el descuento visualmente
+            if(val >= 5 && precioBaseActual === 1990) precioBaseActual = 1598;
+            if(val < 5 && precioBaseActual === 1598) precioBaseActual = 1990;
+
+            document.getElementById('inputCantidad').value = val;
+            actualizarPrecio();
+        }
+
+        function actualizarPrecio() {
+            const cant = document.getElementById('inputCantidad').value;
+            const total = cant * precioBaseActual; 
+            document.getElementById('totalPagar').innerText = "$" + total.toLocaleString('es-CL');
+        }
+
+        // Simulación de Transacción Segura
+        async function procesarPagoSimulado() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            if (!dentistaId) return alert("Sesión inválida. Por favor, vuelve a iniciar sesión.");
+
+            const cantidadComprar = parseInt(document.getElementById('inputCantidad').value);
+            const totalPagadoText = document.getElementById('totalPagar').innerText.replace(/[^0-9]/g, '');
+            const totalPagadoNumerico = parseInt(totalPagadoText);
+            const btn = document.getElementById('btnProcesarPago');
+
+            btn.disabled = true;
+            btn.innerHTML = "<span class='material-symbols-outlined' style='animation: spin 1s linear infinite;'>sync</span> Procesando pago...";
+
+            try {
+                // PASO 1: Simular el tiempo de respuesta de Webpay/MercadoPago (1.5 segundos)
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                // PASO 2: Guardar el comprobante en historial_pagos
+                const { error: errorHistorial } = await window.midental
+                    .from('historial_pagos')
+                    .insert([{
+                        dentista_id: dentistaId,
+                        monto: totalPagadoNumerico,
+                        tokens_comprados: cantidadComprar,
+                        estado: 'completado',
+                        external_reference: 'SIMULACION_WEBPAY_' + Date.now()
+                    }]);
+
+                if (errorHistorial) throw new Error("Fallo al guardar el registro de la transacción.");
+
+                // PASO 3: Actualizar el saldo en el perfil del dentista
+                const nuevoSaldo = saldoTokensActual + cantidadComprar;
+                const { error: errorPerfil } = await window.midental
+                    .from('perfiles_dentistas')
+                    .update({ tokens_disponibles: nuevoSaldo })
+                    .eq('id', dentistaId);
+
+                if (errorPerfil) throw new Error("Pago exitoso, pero fallo al recargar los tokens. Contacta soporte.");
+
+                // PASO 4: Éxito
+                alert(`✅ ¡Pago Aprobado!\nSe han cargado ${cantidadComprar} tokens a tu monedero.`);
+                
+                // Actualizar la interfaz
+                cerrarModalCompra();
+                cargarSaldoTokens(); // Vuelve a leer de la base de datos para asegurar sincronía
+
+            } catch (err) {
+                alert("❌ Transacción rechazada: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 5px;">lock</span> Pagar de Forma Segura`;
+            }
+        }
+    </script>
+</body>
+</html>

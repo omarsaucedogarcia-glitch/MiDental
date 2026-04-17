@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDental - Ficha Clínica</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .ficha-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; height: calc(100vh - 120px); }
+        
+        /* Panel Izquierdo: Historial */
+        .historial-panel { background: white; border-radius: 15px; border: 1px solid #eee; display: flex; flex-direction: column; overflow: hidden; }
+        .historial-header { background: var(--blue-elegant); color: white; padding: 15px; text-align: center; }
+        .historial-body { padding: 15px; overflow-y: auto; flex: 1; background: #f8fafc; }
+        
+        /* Tarjetas de Evolución Pasada */
+        .evolucion-card { background: white; border-left: 4px solid var(--pixar-cyan); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .evo-date { font-size: 0.8rem; color: #888; font-weight: bold; margin-bottom: 5px; }
+        .evo-title { font-size: 0.95rem; color: var(--blue-elegant); margin-bottom: 5px; font-weight: bold; }
+        .evo-text { font-size: 0.85rem; color: #555; line-height: 1.4; margin-bottom: 5px; }
+        .evo-price { font-size: 0.85rem; color: var(--green-success); font-weight: bold; text-align: right; }
+
+        /* Panel Derecho: Nueva Evolución */
+        .nueva-evo-panel { background: white; border-radius: 15px; border: 1px solid #eee; padding: 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        .form-section-title { color: var(--blue-elegant); border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        
+        .textarea-clinico { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 100px; margin-bottom: 20px; transition: border-color 0.3s; }
+        .textarea-clinico:focus { outline: none; border-color: var(--pixar-cyan); box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1); }
+        
+        .presupuesto-input-group { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .presupuesto-input-group input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1.1rem; font-weight: bold; color: var(--blue-elegant); }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
+                <h2>MiDental</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="agenda-dentista.html" class="nav-item active"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
+                <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
+                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <header class="topbar" style="margin-bottom: 15px; padding: 10px 25px;">
+                <div class="welcome-text">
+                    <button class="btn-login-outline" style="padding: 5px 10px; margin-bottom: 10px; font-size: 0.8rem;" onclick="window.location.href='agenda-dentista.html'">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">arrow_back</span> Volver a Agenda
+                    </button>
+                    <h1>Ficha Clínica: <span id="headerNombrePaciente" style="color: var(--pixar-cyan);">Cargando...</span> 📑</h1>
+                </div>
+                <div class="topbar-right-area">
+                    <img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" class="profile-pic">
+                </div>
+            </header>
+
+            <div class="ficha-layout">
+                <div class="historial-panel">
+                    <div class="historial-header">
+                        <span class="material-symbols-outlined" style="font-size: 3rem; margin-bottom: 10px;">account_circle</span>
+                        <h2 id="panelNombrePaciente" style="margin: 0; font-size: 1.2rem;">Nombre Paciente</h2>
+                        <p id="panelRutPaciente" style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.8;">RUT: No registrado</p>
+                    </div>
+                    <div class="historial-body" id="contenedorHistorial">
+                        <div style="text-align: center; color: #888; margin-top: 40px;">
+                            <span class="material-symbols-outlined" style="font-size: 2rem;">history</span>
+                            <p>Cargando historial clínico...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nueva-evo-panel">
+                    <h3 class="form-section-title"><span class="material-symbols-outlined">edit_document</span> Registrar Nueva Atención</h3>
+                    
+                    <form id="formFichaClinica">
+                        <label class="input-label" style="font-weight: bold; color: #475569;">Motivo de Consulta (Anamnesis)</label>
+                        <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude por dolor en pieza 1.4 al morder..."></textarea>
+
+                        <label class="input-label" style="font-weight: bold; color: #475569;">Acción Realizada / Procedimiento Clínico</label>
+                        <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación de urgencia, se receta amoxicilina 500mg..."></textarea>
+
+                        <label class="input-label" style="font-weight: bold; color: #475569;">Presupuesto Generado ($ CLP)</label>
+                        <div class="presupuesto-input-group">
+                            <span class="material-symbols-outlined" style="color: var(--green-success); font-size: 2rem;">payments</span>
+                            <input type="number" id="fichaPresupuesto" placeholder="0" value="0">
+                        </div>
+
+                        <button type="button" class="btn-pixar btn-full" id="btnGuardarFicha" onclick="guardarFichaClinica()">
+                            <span class="material-symbols-outlined">save</span> Guardar Evolución Médica
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        // Extraer el nombre del paciente de la URL (Ej: ficha-paciente.html?paciente=Pedro+Diaz)
+        const urlParams = new URLSearchParams(window.location.search);
+        const pacienteNombreURL = urlParams.get('paciente') || 'Paciente de Urgencia';
+        const presupuestoURL = urlParams.get('presupuesto') || 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar UI
+            document.getElementById('headerNombrePaciente').innerText = pacienteNombreURL;
+            document.getElementById('panelNombrePaciente').innerText = pacienteNombreURL;
+            document.getElementById('fichaPresupuesto').value = presupuestoURL;
+            
+            cargarHistorialPaciente();
+        });
+
+        // 1. CARGAR EL HISTORIAL DEL PACIENTE DESDE SUPABASE
+        async function cargarHistorialPaciente() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('contenedorHistorial');
+            
+            if (!dentistaId) return;
+
+            try {
+                const { data: historial, error } = await window.midental
+                    .from('fichas_clinicas')
+                    .select('*')
+                    .eq('dentista_id', dentistaId)
+                    .ilike('paciente_nombre', `%${pacienteNombreURL}%`) // Busca coincidencias de nombre
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                contenedor.innerHTML = "";
+
+                if (historial.length === 0) {
+                    contenedor.innerHTML = `
+                        <div style="text-align: center; color: #888; margin-top: 40px; background: white; padding: 20px; border-radius: 10px; border: 1px dashed #ccc;">
+                            <p>No hay atenciones previas registradas para este paciente.</p>
+                        </div>`;
+                    return;
+                }
+
+                historial.forEach(ficha => {
+                    const fechaAtencion = new Date(ficha.created_at).toLocaleDateString('es-CL', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                    
+                    contenedor.innerHTML += `
+                        <div class="evolucion-card">
+                            <div class="evo-date">${fechaAtencion}</div>
+                            <div class="evo-title">Motivo:</div>
+                            <div class="evo-text">${ficha.motivo_consulta || 'Sin especificar'}</div>
+                            <div class="evo-title" style="margin-top: 10px;">Acción Clínica:</div>
+                            <div class="evo-text">${ficha.accion_realizada || 'Sin acción registrada'}</div>
+                            ${ficha.presupuesto_total > 0 ? `<div class="evo-price">Presupuesto: $${ficha.presupuesto_total.toLocaleString('es-CL')}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+            } catch (err) {
+                contenedor.innerHTML = `<p style="color: red; text-align: center;">Error al cargar historial.</p>`;
+                console.error(err);
+            }
+        }
+
+        // 2. GUARDAR LA NUEVA EVOLUCIÓN EN SUPABASE
+        async function guardarFichaClinica() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const motivo = document.getElementById('fichaMotivo').value.trim();
+            const accion = document.getElementById('fichaAccion').value.trim();
+            const presupuesto = document.getElementById('fichaPresupuesto').value || 0;
+            const btn = document.getElementById('btnGuardarFicha');
+
+            if (!motivo || !accion) {
+                return alert("⚠️ Debes ingresar el motivo de consulta y la acción realizada.");
+            }
+
+            btn.innerHTML = "Guardando...";
+            btn.disabled = true;
+
+            try {
+                const { error } = await window.midental
+                    .from('fichas_clinicas')
+                    .insert([{
+                        dentista_id: dentistaId,
+                        paciente_nombre: pacienteNombreURL,
+                        motivo_consulta: motivo,
+                        accion_realizada: accion,
+                        presupuesto_total: parseInt(presupuesto)
+                    }]);
+
+                if (error) throw error;
+
+                alert("✅ Evolución clínica guardada exitosamente. Se mantendrá por 15 años según normativa.");
+                
+                // Limpiar formulario y recargar historial
+                document.getElementById('fichaMotivo').value = '';
+                document.getElementById('fichaAccion').value = '';
+                document.getElementById('fichaPresupuesto').value = '0';
+                cargarHistorialPaciente();
+
+            } catch (err) {
+                alert("Error al guardar: " + err.message);
+            } finally {
+                btn.innerHTML = `<span class="material-symbols-outlined">save</span> Guardar Evolución Médica`;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+/* ========================================== */
+/* 1. VARIABLES GLOBALES Y RESETEO            */
+/* ========================================== */
+:root {
+    --blue-elegant: #0A3D62;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --white: #FFFFFF;
+    --pixar-cyan: #00A8FF;
+    --pixar-cyan-shadow: #0086CC;
+    --pixar-orange: #FFA502;
+    --pixar-orange-shadow: #e69500;
+    --green-success: #2ED573;
+    --red-urgency: #FF4757;
+    --dentist-purple: #9b59b6;
+    --dentist-purple-shadow: #8e44ad;
+}
+
+* {
+    margin: 0; padding: 0; box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+    background-color: #f8f9fa; color: var(--text-dark); overflow-x: hidden;
+}
+
+/* Fondo Azul Elegante (Profundo) */
+.background-container {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(135deg, var(--blue-elegant), #06243b);
+    z-index: -2; 
+}
+
+/* ========================================== */
+/* 2. BARRA DE NAVEGACIÓN (NAVBAR)            */
+/* ========================================== */
+.navbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 5%; background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.logo { display: flex; align-items: center; gap: 10px; color: var(--blue-elegant); cursor: pointer; }
+.icon-large { font-size: 2rem; color: var(--pixar-cyan); }
+.logo h1 { font-size: 1.5rem; letter-spacing: -0.5px; }
+
+.nav-links { display: flex; gap: 30px; }
+.nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--pixar-cyan); }
+
+.nav-buttons { display: flex; gap: 12px; align-items: center; }
+
+/* Botones Base */
+.btn-pixar {
+    border: none; border-radius: 12px; font-weight: bold; font-size: 0.9rem;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: transform 0.1s; padding: 10px 18px; color: var(--white);
+}
+.btn-pixar:active { transform: translateY(4px); box-shadow: 0 0 0 transparent !important; }
+
+/* Animación de Ofertas Flash */
+@keyframes palpitar-small {
+    0% { transform: scale(1); box-shadow: 0 4px 0 var(--dentist-purple-shadow); }
+    50% { transform: scale(1.03); box-shadow: 0 4px 0 var(--dentist-purple-shadow), 0 0 15px rgba(155, 89, 182, 0.5); }
+    100% { transform: scale(1); box-shadow: 0 4px 0 var(--dentist-purple-shadow); }
+}
+
+/* Variantes de Botones Restauradas */
+.btn-paciente { background-color: var(--pixar-cyan); box-shadow: 0 4px 0 var(--pixar-cyan-shadow); }
+.btn-dentista { background-color: var(--pixar-orange); box-shadow: 0 4px 0 var(--pixar-orange-shadow); color: white; } /* Mostaza restaurado */
+.btn-ofertas { background-color: var(--dentist-purple); box-shadow: 0 4px 0 var(--dentist-purple-shadow); animation: palpitar-small 2s infinite; border-radius: 20px; padding: 12px 25px; font-size: 1rem;} /* Morado Restaurado */
+.btn-login-outline { background: transparent; border: 2px solid var(--pixar-cyan); color: var(--pixar-cyan); font-weight: bold; padding: 8px 18px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 0.9rem;}
+.btn-login-outline:hover { background: rgba(0, 168, 255, 0.1); }
+
+/* ========================================== */
+/* 3. SECCIÓN HERO (El Nuevo Diseño Elegante) */
+/* ========================================== */
+.hero-section {
+    min-height: 85vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 20px;
+}
+
+/* Texto libre y blanco sobre fondo azul */
+.hero-text-wrapper {
+    max-width: 850px; margin-bottom: 40px; color: var(--white);
+}
+.hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px; text-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+.hero-subtitle { font-size: 1.2rem; opacity: 0.9; font-weight: 300; line-height: 1.6; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.hero-subtitle strong { font-weight: 600; color: var(--pixar-cyan); }
+
+/* Buscador Píldora Elegante */
+.search-pill-container {
+    display: flex; background: var(--white); padding: 8px 8px 8px 20px;
+    border-radius: 50px; /* Redondez extrema estilo Airbnb */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    align-items: center; width: 100%; max-width: 850px; margin-bottom: 30px;
+}
+
+.search-input-group { display: flex; align-items: center; flex: 1; padding: 10px; }
+.icon-cyan { color: var(--pixar-cyan); margin-right: 10px; font-size: 1.5rem; font-weight: bold; }
+.search-divider { width: 1px; height: 35px; background: #e0e0e0; margin: 0 10px; }
+
+.apple-input { border: none; outline: none; width: 100%; font-size: 1.05rem; color: var(--text-dark); background: transparent; }
+
+/* Botón Buscar Redondeado */
+.btn-search-round { background-color: var(--pixar-cyan); box-shadow: 0 4px 0 var(--pixar-cyan-shadow); padding: 15px 35px; border-radius: 40px; font-size: 1.1rem; }
+
+/* Contenedor Ofertas Separado */
+.hero-ofertas-wrapper { display: flex; justify-content: center; margin-top: 10px; }
+
+/* ========================================== */
+/* 4. SECCIÓN MAPA DEMO                       */
+/* ========================================== */
+.map-agenda-section { padding: 80px 5%; background: #f8f9fa; border-radius: 40px 40px 0 0; margin-top: -40px; position: relative; z-index: 5; }
+.module-container { max-width: 1000px; margin: 0 auto; }
+.module-container h3 { text-align: center; color: var(--blue-elegant); font-size: 2rem; margin-bottom: 40px; }
+
+.map-placeholder { position: relative; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); height: 500px; background: #e5e5e5; }
+.map-image { width: 100%; height: 100%; object-fit: cover; }
+
+.agenda-overlay { position: absolute; bottom: 30px; left: 30px; }
+.agenda-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; display: flex; gap: 20px; align-items: center; box-shadow: 0 15px 30px rgba(0,0,0,0.15); animation: flotar 3s ease-in-out infinite; }
+@keyframes flotar { 0% { transform: translateY(0); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0); } }
+
+.doc-pic { width: 70px; height: 70px; border-radius: 15px; object-fit: cover; }
+.doc-info h4 { color: var(--blue-elegant); font-size: 1.2rem; margin-bottom: 5px; }
+.doc-info p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 15px; }
+.btn-small { padding: 8px 15px; font-size: 0.85rem; background-color: var(--pixar-cyan); box-shadow: 0 4px 0 var(--pixar-cyan-shadow); color: white; border: none; border-radius: 10px; cursor: pointer; }
+
+/* ========================================== */
+/* 5. SECCIÓN ¿QUÉ ES MIDENTISTA? Y FAQ       */
+/* ========================================== */
+.about-section { background-color: #ffffff; }
+.faq-section { background-color: #f8f9fa; }
+
+.container-narrow { max-width: 1000px; margin: 0 auto; padding: 80px 20px; }
+.section-title-center { text-align: center; margin-bottom: 50px; }
+.section-title-center h2 { color: var(--blue-elegant); font-size: 2.5rem; margin-bottom: 15px; }
+.section-title-center p { color: var(--text-light); font-size: 1.1rem; line-height: 1.5;}
+
+.about-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+.about-card { background: #f8f9fa; padding: 40px 30px; border-radius: 30px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.03); transition: transform 0.3s; border: 1px solid transparent; }
+.about-card:hover { transform: translateY(-10px); border-color: rgba(0, 168, 255, 0.2); background: white; box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+
+.icon-wrapper { background: #e6f5ff; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; }
+.icon-huge { font-size: 2.5rem; color: var(--pixar-cyan); }
+.about-card h3 { color: var(--blue-elegant); font-size: 1.3rem; margin-bottom: 15px; }
+.about-card p { color: var(--text-light); font-size: 0.95rem; line-height: 1.6; }
+
+/* Tarjeta Info B2B (Dentistas) */
+.mt-50 { margin-top: 50px; }
+.mt-20 { margin-top: 20px; }
+.b2b-info-box { background: linear-gradient(135deg, var(--blue-elegant), #0d4a76); border-radius: 30px; padding: 40px; color: white; display: flex; align-items: center; justify-content: space-between; gap: 30px; box-shadow: 0 15px 35px rgba(10, 61, 98, 0.3); }
+.b2b-info-content { flex: 1; }
+.b2b-info-content h3 { font-size: 1.6rem; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: #fff; }
+.b2b-info-content p { font-size: 1.05rem; line-height: 1.6; opacity: 0.9; margin-bottom: 20px; }
+.b2b-huge-icon { font-size: 6rem; color: var(--pixar-orange); opacity: 0.9; }
+
+/* Acordeón FAQ */
+.faq-accordion { display: flex; flex-direction: column; gap: 15px; max-width: 800px; margin: 0 auto; }
+.faq-item { background: white; border-radius: 20px; overflow: hidden; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+.faq-question { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; background: transparent; border: none; font-size: 1.1rem; font-weight: bold; color: var(--blue-elegant); cursor: pointer; text-align: left; transition: background 0.2s; }
+.faq-question:hover { background: #f0f8ff; }
+.expand-icon { color: var(--pixar-cyan); transition: transform 0.3s; }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white; }
+.faq-answer p { padding: 0 25px 25px 25px; color: var(--text-light); line-height: 1.6; font-size: 0.95rem; }
+
+.faq-item.active .faq-answer { max-height: 200px; }
+.faq-item.active .expand-icon { transform: rotate(180deg); }
+
+/* ========================================== */
+/* 6. MODALES (Pop-ups de Registro/Login)     */
+/* ========================================== */
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(10, 61, 98, 0.8); backdrop-filter: blur(8px);
+    z-index: 2000; justify-content: center; align-items: center;
+}
+
+.modal-content, .modal-ofertas-content {
+    background: var(--white); padding: 40px 30px; border-radius: 30px;
+    position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    animation: aparecerModal 0.3s ease-out;
+}
+.modal-content { width: 90%; max-width: 400px; text-align: center; }
+.modal-ofertas-content { width: 90%; max-width: 600px; }
+
+@keyframes aparecerModal { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn-close { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: #999; cursor: pointer; transition: color 0.2s; }
+.btn-close:hover { color: var(--text-dark); }
+
+.modal-title { font-size: 1.8rem; color: var(--blue-elegant); margin-bottom: 5px; }
+.modal-subtitle { font-size: 0.95rem; color: var(--text-light); margin-bottom: 25px; }
+
+.btn-google { background: white; color: var(--text-dark); border: 1px solid #ddd; width: 100%; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.icon-google { width: 20px; height: 20px; }
+
+.divider { display: flex; align-items: center; text-align: center; margin-bottom: 20px; color: #aaa; font-size: 0.85rem; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
+.divider span { padding: 0 10px; }
+
+.form-registro { display: flex; flex-direction: column; gap: 15px; }
+.input-group-modal { display: flex; align-items: center; background: #f5f5f7; padding: 12px 20px; border-radius: 20px; border: 1px solid transparent; transition: border 0.3s; }
+.input-group-modal:focus-within { border-color: var(--pixar-cyan); background: white; }
+.input-group-modal span { color: var(--blue-elegant); margin-right: 10px; }
+.apple-input-modal { border: none; outline: none; background: transparent; font-size: 1rem; width: 100%; color: var(--blue-elegant); }
+
+.checkbox-group { display: flex; align-items: flex-start; gap: 10px; text-align: left; font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px; }
+.checkbox-group a { color: var(--pixar-cyan); text-decoration: none; }
+.btn-full { width: 100%; justify-content: center; margin-top: 10px; }
+
+.modal-footer-text { margin-top: 25px; text-align: center; font-size: 0.9rem; color: var(--text-light); border-top: 1px solid #eee; padding-top: 15px; }
+.modal-footer-text a { color: var(--pixar-cyan); font-weight: bold; text-decoration: none; cursor: pointer; }
+.modal-footer-text a:hover { text-decoration: underline; }
+
+/* Ofertas Grid (Modal Ofertas) */
+.ofertas-header { text-align: center; margin-bottom: 20px; }
+.ofertas-header h2 { color: var(--blue-elegant); }
+.ofertas-grid { display: flex; flex-direction: column; gap: 15px; max-height: 60vh; overflow-y: auto; padding-right: 10px; }
+.oferta-card { display: flex; background: #f8f9fa; border-radius: 20px; overflow: hidden; border: 1px solid #eee; position: relative; }
+.oferta-badge { position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 4px; color: white; }
+.time-critical { background: var(--red-urgency); animation: parpadeo 1s infinite; }
+.time-warning { background: var(--pixar-orange); }
+@keyframes parpadeo { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+.oferta-img { width: 150px; object-fit: cover; }
+.oferta-info { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.oferta-info h4 { color: var(--blue-elegant); font-size: 1.1rem; margin-bottom: 5px; }
+.clinica-name { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.oferta-precios { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.precio-old { text-decoration: line-through; color: #999; font-size: 0.9rem; }
+.precio-new { color: var(--green-success); font-weight: bold; font-size: 1.2rem; }
+
+/* ========================================== */
+/* 7. RESPONSIVIDAD (MÓVILES)                 */
+/* ========================================== */
+@media (max-width: 900px) {
+    .nav-links { display: none; }
+    .nav-buttons { flex-wrap: wrap; justify-content: center; }
+    
+    .hero-section { min-height: 70vh; }
+    .hero-title { font-size: 2.5rem; }
+    
+    .search-pill-container { flex-direction: column; border-radius: 25px; padding: 15px; }
+    .search-input-group { width: 100%; }
+    .search-divider { width: 100%; height: 1px; margin: 5px 0; }
+    .btn-search-round { width: 100%; border-radius: 15px; margin-top: 10px; }
+    
+    .agenda-overlay { position: static; margin-top: -30px; padding: 0 20px; }
+    .oferta-card { flex-direction: column; }
+    .oferta-img { width: 100%; height: 150px; }
+    
+    .b2b-info-box { flex-direction: column; text-align: center; }
+    .b2b-huge-icon { display: none; }
+}/* ========================================== */
+/* CARRUSEL DE DISPONIBILIDAD (PACIENTE)      */
+/* ========================================== */
+
+.modal-section-title {
+    color: var(--blue-elegant);
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.calendar-slider-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+/* El contenedor que se desliza */
+.calendar-days-container {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 5px 2px;
+    flex: 1;
+    /* Ocultar barra de scroll en Chrome/Safari */
+    -webkit-overflow-scrolling: touch;
+}
+.calendar-days-container::-webkit-scrollbar { display: none; }
+.calendar-days-container { -ms-overflow-style: none; scrollbar-width: none; } /* Firefox y Edge */
+
+/* Flechas de navegación */
+.slider-arrow {
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    color: var(--blue-elegant);
+    transition: all 0.2s;
+    z-index: 2;
+    flex-shrink: 0;
+}
+.slider-arrow:hover {
+    background: var(--pixar-cyan);
+    color: white;
+    border-color: var(--pixar-cyan);
+    transform: scale(1.1);
+}
+
+/* Columnas de cada día */
+.patient-day-col {
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.day-header {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+.day-header strong {
+    display: block;
+    color: var(--blue-elegant);
+    font-size: 1.1rem;
+}
+
+/* Botones de Horas (Slots) */
+.patient-time-slot {
+    background: transparent;
+    border: 1px solid var(--pixar-cyan);
+    color: var(--pixar-cyan);
+    padding: 8px 0;
+    width: 100%;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.patient-time-slot:hover {
+    background: #e6f5ff;
+}
+
+/* Estado Seleccionado */
+.patient-time-slot.selected {
+    background: var(--pixar-cyan);
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 168, 255, 0.3);
+}
+
+/* Para días sin horas (Texto "Sin turnos") */
+.no-slots-text {
+    font-size: 0.8rem;
+    color: #ccc;
+    margin-top: 10px;
+}/* --- ESTILOS DEL NUEVO LOGO --- */
+.logo-img {
+    height: 45px; /* Ajusta este valor según el tamaño de tu barra de navegación */
+    width: auto;
+    object-fit: contain;
+    /* Si la imagen tiene fondo blanco y quieres integrarla en un navbar oscuro temporalmente: */
+    /* mix-blend-mode: screen; o puedes aplicar un filtro si es necesario */
+}
+
+/* --- SECCIÓN: ¿QUÉ ES MIDENTAL? --- */
+.about-section {
+    padding: 60px 20px;
+    background-color: #ffffff; /* Contraste limpio con el fondo oscuro del hero */
+    color: #1a2b4c; /* Tono oscuro para legibilidad */
+    display: flex;
+    justify-content: center;
+    border-radius: 40px 40px 0 0; /* Suaviza la transición desde el header */
+    margin-top: -30px; /* Para solapar ligeramente con la sección anterior si es necesario */
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+}
+
+.about-container {
+    max-width: 1000px;
+    width: 100%;
+}
+
+.about-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.about-text h2 {
+    font-size: 2.2rem;
+    color: #0b192c; /* Puedes usar aquí la variable de tu azul oscuro */
+    margin-bottom: 15px;
+}
+
+.about-text .highlight-text {
+    font-size: 1.3rem;
+    color: #00b4d8; /* Ajusta al cyan que usas en el frontend */
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.about-text p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #4a5568;
+}
+
+.about-visual {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #00b4d8 0%, #4ade80 100%); /* Los tonos azul y verde de tu nuevo logo */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    box-shadow: 0 10px 25px rgba(0, 180, 216, 0.3);
+}
+
+.about-visual .massive-icon {
+    font-size: 60px;
+    color: white;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 768px) {
+    .about-content {
+        flex-direction: column-reverse;
+        text-align: center;
+    }
+    
+    .about-text h2 {
+        font-size: 1.8rem;
+    }
+}/* =========================================
+   DISEÑO DE BOTONES PRINCIPALES (AZUL CORPORATIVO)
+   ========================================= */
+
+.btn-pixar {
+    background: linear-gradient(135deg, #007AFF 0%, #0056b3 100%) !important; /* Azul eléctrico a azul marino */
+    color: #ffffff !important;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 30px; /* Bordes redondeados modernos */
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3) !important;
+    text-transform: none;
+}
+
+/* Efecto al pasar el mouse */
+.btn-pixar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.5) !important;
+    background: linear-gradient(135deg, #0088FF 0%, #0062cc 100%) !important;
+}
+
+/* Efecto al hacer clic */
+.btn-pixar:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(0, 122, 255, 0.3) !important;
+}
+
+/* Variación específica para los Dentistas (Opcional, si quieres diferenciarlos por color verde) */
+.btn-pixar.btn-dentista {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-pixar.btn-dentista:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Obligar a los botones de bloque completo a ocupar todo el ancho */
+.btn-full {
+    width: 100%;
+    margin-top: 10px;
+}@media print {
+    body * { visibility: hidden; }
+    #modalPresupuesto, #modalPresupuesto * { visibility: visible; }
+    #modalPresupuesto { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
+    .btn-close, button { display: none !important; } /* Ocultar botones en la impresión */
+}

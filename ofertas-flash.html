@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDental - Ofertas Flash</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .active-offer-monitor { background: linear-gradient(135deg, #1e272e, #2d3436); border-radius: 18px; padding: 20px; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-left: 5px solid var(--pixar-orange); }
+        .stat-box strong { font-variant-numeric: tabular-nums; }
+        .discount-badge { transition: all 0.3s ease; opacity: 0.3; transform: scale(0.9); }
+        .discount-badge.active-discount { opacity: 1; transform: scale(1); background: var(--pixar-orange); color: white; }
+        
+        /* Zona de Carga de Imagen */
+        .upload-promo-area { border: 2px dashed #cbd5e1; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; background: #f8fafc; position: relative; }
+        .upload-promo-area:hover { border-color: var(--pixar-cyan); background: white; }
+        .promo-preview-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; display: none; margin-top: 10px; }
+        .duration-card { flex: 1; cursor: pointer; border: 2px solid #eee; padding: 15px; border-radius: 15px; text-align: center; transition: 0.2s; }
+        .duration-card.selected { border-color: var(--pixar-cyan); background: #f0f8ff; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
+                <h2>MiDental</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="ofertas-flash.html" class="nav-item active"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
+                <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
+                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            
+            <header class="topbar">
+                <div class="welcome-text">
+                    <h1>Ofertas Flash ⚡</h1>
+                    <p>Atrae pacientes de inmediato publicando promociones relámpago.</p>
+                </div>
+                
+                <div class="topbar-right-area">
+                    <div class="token-monedero-header">
+                        <div class="token-info-header"><span>Monedero</span><small>Tokens activos</small></div>
+                        <div class="token-balance-header pulse-glow-purple">
+                            <span class="material-symbols-outlined">toll</span>
+                            <strong id="headerTokenBalance">--</strong>
+                        </div>
+                    </div>
+                    <div class="topbar-profile">
+                        <img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" class="profile-pic">
+                    </div>
+                </div>
+            </header>
+
+            <div class="active-offer-monitor mb-20" id="monitorOfertaActiva" style="display: none;">
+                <div class="monitor-header">
+                    <div class="monitor-title">
+                        <span class="material-symbols-outlined pulse-icon">sensors</span>
+                        <h3>Campaña en curso: <span id="monitorNombrePrestacion">---</span></h3>
+                    </div>
+                    <button class="btn-login-outline btn-small" style="color: var(--red-urgency); border-color: var(--red-urgency);" onclick="detenerOferta()">Apagar Anuncio</button>
+                </div>
+                
+                <div class="monitor-stats mt-20">
+                    <div class="stat-box time-box">
+                        <span class="material-symbols-outlined">event_busy</span>
+                        <div><small>Finaliza el:</small><strong id="monitorCronometro">--/--/----</strong></div>
+                    </div>
+                    <div class="stat-box conversion-box">
+                        <span class="material-symbols-outlined">visibility</span>
+                        <div><small>Impactos Visuales</small><strong>0</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flash-dashboard-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                
+                <div class="offer-creator-panel" style="background: white; padding: 25px; border-radius: 20px; border: 1px solid #eee;">
+                    <h2 class="section-title" style="color: var(--blue-elegant); border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Nueva Publicación</h2>
+                    
+                    <div class="templates-section mt-20">
+                        <p class="subtitle" style="font-weight: bold; margin-bottom: 10px;">1. Selecciona un servicio:</p>
+                        <div class="templates-chips" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <button class="chip-template active" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer;" onclick="usarPlantilla('Limpieza Dental Profunda', 45000, 19990, this)">Limpieza</button>
+                            <button class="chip-template" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer;" onclick="usarPlantilla('Blanqueamiento LED', 80000, 39990, this)">Blanqueamiento</button>
+                            <button class="chip-template" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer;" onclick="limpiarPlantilla(this)">Personalizado</button>
+                        </div>
+                        <input type="text" id="inputNombrePrestacion" placeholder="Nombre del servicio (Ej: Evaluación de Ortodoncia)" class="apple-input-modal" value="Limpieza Dental Profunda">
+                    </div>
+
+                    <div class="pricing-section mt-20">
+                        <p class="subtitle" style="font-weight: bold; margin-bottom: 10px;">2. Configura los Precios:</p>
+                        <div class="pricing-inputs-grid" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: center;">
+                            <div class="input-col">
+                                <label style="font-size: 0.75rem; color: #888;">Precio Normal ($)</label>
+                                <input type="number" id="inputPrecioReal" class="apple-input-modal" oninput="calcularDescuento()" value="45000">
+                            </div>
+                            <div class="input-col">
+                                <label style="font-size: 0.75rem; color: var(--pixar-cyan); font-weight: bold;">Precio Oferta ($)</label>
+                                <input type="number" id="inputPrecioOferta" class="apple-input-modal" oninput="calcularDescuento()" style="border-color: var(--pixar-cyan);" value="19990">
+                            </div>
+                            <div class="discount-badge active-discount" id="badgeDescuento" style="padding: 10px; border-radius: 12px; background: var(--pixar-orange); color: white; text-align: center; min-width: 80px;">
+                                <strong id="textoDescuento">56% OFF</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="image-section mt-20">
+                        <p class="subtitle" style="font-weight: bold; margin-bottom: 10px;">3. Imagen Promocional (Obligatoria):</p>
+                        <div class="upload-promo-area" onclick="document.getElementById('inputFotoPromo').click()">
+                            <div id="uploadPlaceholder">
+                                <span class="material-symbols-outlined" style="font-size: 2.5rem; color: #cbd5e1;">add_photo_alternate</span>
+                                <p style="margin: 5px 0 0 0; color: #64748b;">Sube una foto atractiva del tratamiento</p>
+                            </div>
+                            <img src="" id="promoPreview" class="promo-preview-img">
+                        </div>
+                        <input type="file" id="inputFotoPromo" accept="image/*" style="display: none;" onchange="mostrarPreviewPromocion(this)">
+                    </div>
+
+                    <div class="duration-section mt-20">
+                        <p class="subtitle" style="font-weight: bold; margin-bottom: 10px;">4. Duración y Costo de la Campaña:</p>
+                        <div class="duration-options" style="display: flex; gap: 10px;">
+                            <div class="duration-card selected" data-dias="1" data-costo="1" onclick="seleccionarDuracion(this)">
+                                <strong>1 Día (Destacado)</strong><br><span style="color: var(--dentist-purple); font-weight: bold;">1 Token</span>
+                            </div>
+                            <div class="duration-card" data-dias="7" data-costo="5" onclick="seleccionarDuracion(this)">
+                                <strong>7 Días (Semana)</strong><br><span style="color: var(--dentist-purple); font-weight: bold;">5 Tokens</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-pixar btn-ofertas btn-full mt-20" id="btnPublicarOferta" onclick="publicarOfertaEnSupabase()" style="padding: 18px; font-size: 1.1rem; background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);">
+                        <span class="material-symbols-outlined">rocket_launch</span> Publicar en el Mapa (-1 Token)
+                    </button>
+                </div>
+
+                <div class="token-info-sidebar">
+                    <div class="wallet-summary-card" style="background: white; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid #eee; position: sticky; top: 20px;">
+                        <h3 style="color: var(--blue-elegant); margin-top: 0;">Tu Monedero</h3>
+                        <div class="big-token-display" style="font-size: 3rem; color: var(--dentist-purple); margin: 15px 0; font-weight: 900; text-shadow: 0 4px 10px rgba(155, 89, 182, 0.2);">
+                            <span class="material-symbols-outlined" style="font-size: 2.5rem; vertical-align: middle;">toll</span>
+                            <span id="sidebarTokenBalance">--</span>
+                        </div>
+                        <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">Utiliza tus tokens para posicionarte primero en el mapa de pacientes.</p>
+                        <button class="btn-pixar btn-full" style="background: var(--blue-elegant);" onclick="window.location.href='monedero-dentista.html'">
+                            <span class="material-symbols-outlined">add_shopping_cart</span> Comprar Tokens
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        let costoTokensActual = 1;
+        let diasDuracionActual = 1;
+        let archivoPromoSeleccionado = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // sincronizarDatosGlobales() de app.js cargará el saldo de tokens automáticamente
+            cargarOfertaActiva();
+        });
+
+        // Lógica de Interfaz Local
+        function usarPlantilla(n, pr, po, el) {
+            document.querySelectorAll('.chip-template').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'inherit'; });
+            el.classList.add('active');
+            el.style.background = 'var(--blue-elegant)';
+            el.style.color = 'white';
+            
+            document.getElementById('inputNombrePrestacion').value = n;
+            document.getElementById('inputPrecioReal').value = pr;
+            document.getElementById('inputPrecioOferta').value = po;
+            calcularDescuento();
+        }
+
+        function limpiarPlantilla(el) {
+            document.querySelectorAll('.chip-template').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'inherit'; });
+            el.classList.add('active');
+            el.style.background = 'var(--blue-elegant)';
+            el.style.color = 'white';
+            
+            document.getElementById('inputNombrePrestacion').value = '';
+            document.getElementById('inputPrecioReal').value = '';
+            document.getElementById('inputPrecioOferta').value = '';
+            calcularDescuento();
+        }
+
+        function calcularDescuento() {
+            const r = parseFloat(document.getElementById('inputPrecioReal').value);
+            const o = parseFloat(document.getElementById('inputPrecioOferta').value);
+            const badge = document.getElementById('badgeDescuento');
+            if (r > 0 && o > 0 && r > o) {
+                const p = Math.round(100 - ((o / r) * 100));
+                document.getElementById('textoDescuento').innerText = p + "% OFF";
+                badge.classList.add('active-discount');
+            } else {
+                badge.classList.remove('active-discount');
+                document.getElementById('textoDescuento').innerText = "0% OFF";
+            }
+        }
+
+        function seleccionarDuracion(el) {
+            document.querySelectorAll('.duration-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            costoTokensActual = parseInt(el.getAttribute('data-costo'));
+            diasDuracionActual = parseInt(el.getAttribute('data-dias'));
+            
+            document.getElementById('btnPublicarOferta').innerHTML = `<span class="material-symbols-outlined">rocket_launch</span> Publicar en el Mapa (-${costoTokensActual} Tokens)`;
+        }
+
+        function mostrarPreviewPromocion(input) {
+            if (input.files && input.files[0]) {
+                archivoPromoSeleccionado = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    const img = document.getElementById('promoPreview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        // ==========================================
+        // COMUNICACIÓN CON SUPABASE
+        // ==========================================
+
+        async function publicarOfertaEnSupabase() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            if (!dentistaId) return alert("Sesión inválida.");
+
+            const nombre = document.getElementById('inputNombrePrestacion').value.trim();
+            const pReal = document.getElementById('inputPrecioReal').value;
+            const pOferta = document.getElementById('inputPrecioOferta').value;
+            const btn = document.getElementById('btnPublicarOferta');
+
+            // Validaciones
+            if (!nombre || !pReal || !pOferta) return alert("Completa todos los datos de la oferta.");
+            if (!archivoPromoSeleccionado) return alert("⚠️ Debes subir una imagen promocional obligatoriamente.");
+            
+            // Verificar saldo actual (lo leemos visualmente del DOM que ya fue sincronizado por app.js)
+            const saldoActual = parseInt(document.getElementById('sidebarTokenBalance').innerText);
+            if (isNaN(saldoActual) || saldoActual < costoTokensActual) {
+                return alert(`Saldo insuficiente. Necesitas ${costoTokensActual} tokens y tienes ${saldoActual}. Ve al Monedero para recargar.`);
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = "Subiendo imagen y publicando...";
+
+            try {
+                // 1. Subir la Imagen Promocional al Storage
+                const fileExt = archivoPromoSeleccionado.name.split('.').pop();
+                const fileName = `promo_${dentistaId}_${Date.now()}.${fileExt}`;
+                const { error: uploadError } = await window.midental.storage.from('ofertas').upload(fileName, archivoPromoSeleccionado);
+                
+                if (uploadError) throw new Error("Error al subir la imagen: " + uploadError.message);
+                
+                const { data: urlData } = window.midental.storage.from('ofertas').getPublicUrl(fileName);
+                const imagenPublicUrl = urlData.publicUrl;
+
+                // 2. Calcular fecha de expiración
+                const fechaExpiracion = new Date();
+                fechaExpiracion.setDate(fechaExpiracion.getDate() + diasDuracionActual);
+
+                // 3. Guardar la Oferta en la Tabla
+                const { error: insertError } = await window.midental.from('ofertas_flash').insert([{
+                    dentista_id: dentistaId,
+                    servicio_nombre: nombre,
+                    precio_real: parseInt(pReal),
+                    precio_oferta: parseInt(pOferta),
+                    expira_at: fechaExpiracion.toISOString(),
+                    imagen_url: imagenPublicUrl,
+                    tokens_costo: costoTokensActual,
+                    activa: true
+                }]);
+
+                if (insertError) throw new Error("Error al guardar la oferta: " + insertError.message);
+
+                // 4. Descontar los Tokens del Perfil del Dentista
+                const nuevoSaldo = saldoActual - costoTokensActual;
+                const { error: tokenError } = await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', dentistaId);
+
+                if (tokenError) throw new Error("La oferta se publicó, pero hubo un error actualizando tu saldo.");
+
+                // 5. Éxito
+                alert("🚀 ¡Campaña activa! Los pacientes ya pueden verla destacada en el mapa.");
+                sincronizarDatosGlobales(); // Actualiza los números del monedero en la cabecera
+                cargarOfertaActiva();
+
+                // Limpiar formulario
+                archivoPromoSeleccionado = null;
+                document.getElementById('uploadPlaceholder').style.display = 'block';
+                document.getElementById('promoPreview').style.display = 'none';
+                limpiarPlantilla(document.querySelector('.chip-template:last-child'));
+
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined">rocket_launch</span> Publicar en el Mapa (-${costoTokensActual} Tokens)`;
+            }
+        }
+
+        // Cargar la última oferta activa para mostrarla en el monitor
+        async function cargarOfertaActiva() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            if (!dentistaId) return;
+
+            const { data, error } = await window.midental
+                .from('ofertas_flash')
+                .select('*')
+                .eq('dentista_id', dentistaId)
+                .eq('activa', true)
+                .gte('expira_at', new Date().toISOString()) // Solo las que no han expirado
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (data) {
+                document.getElementById('monitorNombrePrestacion').innerText = data.servicio_nombre;
+                
+                const fechaExp = new Date(data.expira_at);
+                document.getElementById('monitorCronometro').innerText = fechaExp.toLocaleDateString('es-CL') + " " + fechaExp.toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'});
+                
+                document.getElementById('monitorOfertaActiva').style.display = 'block';
+                // Opcional: Podríamos guardar el ID de la oferta activa globalmente para apagarla luego
+                window.ofertaActivaId = data.id; 
+            } else {
+                document.getElementById('monitorOfertaActiva').style.display = 'none';
+            }
+        }
+
+        async function detenerOferta() {
+            if(!window.ofertaActivaId) return;
+            if(confirm("¿Estás seguro de detener esta campaña? Los tokens descontados no se devuelven.")) {
+                await window.midental.from('ofertas_flash').update({ activa: false }).eq('id', window.ofertaActivaId);
+                alert("Campaña detenida. Ya no aparecerás destacado en el mapa.");
+                cargarOfertaActiva();
+            }
+        }
+        // Y para inyectar los datos en el HTML:
+if(data) {
+    document.getElementById('dashCampaignName').innerText = data.servicio_nombre;
+    document.getElementById('dashCampaignReservas').innerText = data.clics_conteo || 0; // Muestra clics/reservas
+    // Configura el cronómetro restando data.expira_at a la fecha actual...
+}
+    </script>
+</body>
+</html>

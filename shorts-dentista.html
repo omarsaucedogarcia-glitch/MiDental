@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDental - Publicar Shorts</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .dashboard-layout { display: flex; height: 100vh; overflow: hidden; background: #f4f7f6; }
+        .shorts-creator-container { display: grid; grid-template-columns: 1fr 350px; gap: 25px; height: calc(100vh - 120px); }
+        .creator-main { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; overflow-y: auto; }
+        .creator-sidebar { display: flex; flex-direction: column; gap: 20px; overflow-y: auto; padding-right: 10px; }
+
+        /* Medidor de Cuota Freemium */
+        .quota-box { background: linear-gradient(135deg, #fdf5ff, #f0f8ff); border: 2px dashed var(--pixar-cyan); border-radius: 18px; padding: 20px; text-align: center; }
+        .quota-title { color: var(--blue-elegant); font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+        .quota-counter { font-size: 3rem; font-weight: 900; color: var(--pixar-cyan); display: flex; align-items: center; justify-content: center; gap: 5px; line-height: 1; }
+        .quota-counter span { font-size: 1.5rem; color: #aaa; font-weight: normal; }
+
+        /* Zona de subida */
+        .video-upload-zone { border: 2px dashed #ccc; border-radius: 15px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa; cursor: pointer; transition: 0.2s; margin-bottom: 20px; position: relative; }
+        .video-upload-zone:hover { border-color: var(--dentist-purple); background: #fdf5ff; color: var(--dentist-purple); }
+        
+        .my-shorts-card { background: white; border-radius: 15px; overflow: hidden; border: 1px solid #eee; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; position: relative; }
+        .short-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .short-thumb-placeholder { width: 100%; height: 120px; border-radius: 8px; background: #333; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; }
+
+        .btn-publish-premium { background: linear-gradient(45deg, #a855f7, #6366f1); color: white; border: none; padding: 18px; border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3); transition: 0.2s; }
+        .btn-publish-premium:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); }
+        .btn-publish-free { background: var(--green-success); color: white; border: none; padding: 18px; border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); transition: 0.2s; }
+        .btn-publish-free:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4); }
+        
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
+                <h2>MiDental</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
+                <a href="#" class="nav-item active"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
+                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <header class="topbar" style="margin-bottom: 15px; padding: 10px 25px;">
+                <div class="welcome-text">
+                    <h1 style="margin:0; font-size:1.5rem; color:var(--blue-elegant);">MiDental Shorts 🎬</h1>
+                    <p style="margin:5px 0 0; font-size:0.9rem; color:var(--text-light);">Conecta con nuevos pacientes a través de videos cortos.</p>
+                </div>
+                <div class="topbar-right-area">
+                    <div class="token-monedero-header">
+                        <div class="token-info-header"><span>Monedero</span><small>Tokens</small></div>
+                        <div class="token-balance-header pulse-glow-purple">
+                            <span class="material-symbols-outlined">toll</span><strong id="headerTokenBalance">--</strong>
+                        </div>
+                    </div>
+                    <div class="topbar-profile">
+                        <img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" class="profile-pic">
+                    </div>
+                </div>
+            </header>
+
+            <div class="shorts-creator-container">
+                <div class="creator-main">
+                    <h3 style="color: var(--blue-elegant); margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Subir Nuevo Video</h3>
+                    
+                    <div class="video-upload-zone" id="uploadZone" onclick="document.getElementById('inputVideoShort').click()">
+                        <span class="material-symbols-outlined" id="uploadIcon" style="font-size: 3rem; color: #cbd5e1;">movie</span>
+                        <h4 id="uploadText" style="margin: 10px 0 5px; color: #64748b;">Haz clic para seleccionar un video (.mp4)</h4>
+                        <p id="fileNameDisplay" style="color: var(--pixar-cyan); font-weight: bold; margin: 0;"></p>
+                    </div>
+                    <input type="file" id="inputVideoShort" accept="video/mp4,video/quicktime" style="display: none;" onchange="seleccionarArchivoVideo(this)">
+
+                    <form class="form-registro">
+                        <div class="mb-20">
+                            <label class="input-label" style="font-weight: bold;">Descripción del Short</label>
+                            <textarea id="shortDescription" class="apple-input-modal" placeholder="Ej: Así realizamos un blanqueamiento LED sin sensibilidad en Clínica X..." style="height: 80px; resize: none;"></textarea>
+                        </div>
+
+                        <div class="mb-20">
+                            <label class="input-label" style="font-weight: bold;">Llamado a la acción (Botón visible para el paciente)</label>
+                            <select id="shortCTA" class="apple-input-modal" style="background: white;">
+                                <option value="perfil">Ver mi Perfil Clínico</option>
+                                <option value="agenda">Agendar Cita Ahora</option>
+                                <option value="oferta">Ver Oferta Flash Activa</option>
+                            </select>
+                            <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">*Si el paciente selecciona 'Agendar Cita', se le pedirá iniciar sesión o registrarse.</p>
+                        </div>
+
+                        <button type="button" id="btnPublicarShort" class="btn-publish-free" onclick="lanzarShortReal()">
+                            <span class="material-symbols-outlined" style="vertical-align: middle;">publish</span> Publicar Video (Calculando Cuota...)
+                        </button>
+                    </form>
+                </div>
+
+                <div class="creator-sidebar">
+                    <div class="quota-box">
+                        <div class="quota-title">Cuota Semanal Gratuita</div>
+                        <div class="quota-counter">
+                            <span id="shortsUsed" style="color: var(--pixar-cyan);">0</span> <span style="font-size: 2rem;">/</span> <span style="color: #ccc; font-size: 2rem;">2</span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: #666; margin-top: 10px; line-height: 1.4;">
+                            Publica hasta 2 videos gratis por semana.<br>Videos adicionales cuestan <strong>1 Token</strong>.
+                        </p>
+                    </div>
+
+                    <div style="background: white; border-radius: 18px; padding: 20px; border: 1px solid #eee; flex: 1;">
+                        <h4 style="margin: 0 0 15px 0; color: var(--blue-elegant); display: flex; align-items: center; gap: 5px;">
+                            <span class="material-symbols-outlined">video_library</span> Mis Videos en Vivo
+                        </h4>
+                        <div id="shortsActivosContenedor" style="display: flex; flex-direction: column; gap: 10px;">
+                            <p style="color:#aaa; font-size: 0.9rem; text-align: center; margin-top: 20px;">No tienes videos publicados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        let archivoVideoSeleccionado = null;
+        let videosSemanaActual = 0;
+        let saldoTokensActual = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // app.js ya maneja los tokens del header con sincronizarDatosGlobales()
+            verificarCuotaSemanal();
+            cargarMisShorts();
+        });
+
+        // 1. Manejo de Archivos Visual
+        function seleccionarArchivoVideo(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Validación básica de tamaño (ej: Max 50MB)
+                if (file.size > 50 * 1024 * 1024) {
+                    alert("El video es muy pesado. El tamaño máximo es 50MB.");
+                    input.value = "";
+                    return;
+                }
+
+                archivoVideoSeleccionado = file;
+                document.getElementById('uploadIcon').innerText = "check_circle";
+                document.getElementById('uploadIcon').style.color = "var(--green-success)";
+                document.getElementById('uploadText').innerText = "Video preparado para subir";
+                document.getElementById('fileNameDisplay').innerText = file.name;
+                document.getElementById('uploadZone').style.borderColor = "var(--green-success)";
+            }
+        }
+
+        // 2. Cálculo de la Cuota Freemium
+        async function verificarCuotaSemanal() {
+            const userId = localStorage.getItem('midental_user_id');
+            if(!userId) return;
+
+            try {
+                // Leer el saldo de tokens real (app.js lo carga visualmente, pero aquí lo necesitamos para la lógica)
+                const { data: perfil } = await window.midental.from('perfiles_dentistas').select('tokens_disponibles').eq('id', userId).single();
+                if(perfil) saldoTokensActual = perfil.tokens_disponibles || 0;
+
+                // Calcular hace 7 días
+                const haceUnaSemana = new Date();
+                haceUnaSemana.setDate(haceUnaSemana.getDate() - 7);
+
+                // Contar cuántos videos ha subido el usuario en los últimos 7 días
+                const { count, error } = await window.midental
+                    .from('shorts_videos')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('dentista_id', userId)
+                    .gte('created_at', haceUnaSemana.toISOString());
+
+                if (error) throw error;
+
+                videosSemanaActual = count || 0;
+                document.getElementById('shortsUsed').innerText = videosSemanaActual;
+
+                // Cambiar el diseño del botón según la cuota
+                const btn = document.getElementById('btnPublicarShort');
+                if (videosSemanaActual >= 2) {
+                    btn.className = "btn-publish-premium";
+                    btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">toll</span> Publicar Video (-1 Token)`;
+                } else {
+                    btn.className = "btn-publish-free";
+                    btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">publish</span> Publicar Gratis (${2 - videosSemanaActual} restantes)`;
+                }
+
+            } catch (err) {
+                console.error("Error al calcular cuota:", err);
+            }
+        }
+
+        // 3. Lógica de Subida a Supabase
+        async function lanzarShortReal() {
+            const userId = localStorage.getItem('midental_user_id');
+            if(!userId) return alert("Sesión inválida.");
+
+            if(!archivoVideoSeleccionado) return alert("⚠️ Debes seleccionar un archivo de video primero.");
+            const desc = document.getElementById('shortDescription').value.trim();
+            if(!desc) return alert("⚠️ Escribe una descripción atractiva para tu video.");
+            const cta = document.getElementById('shortCTA').value;
+
+            // Bloqueo si requiere pago pero no hay saldo
+            const requierePago = videosSemanaActual >= 2;
+            if (requierePago && saldoTokensActual < 1) {
+                return alert("No te quedan Tokens para publicar videos extra esta semana. Recarga en el Monedero.");
+            }
+
+            const btn = document.getElementById('btnPublicarShort');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Subiendo video... (No cierres la ventana)`;
+
+            try {
+                // A. Subir el MP4 al Storage
+                const fileExt = archivoVideoSeleccionado.name.split('.').pop();
+                const fileName = `short_${userId}_${Date.now()}.${fileExt}`;
+                const { error: uploadError } = await window.midental.storage.from('reels').upload(fileName, archivoVideoSeleccionado);
+                
+                if (uploadError) throw new Error("Error en Storage: " + uploadError.message);
+                
+                const { data: urlData } = window.midental.storage.from('reels').getPublicUrl(fileName);
+                const videoPublicUrl = urlData.publicUrl;
+
+                // B. Guardar el registro en la base de datos
+                const { error: insertError } = await window.midental.from('shorts_videos').insert([{
+                    dentista_id: userId,
+                    video_url: videoPublicUrl,
+                    descripcion: desc,
+                    cta_tipo: cta,
+                    costo_token: requierePago // Guardamos true si costó un token, false si fue gratis
+                }]);
+
+                if (insertError) throw new Error("Error en DB: " + insertError.message);
+
+                // C. Cobrar el Token (Si aplica)
+                if (requierePago) {
+                    const nuevoSaldo = saldoTokensActual - 1;
+                    await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', userId);
+                    sincronizarDatosGlobales(); // Refresca el header
+                }
+
+                // D. Éxito
+                alert("🚀 ¡Short publicado con éxito! Ya está visible en la red MiDental.");
+                
+                // Limpiar formulario y recargar
+                archivoVideoSeleccionado = null;
+                document.getElementById('uploadIcon').innerText = "movie";
+                document.getElementById('uploadIcon').style.color = "#cbd5e1";
+                document.getElementById('uploadText').innerText = "Selecciona un video (.mp4)";
+                document.getElementById('fileNameDisplay').innerText = "";
+                document.getElementById('shortDescription').value = "";
+                document.getElementById('uploadZone').style.borderColor = "#ccc";
+
+                verificarCuotaSemanal();
+                cargarMisShorts();
+
+            } catch (err) {
+                alert("Fallo al publicar: " + err.message);
+            } finally {
+                btn.disabled = false;
+                verificarCuotaSemanal(); // Restaura el texto del botón
+            }
+        }
+
+        // 4. Mostrar los videos activos del dentista
+        async function cargarMisShorts() {
+            const userId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('shortsActivosContenedor');
+            if(!userId || !contenedor) return;
+
+            const { data: videos, error } = await window.midental.from('shorts_videos')
+                .select('*')
+                .eq('dentista_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (error || !videos || videos.length === 0) {
+                contenedor.innerHTML = '<p style="color:#aaa; font-size: 0.9rem; text-align: center; margin-top: 20px;">No tienes videos publicados.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = "";
+            videos.forEach(video => {
+                const fecha = new Date(video.created_at).toLocaleDateString('es-CL');
+                const badgePago = video.costo_token ? '<span style="color: var(--dentist-purple); font-size: 0.7rem; font-weight:bold;">PREMIUM</span>' : '<span style="color: var(--green-success); font-size: 0.7rem; font-weight:bold;">GRATIS</span>';
+                
+                let ctaTexto = "Botón: Ver Perfil";
+                if(video.cta_tipo === 'agenda') ctaTexto = "Botón: Agendar Cita";
+                if(video.cta_tipo === 'oferta') ctaTexto = "Botón: Ver Oferta Flash";
+
+                contenedor.innerHTML += `
+                    <div class="my-shorts-card">
+                        <div class="short-thumb-placeholder">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="short-card-header">
+                                <span style="font-size: 0.75rem; color: #888;">${fecha}</span>
+                                ${badgePago}
+                            </div>
+                            <p style="margin: 5px 0; font-size: 0.85rem; color: var(--blue-elegant); font-weight: bold; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${video.descripcion}</p>
+                            <p style="margin: 0; font-size: 0.75rem; color: var(--pixar-cyan);">${ctaTexto}</p>
+                        </div>
+                        <button onclick="eliminarShort('${video.id}')" style="background:transparent; border:none; color:var(--red-urgency); cursor:pointer;" title="Eliminar Video">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        async function eliminarShort(idVideo) {
+            if(!confirm("¿Estás seguro de eliminar este Short? Los pacientes ya no podrán verlo y no se devuelven tokens gastados.")) return;
+            
+            // En un ecosistema completo, aquí deberías también usar "supabase.storage.from('reels').remove([filepath])" para borrar el mp4 del servidor y ahorrar espacio.
+            const { error } = await window.midental.from('shorts_videos').delete().eq('id', idVideo);
+            if(error) {
+                alert("Error al borrar: " + error.message);
+            } else {
+                cargarMisShorts();
+                verificarCuotaSemanal(); // Recalcula la cuota por si borró un video reciente
+            }
+        }
+        
+        function cerrarSesionLocal() {
+            localStorage.removeItem('midental_user_id');
+            localStorage.removeItem('midental_user_tipo');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

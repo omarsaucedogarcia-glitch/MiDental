@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDental - Red de Infraestructura B2B</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <style>
+        .dashboard-content { position: relative; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        .map-b2b-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background-size: cover; background-position: center; }
+        .topbar-b2b-floating { position: relative; z-index: 10; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); margin: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
+        .b2b-side-panel { position: relative; z-index: 10; width: 420px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); height: calc(100% - 160px); margin: 0 0 20px 20px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,0.6); }
+        .panel-view-toggle { display: flex; background: #f0f0f0; padding: 5px; border-radius: 15px; margin: 20px; flex-shrink: 0; }
+        .toggle-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 12px; font-weight: bold; color: var(--text-light); cursor: pointer; transition: 0.3s; }
+        .toggle-btn.active { background: white; color: var(--blue-elegant); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .panel-scroll-area { flex: 1; overflow-y: auto; padding: 0 20px 20px; }
+        .box-listing-card { background: white; border-radius: 15px; border: 1px solid #eee; overflow: hidden; margin-bottom: 15px; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; }
+        .box-listing-card:hover { transform: translateY(-3px); border-color: var(--pixar-cyan); box-shadow: 0 5px 15px rgba(0,180,216,0.1); }
+        .box-listing-img { width: 100%; height: 120px; object-fit: cover; background: #f0f0f0; border-bottom: 1px solid #eee; }
+        .box-listing-info { padding: 15px; }
+        .box-listing-price { color: var(--pixar-cyan); font-weight: 900; font-size: 1.1rem; margin-top: 5px; }
+        .hour-badge { background: var(--dentist-purple); color: white; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
+        
+        /* Grillas Embebidas */
+        .embedded-cal-container { max-height: 250px; overflow-y: auto; border: 1px solid #ddd; border-radius: 12px; background: #f8f9fa; margin-bottom: 20px; user-select: none; }
+        .embedded-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 1px; background: #e0e0e0; }
+        .embedded-cell { background: white; padding: 2px; text-align: center; font-size: 0.65rem; min-height: 35px; display: flex; align-items: center; justify-content: center; }
+        .embedded-header { font-weight: bold; color: var(--blue-elegant); position: sticky; top: 0; z-index: 10; background: white; border-bottom: 2px solid #ccc; font-size: 0.75rem; }
+        .embedded-time { font-weight: bold; color: #888; background: #f0f0f0; }
+        .slot-trabajando { background: var(--pixar-cyan); color: white; width: 100%; height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+        .slot-vacio { background: transparent; color: #ccc; width: 100%; height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        
+        .modal-b2b-detail { background: white; width: 90%; max-width: 500px; border-radius: 20px; overflow: hidden; position: relative; }
+        .modal-b2b-body { padding: 30px; text-align: center; }
+        .b2b-avatar-header { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: -70px auto 10px; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; position: relative; z-index: 2; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #888; border: 1px dashed #ccc; border-radius: 15px; margin-top: 10px; background: #fdfdfd; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
+                <h2>MiDental</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="#" class="nav-item active"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
+                <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
+                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-content">
+            <div class="map-b2b-container" id="mapaB2B" style="background-image: url('assets/mapa_placeholder.jpg'); background-color: #e5e3df;"></div>
+            
+            <header class="topbar topbar-b2b-floating">
+                <div class="welcome-text">
+                    <h1 style="margin:0; font-size:1.5rem; color:var(--blue-elegant);">Infraestructura B2B 🏢</h1>
+                    <p style="margin:5px 0 0; font-size:0.9rem; color:var(--text-light);">Encuentra un box para atender o monetiza tu espacio.</p>
+                </div>
+                <div class="topbar-right-area">
+                    <div class="token-monedero-header">
+                        <div class="token-info-header"><span>Monedero</span><small>Tokens Activos</small></div>
+                        <div class="token-balance-header pulse-glow-purple">
+                            <span class="material-symbols-outlined">toll</span><strong id="b2bTokenBalance">--</strong>
+                        </div>
+                    </div>
+                    <button class="btn-pixar btn-ofertas btn-small" onclick="window.location.href='monedero-dentista.html'">Recargar</button>
+                </div>
+            </header>
+
+            <div class="b2b-side-panel">
+                <div class="panel-view-toggle">
+                    <button class="toggle-btn active" id="btnTabExplorar" onclick="cambiarPestanaB2B('explorar')">Mercado Abierto</button>
+                    <button class="toggle-btn" id="btnTabMisBoxes" onclick="cambiarPestanaB2B('misboxes')">Mis Publicaciones</button>
+                </div>
+
+                <div class="panel-scroll-area" id="areaExplorar">
+                    <div class="search-box mb-20" style="background: white; border: 1px solid #ddd; padding: 12px; border-radius: 12px; display: flex; gap: 10px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <span class="material-symbols-outlined" style="color:#aaa;">search</span>
+                        <input type="text" id="inputFiltroComuna" placeholder="Filtrar por comuna..." style="border:none; outline:none; width:100%; font-size:0.95rem;" onkeyup="siPresionaEnterFiltra(event)">
+                    </div>
+                    <div id="listaExplorarBoxes">
+                        <div class="empty-state">Buscando espacios disponibles en la red...</div>
+                    </div>
+                </div>
+
+                <div class="panel-scroll-area" id="areaMisBoxes" style="display: none;">
+                    <button class="btn-pixar btn-search btn-full mb-20" onclick="abrirModalNuevoBox()" style="padding: 15px; font-size: 1.05rem;">
+                        <span class="material-symbols-outlined">add_business</span> Publicar mi Box (-1 Token)
+                    </button>
+                    <div id="misPublicacionesContenedor">
+                        <div class="empty-state">No tienes espacios publicados actualmente.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalDetalleBox" class="modal-overlay" style="display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.6);">
+        <div class="modal-b2b-detail">
+            <button class="btn-close" onclick="cerrarModal('modalDetalleBox')" style="position: absolute; right: 15px; top: 15px; z-index: 20; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"><span class="material-symbols-outlined">close</span></button>
+            <div style="height: 120px; background: var(--pixar-cyan);"></div>
+            <img src="assets/avatar-default-doctor.png" alt="Perfil" id="detalleColegaAvatar" class="b2b-avatar-header">
+            <div class="modal-b2b-body">
+                <h2 style="margin: 0 0 5px; color: var(--blue-elegant);" id="detalleColegaNombre">Dr. Colega</h2>
+                <p style="margin: 0 0 15px; color: #888; font-size: 0.9rem;" id="detalleBoxDireccion">Dirección</p>
+                
+                <div style="background: #fdf5ff; border: 1px dashed var(--dentist-purple); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px; display: flex; justify-content: space-around;">
+                    <div><span style="display:block; font-size:0.8rem; color:#888;">Por Hora</span><strong style="color:var(--dentist-purple); font-size:1.2rem;" id="detallePrecioHr">$0</strong></div>
+                    <div style="border-left: 1px solid #ddd; margin: 0 10px;"></div>
+                    <div><span style="display:block; font-size:0.8rem; color:#888;">Media Jornada</span><strong style="color:var(--dentist-purple); font-size:1.2rem;" id="detallePrecioJornada">$0</strong></div>
+                </div>
+                
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <strong style="color: var(--blue-elegant); font-size: 0.9rem;">Insumos Incluidos:</strong>
+                    <p style="margin: 5px 0 0; font-size: 0.85rem; color: #555; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;" id="detalleBoxInsumos">Ninguno especificado.</p>
+                </div>
+
+                <div class="embedded-cal-container"><div class="embedded-grid" id="gridHorarioLectura"></div></div>
+                
+                <button class="btn-pixar btn-green-whatsapp btn-full" id="btnContactarColega" style="padding: 15px; font-size: 1.05rem;" onclick="contactarPropietarioWhatsApp()">
+                    <span class="material-symbols-outlined">chat</span> Contactar Colega por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalNuevoBox" class="modal-overlay" style="display: none; background: rgba(0,0,0,0.6);">
+        <div class="modal-content modal-large" style="max-width: 600px; padding: 30px;">
+            <button class="btn-close" onclick="cerrarModal('modalNuevoBox')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="color: var(--blue-elegant);">Publicar Box en Arriendo</h2>
+            <p class="modal-subtitle" style="margin-bottom: 20px;">Tu aviso estará visible 7 días por el valor de 1 Token MiDental.</p>
+            
+            <form id="formNuevoBox">
+                <label class="input-label">Ubicación Exacta</label>
+                <input type="text" id="newBoxDireccion" placeholder="Ej: Av. Las Condes 1234, Of 45, Las Condes" class="apple-input-modal mb-10">
+                
+                <label class="input-label mt-10">Insumos Incluidos</label>
+                <textarea id="newBoxInsumos" class="apple-input-modal mb-10" placeholder="Ej: Incluye esterilización, RX periapical, bandeja básica..." style="height: 60px; resize: none;"></textarea>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" class="mb-10 mt-10">
+                    <div>
+                        <label class="input-label">Precio por Hora ($)</label>
+                        <input type="number" id="newBoxPrecioHr" placeholder="Ej: 10000" class="apple-input-modal">
+                    </div>
+                    <div>
+                        <label class="input-label">Precio Media Jornada ($)</label>
+                        <input type="number" id="newBoxPrecioJornada" placeholder="Ej: 35000" class="apple-input-modal">
+                    </div>
+                </div>
+                
+                <label class="input-label mt-10">Pinta los horarios disponibles para arrendar:</label>
+                <div class="embedded-cal-container" style="border: 2px solid var(--pixar-cyan);"><div class="embedded-grid" id="gridSeleccionHorario"></div></div>
+                
+                <button type="button" class="btn-pixar btn-search btn-full mt-20" id="btnPublicarAviso" onclick="guardarAvisoB2B()" style="padding: 15px; font-size: 1.1rem;">
+                    Publicar Aviso (-1 Token)
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let isDragging = false;
+        let selectionMode = true; 
+        let telefonoContactoColega = "";
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            // app.js sincroniza el saldo de tokens en la barra superior
+            generarGrillaInteractiva('gridSeleccionHorario', true); 
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            
+            cargarMercadoGlobal();
+            cargarMisPublicaciones();
+        });
+
+        // ==========================================
+        // 1. MANEJO DE INTERFAZ
+        // ==========================================
+        function cambiarPestanaB2B(tab) {
+            document.getElementById('btnTabExplorar').classList.toggle('active', tab === 'explorar');
+            document.getElementById('btnTabMisBoxes').classList.toggle('active', tab === 'misboxes');
+            document.getElementById('areaExplorar').style.display = tab === 'explorar' ? 'block' : 'none';
+            document.getElementById('areaMisBoxes').style.display = tab === 'misboxes' ? 'block' : 'none';
+        }
+        
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        function abrirModalNuevoBox() { 
+            // Limpiar modal
+            document.getElementById('formNuevoBox').reset();
+            document.querySelectorAll('#gridSeleccionHorario .slot-trabajando').forEach(el => toggleSlot(el));
+            document.getElementById('modalNuevoBox').style.display = 'flex'; 
+        }
+
+        function siPresionaEnterFiltra(e) {
+            if(e.key === 'Enter') {
+                const query = document.getElementById('inputFiltroComuna').value;
+                cargarMercadoGlobal(query);
+            }
+        }
+
+        // ==========================================
+        // 2. GENERADOR DE GRILLAS (Click & Drag)
+        // ==========================================
+        function generarGrillaInteractiva(containerId, isInteractive = true) {
+            const grid = document.getElementById(containerId);
+            if(!grid) return;
+            grid.innerHTML = '';
+            const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            
+            grid.appendChild(createCell('Hora', 'embedded-cell embedded-header embedded-time'));
+            dias.forEach(d => grid.appendChild(createCell(d, 'embedded-cell embedded-header')));
+
+            for (let h = 8; h <= 20; h++) {
+                let horaStr = `${h}:00`;
+                grid.appendChild(createCell(horaStr, 'embedded-cell embedded-time'));
+                
+                for (let d = 0; d < 7; d++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'embedded-cell';
+                    
+                    const inner = document.createElement('div');
+                    inner.className = 'slot-vacio';
+                    inner.innerText = '+';
+                    inner.dataset.slot = `${dias[d]}-${horaStr}`;
+
+                    if (isInteractive) {
+                        inner.addEventListener('mousedown', () => { isDragging = true; selectionMode = inner.classList.contains('slot-vacio'); toggleSlot(inner); });
+                        inner.addEventListener('mouseenter', () => { if (isDragging) { if (selectionMode && inner.classList.contains('slot-vacio')) toggleSlot(inner); if (!selectionMode && inner.classList.contains('slot-trabajando')) toggleSlot(inner); } });
+                    }
+
+                    cell.appendChild(inner);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function toggleSlot(el) {
+            if (el.classList.contains('slot-vacio')) {
+                el.className = 'slot-trabajando'; el.innerText = 'OK';
+            } else {
+                el.className = 'slot-vacio'; el.innerText = '+';
+            }
+        }
+
+        function createCell(t, c) { const d = document.createElement('div'); d.className = c; d.innerText = t; return d; }
+
+        // ==========================================
+        // 3. COMUNICACIÓN CON SUPABASE (B2B)
+        // ==========================================
+
+        async function guardarAvisoB2B() {
+            const userId = localStorage.getItem('midental_user_id');
+            const direccion = document.getElementById('newBoxDireccion').value;
+            const insumos = document.getElementById('newBoxInsumos').value;
+            const pHora = document.getElementById('newBoxPrecioHr').value;
+            const pJornada = document.getElementById('newBoxPrecioJornada').value;
+            const slots = Array.from(document.querySelectorAll('#gridSeleccionHorario .slot-trabajando')).map(s => s.dataset.slot);
+            const btn = document.getElementById('btnPublicarAviso');
+
+            if (!direccion || !pHora || !pJornada || slots.length === 0) {
+                return alert("Datos incompletos. Llena la dirección, precios y pinta los horarios disponibles.");
+            }
+
+            // 1. Verificar saldo de tokens (Lectura visual del DOM protegido por app.js)
+            const saldoActual = parseInt(document.getElementById('b2bTokenBalance').innerText);
+            if (isNaN(saldoActual) || saldoActual < 1) {
+                return alert("No tienes tokens suficientes. Recarga en el Monedero.");
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = "Publicando aviso...";
+
+            try {
+                // 2. Insertar en arriendo_boxes
+                const { error: insertError } = await window.midental.from('arriendo_boxes').insert([{
+                    propietario_id: userId,
+                    direccion: direccion,
+                    precio_hora: parseInt(pHora),
+                    precio_jornada: parseInt(pJornada),
+                    insumos_incluidos: insumos,
+                    disponibilidad_json: slots,
+                    esta_activo: true
+                }]);
+
+                if (insertError) throw insertError;
+
+                // 3. Descontar 1 Token
+                const nuevoSaldo = saldoActual - 1;
+                await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', userId);
+
+                alert("🏢 ¡Box publicado en el marketplace! Descontado 1 Token.");
+                cerrarModal('modalNuevoBox');
+                sincronizarDatosGlobales(); // Actualiza tokens visuales
+                cargarMisPublicaciones();
+
+            } catch (err) {
+                alert("Error al publicar: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "Publicar Aviso (-1 Token)";
+            }
+        }
+
+        async function cargarMisPublicaciones() {
+            const userId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('misPublicacionesContenedor');
+            if(!userId) return;
+
+            const { data: boxes, error } = await window.midental.from('arriendo_boxes')
+                .select('*')
+                .eq('propietario_id', userId)
+                .order('id', { ascending: false });
+
+            contenedor.innerHTML = "";
+            if (error || !boxes || boxes.length === 0) {
+                contenedor.innerHTML = '<div class="empty-state">No tienes espacios publicados actualmente.</div>';
+                return;
+            }
+
+            boxes.forEach(box => {
+                const hrFormat = box.precio_hora.toLocaleString('es-CL');
+                const horasDisp = box.disponibilidad_json ? box.disponibilidad_json.length : 0;
+                
+                contenedor.innerHTML += `
+                    <div class="box-listing-card">
+                        <div style="background:var(--blue-elegant); padding:10px 15px; display:flex; justify-content:space-between; align-items:center; color:white;">
+                            <span style="font-weight:bold;">Aviso Activo</span>
+                            <button onclick="eliminarMiAviso('${box.id}')" style="background:transparent; border:none; color:white; cursor:pointer;" title="Eliminar aviso"><span class="material-symbols-outlined">delete</span></button>
+                        </div>
+                        <div class="box-listing-info">
+                            <h4 style="color:var(--blue-elegant); margin:0 0 5px;">${box.direccion}</h4>
+                            <p style="color:#666; font-size:0.9rem; margin:0 0 10px;">${box.insumos_incluidos || 'Sin insumos detallados'}</p>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                                <div><span class="hour-badge">${horasDisp} bloques</span></div>
+                                <div class="box-listing-price">$${hrFormat}/hr</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function cargarMercadoGlobal(filtroText = "") {
+            const userId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('listaExplorarBoxes');
+
+            // Traer avisos que NO sean del usuario actual y estén activos. Incluye cruce de tablas para traer foto/nombre/tel del dueño
+            let query = window.midental.from('arriendo_boxes')
+                .select('*, perfiles_dentistas(nombre_completo, prefijo, avatar_url, telefono)')
+                .neq('propietario_id', userId)
+                .eq('esta_activo', true);
+            
+            if (filtroText) {
+                query = query.ilike('direccion', `%${filtroText}%`);
+            }
+
+            const { data: boxes, error } = await query.order('id', { ascending: false });
+
+            contenedor.innerHTML = "";
+            if (error || !boxes || boxes.length === 0) {
+                contenedor.innerHTML = `<div class="empty-state">${filtroText ? 'No hay resultados para "'+filtroText+'"' : 'No hay boxes de otros colegas disponibles.'}</div>`;
+                return;
+            }
+
+            boxes.forEach(box => {
+                const drInfo = box.perfiles_dentistas || {};
+                const drName = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Colega'}`;
+                const hrFormat = box.precio_hora.toLocaleString('es-CL');
+                const jorFormat = box.precio_jornada.toLocaleString('es-CL');
+                
+                // Usamos un div que al clickear guarda la info en dataset y abre el modal
+                const card = document.createElement('div');
+                card.className = 'box-listing-card';
+                card.onclick = () => abrirDetalleBox(box, drName, drInfo.avatar_url, drInfo.telefono, hrFormat, jorFormat);
+                
+                card.innerHTML = `
+                    <div style="padding:15px; display:flex; gap:15px; align-items:center;">
+                        <img src="${drInfo.avatar_url || 'assets/avatar-default-doctor.png'}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
+                        <div style="flex:1;">
+                            <h4 style="color:var(--blue-elegant); margin:0 0 5px;">${drName}</h4>
+                            <p style="color:#666; font-size:0.85rem; margin:0;"><span class="material-symbols-outlined" style="font-size:1rem; vertical-align:middle;">location_on</span> ${box.direccion}</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="box-listing-price">$${hrFormat}</div><small style="color:#aaa;">x hr</small>
+                        </div>
+                    </div>
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        function abrirDetalleBox(box, drName, avatar, tel, hrFmt, jorFmt) {
+            document.getElementById('detalleColegaNombre').innerText = drName;
+            document.getElementById('detalleColegaAvatar').src = avatar || 'assets/avatar-default-doctor.png';
+            document.getElementById('detalleBoxDireccion').innerText = box.direccion;
+            document.getElementById('detallePrecioHr').innerText = `$${hrFmt}`;
+            document.getElementById('detallePrecioJornada').innerText = `$${jorFmt}`;
+            document.getElementById('detalleBoxInsumos').innerText = box.insumos_incluidos || 'Sin especificar';
+            
+            telefonoContactoColega = tel || "";
+
+            generarGrillaInteractiva('gridHorarioLectura', false); // false = no clickeable (solo lectura)
+            
+            // Pintar los horarios de este box
+            const arrHorarios = box.disponibilidad_json || [];
+            document.querySelectorAll('#gridHorarioLectura .slot-vacio').forEach(celda => {
+                if (arrHorarios.includes(celda.dataset.slot)) {
+                    celda.className = 'slot-trabajando';
+                    celda.innerText = 'Disp.';
+                    celda.style.background = 'var(--green-success)';
+                }
+            });
+
+            document.getElementById('modalDetalleBox').style.display = 'flex';
+        }
+
+        function contactarPropietarioWhatsApp() {
+            if (!telefonoContactoColega) return alert("El colega no ha registrado un teléfono de contacto en su perfil.");
+            // Enlazar con API de WhatsApp Web
+            const mensaje = encodeURIComponent("Hola Colega, vi tu publicación en MiDental B2B. Me interesa arrendar tu box médico.");
+            window.open(`https://wa.me/${telefonoContactoColega}?text=${mensaje}`, '_blank');
+        }
+
+        async function eliminarMiAviso(id) {
+            if(!confirm("¿Retirar este aviso del mercado?")) return;
+            await window.midental.from('arriendo_boxes').update({ esta_activo: false }).eq('id', id);
+            cargarMisPublicaciones();
+        }
+    </script>
+</body>
+</html>
