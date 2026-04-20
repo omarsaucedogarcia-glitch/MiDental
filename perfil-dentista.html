@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <style>
-        /* Estilos específicos para la página de Perfil */
         .profile-container { display: grid; grid-template-columns: 1fr 2fr; gap: 25px; max-width: 1200px; margin: 0 auto; }
         .profile-sidebar { background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; height: fit-content; }
         .profile-avatar-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--pixar-cyan); margin: 0 auto 15px; }
@@ -17,10 +16,8 @@
         .profile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .profile-card-header h3 { color: var(--blue-elegant); margin: 0; display: flex; align-items: center; gap: 8px; }
 
-        /* Campos deshabilitados por seguridad */
         .input-locked { background-color: #f5f7fa; color: #718096; border-color: #e2e8f0; cursor: not-allowed; opacity: 0.8; }
 
-        /* Estilos para Lugares de Trabajo */
         .workplace-list { display: flex; flex-direction: column; gap: 15px; }
         .workplace-card { border: 1px solid #e0e0e0; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; transition: all 0.2s; }
         .workplace-card:hover { border-color: var(--pixar-cyan); background: #f0f8ff; }
@@ -29,13 +26,11 @@
         .workplace-hours { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
         .hour-badge { background: var(--dentist-purple); color: white; font-size: 0.75rem; padding: 3px 8px; border-radius: 8px; font-weight: bold; }
 
-        /* Subida de Fotos de Clínica */
         .clinic-photos-area { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
         .photo-upload-box { width: 100px; height: 100px; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; cursor: pointer; transition: 0.2s; flex-shrink: 0; background: #f8fafc; }
         .photo-upload-box:hover { border-color: var(--pixar-cyan); color: var(--pixar-cyan); background: white; }
         .photo-preview { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid #e2e8f0; flex-shrink: 0; }
 
-        /* CALENDARIO EMBEBIDO */
         .embedded-cal-container { max-height: 350px; overflow-y: auto; border: 1px solid #ddd; border-radius: 12px; background: #f8f9fa; margin-bottom: 20px; }
         .embedded-grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 1px; background: #e0e0e0; }
         .embedded-cell { background: white; padding: 2px; text-align: center; font-size: 0.75rem; min-height: 40px; display: flex; align-items: center; justify-content: center; }
@@ -60,10 +55,10 @@
                 <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
                 <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
-                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
+                <a href="perfil-dentista.html" class="nav-item active"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-logout" onclick="cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
             </div>
         </aside>
 
@@ -79,14 +74,14 @@
                         <div class="token-info-header"><span>Monedero</span><small>Saldo activo</small></div>
                         <div class="token-balance-header pulse-glow-purple">
                             <span class="material-symbols-outlined">toll</span>
-                            <strong id="displayTokens">10</strong>
+                            <strong id="displayTokens">0</strong>
                         </div>
                     </div>
                     <div class="topbar-profile">
                         <div class="rating-badge">
                             <span id="displayRating">⭐ 5.0</span>
                         </div>
-                        <img src="assets/avatar-default-doctor.png" alt="Foto de Perfil" id="profileLargeAvatar" class="profile-avatar-large" onerror="this.src='https://via.placeholder.com/150/00b4d8/ffffff?text=Doctor'" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        <img src="assets/avatar-default-doctor.png" alt="Foto de Perfil" id="topbarAvatar" class="profile-avatar-large" style="width: 40px; height: 40px; border:none; margin:0;">
                     </div>
                 </div>
             </header>
@@ -96,9 +91,9 @@
                     <div class="patient-avatar-container" style="position: relative; width: 130px; height: 130px; margin: 0 auto 20px;">
                         <img src="assets/avatar-default-doctor.png" alt="Foto de Perfil" id="profileLargeAvatar" class="profile-avatar-large" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                         
-                        <input type="file" id="inputFotoOculto" accept="image/*" style="display: none;" onchange="subirFotoPerfil(this)">
+                        <input type="file" id="inputFotoOculto" accept="image/*" style="display: none;" onchange="subirFotoPerfilDentista(event)">
                         
-                        <button class="btn-edit-avatar" onclick="document.getElementById('inputFotoOculto').click()" style="position: absolute; bottom: 0; right: 0; background: var(--pixar-cyan); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <button class="btn-edit-avatar" id="btnSubeFotoPerfil" onclick="document.getElementById('inputFotoOculto').click()" style="position: absolute; bottom: 0; right: 0; background: var(--pixar-cyan); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                             <span class="material-symbols-outlined">photo_camera</span>
                         </button>
                     </div>
@@ -151,10 +146,17 @@
                                     </select>
                                 </div>
                                 <div style="grid-column: span 2;">
-                                    <label class="input-label">WhatsApp de Contacto para Pacientes (Vinculado a Clínicas)</label>
+                                    <label class="input-label">WhatsApp de Contacto (Público para pacientes)</label>
                                     <div class="input-group-modal">
                                         <span class="material-symbols-outlined">call</span>
                                         <input type="tel" id="dentistaTelefono" class="apple-input-modal" placeholder="Ej: 56912345678" oninput="formatearTelefonoInput(this)">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="input-label">Valor Consulta Referencial ($)</label>
+                                    <div class="input-group-modal">
+                                        <span class="material-symbols-outlined">payments</span>
+                                        <input type="number" id="dentistaValorConsulta" class="apple-input-modal" placeholder="Ej: 25000">
                                     </div>
                                 </div>
                             </div>
@@ -169,9 +171,10 @@
                             <h3><span class="material-symbols-outlined">location_on</span> Sedes y Clínicas (Mapa)</h3>
                             <button class="btn-pixar btn-search btn-small" onclick="abrirModalLugar()"><span class="material-symbols-outlined">add</span> Vincular Clínica</button>
                         </div>
-                        <p style="color: var(--text-light); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Al agregar un lugar de trabajo y horario, tu perfil aparecerá visible para los pacientes en la búsqueda por mapa.</p>
+                        <p style="color: var(--text-light); font-size: 0.9rem; margin-top: -10px; margin-bottom: 15px;">Al agregar un lugar de trabajo, tu perfil será visible en el mapa para los pacientes.</p>
                         <div class="workplace-list" id="listaLugaresTrabajo">
-                            </div>
+                            <div style="text-align:center; padding:20px; color:#94a3b8;">Aún no has configurado sedes de atención.</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -203,7 +206,6 @@
                     </div>
 
                     <h4 class="form-section-title mt-20 mb-10" style="color: var(--blue-elegant);">Fotos de la Clínica (Máx. 3)</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-light); margin-top: -5px;">Estas fotos se mostrarán a los pacientes en tu perfil público.</p>
                     <div class="clinic-photos-area" id="contenedorFotosClinica">
                         <div class="photo-upload-box" onclick="document.getElementById('inputFotoClinica').click()">
                             <span class="material-symbols-outlined" style="font-size: 2rem;">add_photo_alternate</span>
@@ -221,7 +223,7 @@
             
             <div class="btn-group-dual mt-20">
                 <button type="button" class="btn-login-outline btn-full" onclick="cerrarModalLugar()">Cancelar</button>
-                <button type="button" class="btn-pixar btn-search btn-full" onclick="guardarLugarTrabajoReal()">Activar en el Mapa</button>
+                <button type="button" class="btn-pixar btn-search btn-full" id="btnGuardarSede" onclick="guardarLugarTrabajoReal()">Activar en el Mapa</button>
             </div>
         </div>
     </div>
@@ -237,12 +239,194 @@
 
         document.addEventListener('DOMContentLoaded', () => { 
             generarGrillaSieteDias(); 
-            // La carga de datos se maneja centralizadamente en app.js -> sincronizarDatosGlobales
-            cargarSedesVigentes();
-            
             window.addEventListener('mouseup', () => { isDragging = false; });
+            cargarSedesDentistaActual();
         });
 
+        // ---------------------------------------------------
+        // 1. FUNCIÓN MAESTRA: SUBIR FOTO DE PERFIL A SUPABASE
+        // ---------------------------------------------------
+        async function subirFotoPerfilDentista(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const userId = localStorage.getItem('midental_user_id');
+            const btnSube = document.getElementById('btnSubeFotoPerfil');
+            
+            // Animación de subiendo
+            btnSube.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 2s linear infinite;">sync</span>';
+            btnSube.style.background = '#e2e8f0';
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${userId}_${Date.now()}.${fileExt}`;
+
+                // 1. Subir a bucket "avatares" (Debes crearlo en Supabase si no existe)
+                const { error: uploadError } = await window.midental.storage
+                    .from('avatares')
+                    .upload(fileName, file);
+
+                if (uploadError) throw uploadError;
+
+                // 2. Obtener URL Pública
+                const { data: publicUrlData } = window.midental.storage
+                    .from('avatares').getPublicUrl(fileName);
+                const avatarUrl = publicUrlData.publicUrl;
+
+                // 3. Guardar en base de datos
+                const { error: updateError } = await window.midental
+                    .from('perfiles_dentistas')
+                    .update({ avatar_url: avatarUrl })
+                    .eq('id', userId);
+
+                if (updateError) throw updateError;
+
+                // 4. Actualizar visualmente la página
+                document.getElementById('profileLargeAvatar').src = avatarUrl;
+                if(document.getElementById('topbarAvatar')) document.getElementById('topbarAvatar').src = avatarUrl;
+
+            } catch (err) {
+                alert("Error al subir foto: " + err.message);
+                console.error(err);
+            } finally {
+                btnSube.innerHTML = '<span class="material-symbols-outlined">photo_camera</span>';
+                btnSube.style.background = 'var(--pixar-cyan)';
+            }
+        }
+
+        // ---------------------------------------------------
+        // 2. FUNCIÓN MAESTRA: ACTUALIZAR DATOS DE PERFIL
+        // ---------------------------------------------------
+        async function guardarPerfilCompletoReal() {
+            const userId = localStorage.getItem('midental_user_id');
+            const btn = document.getElementById('btnGuardarPerfil');
+            const prefijo = document.getElementById('dentistaPrefijo').value;
+            const especialidad = document.getElementById('dentistaEspecialidad').value;
+            const telefono = document.getElementById('dentistaTelefono').value;
+            const valorConsulta = document.getElementById('dentistaValorConsulta').value;
+
+            btn.innerText = "Guardando...";
+
+            try {
+                const { error } = await window.midental
+                    .from('perfiles_dentistas')
+                    .update({
+                        prefijo: prefijo,
+                        especialidad: especialidad,
+                        telefono: window.formatearTelefonoParaWhatsApp ? window.formatearTelefonoParaWhatsApp(telefono) : telefono,
+                        valor_consulta: parseInt(valorConsulta) || 0
+                    })
+                    .eq('id', userId);
+
+                if (error) throw error;
+                
+                alert("✅ Perfil actualizado correctamente.");
+                window.sincronizarDatosGlobales();
+
+            } catch (err) {
+                alert("Error al guardar: " + err.message);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined">save</span> Guardar Cambios';
+            }
+        }
+
+        // ---------------------------------------------------
+        // 3. FUNCIÓN MAESTRA: GUARDAR SEDE DE TRABAJO (MAPA)
+        // ---------------------------------------------------
+        async function guardarLugarTrabajoReal() {
+            const userId = localStorage.getItem('midental_user_id');
+            const btn = document.getElementById('btnGuardarSede');
+            const nombre = document.getElementById('inputNombreClinica').value;
+            const direccion = document.getElementById('inputDireccionClinica').value;
+            const comuna = document.getElementById('inputComunaClinica').value;
+
+            if (!nombre || !direccion || !comuna) return alert("Completa Nombre, Dirección y Comuna.");
+
+            // Recolectar horarios seleccionados
+            let horarios = [];
+            document.querySelectorAll('.slot-trabajando').forEach(el => {
+                if (el.dataset.slot) horarios.push(el.dataset.slot);
+            });
+
+            if (horarios.length === 0) return alert("Selecciona al menos un bloque de horario.");
+
+            btn.innerText = "Guardando Sede...";
+
+            try {
+                const { error } = await window.midental
+                    .from('sedes_dentistas')
+                    .insert([{
+                        dentista_id: userId,
+                        nombre_sede: nombre,
+                        direccion: direccion,
+                        comuna: comuna,
+                        horarios_json: horarios
+                    }]);
+
+                if (error) throw error;
+
+                alert("🏥 ¡Sede vinculada exitosamente! Ahora apareces en el mapa.");
+                cerrarModalLugar();
+                cargarSedesDentistaActual(); // Refrescar lista visual
+
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.innerText = "Activar en el Mapa";
+            }
+        }
+
+        // Cargar las sedes en la vista del dentista
+        async function cargarSedesDentistaActual() {
+            const userId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('listaLugaresTrabajo');
+
+            try {
+                const { data: sedes, error } = await window.midental
+                    .from('sedes_dentistas')
+                    .select('*')
+                    .eq('dentista_id', userId);
+
+                if (error) throw error;
+
+                contenedor.innerHTML = "";
+                if (!sedes || sedes.length === 0) {
+                    contenedor.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8;">Aún no has configurado sedes de atención.</div>`;
+                    return;
+                }
+
+                sedes.forEach(sede => {
+                    const cantHoras = sede.horarios_json ? sede.horarios_json.length : 0;
+                    contenedor.innerHTML += `
+                        <div class="workplace-card">
+                            <div class="workplace-info">
+                                <h4>${sede.nombre_sede}</h4>
+                                <p><span class="material-symbols-outlined" style="font-size: 1rem;">location_on</span> ${sede.direccion}, ${sede.comuna}</p>
+                                <div class="workplace-hours">
+                                    <span class="hour-badge">${cantHoras} bloques activos</span>
+                                </div>
+                            </div>
+                            <button class="btn-text" style="color: red;" onclick="eliminarSede('${sede.id}')">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function eliminarSede(sedeId) {
+            if(!confirm("¿Estás seguro de eliminar esta sede? Desaparecerás del mapa en esta ubicación.")) return;
+            try {
+                const { error } = await window.midental.from('sedes_dentistas').delete().eq('id', sedeId);
+                if (error) throw error;
+                cargarSedesDentistaActual();
+            } catch (err) { alert("Error al eliminar."); }
+        }
+
+        // Lógica Visual del Calendario Modal
         function abrirModalLugar() { 
             document.getElementById('inputNombreClinica').value = '';
             document.getElementById('inputDireccionClinica').value = '';
@@ -250,7 +434,6 @@
             document.querySelectorAll('.slot-trabajando').forEach(el => toggleSlot(el));
             document.getElementById('modalLugarTrabajo').style.display = 'flex'; 
         }
-        
         function cerrarModalLugar() { document.getElementById('modalLugarTrabajo').style.display = 'none'; }
         
         function generarGrillaSieteDias() {
@@ -265,30 +448,25 @@
             for (let h = 8; h <= 20; h++) {
                 let horaStr = `${h}:00`;
                 grid.appendChild(createCell(horaStr, 'embedded-cell embedded-time'));
-                
                 for (let d = 0; d < 7; d++) {
                     const cell = document.createElement('div');
                     cell.className = 'embedded-cell';
-                    
                     const inner = document.createElement('div');
                     inner.className = 'slot-vacio';
                     inner.innerText = '+';
-                    // DATA SLOT CRÍTICO para sincronizar con la base de datos
                     inner.dataset.slot = `${dias[d]}-${horaStr}`;
-
+                    
                     inner.addEventListener('mousedown', (e) => {
                         isDragging = true;
                         selectionMode = inner.classList.contains('slot-vacio');
                         toggleSlot(inner);
                     });
-
                     inner.addEventListener('mouseenter', () => {
                         if (isDragging) {
                             if (selectionMode && inner.classList.contains('slot-vacio')) toggleSlot(inner);
                             if (!selectionMode && inner.classList.contains('slot-trabajando')) toggleSlot(inner);
                         }
                     });
-
                     cell.appendChild(inner);
                     grid.appendChild(cell);
                 }
@@ -302,40 +480,7 @@
                 el.className = 'slot-vacio'; el.innerText = '+';
             }
         }
-
         function createCell(t, c) { const d = document.createElement('div'); d.className = c; d.innerText = t; return d; }
-
-        function previsualizarFotoClinica(input) {
-            if (input.files && input.files[0]) {
-                if(fotosClinicaPendientes.length >= 3) {
-                    alert("Solo puedes subir un máximo de 3 fotos de tu clínica.");
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'photo-preview';
-                    
-                    const contenedor = document.getElementById('contenedorFotosClinica');
-                    contenedor.insertBefore(img, document.querySelector('.photo-upload-box'));
-                    
-                    fotosClinicaPendientes.push(input.files[0]);
-                    
-                    if(fotosClinicaPendientes.length >= 3) {
-                        document.querySelector('.photo-upload-box').style.display = 'none';
-                    }
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function cerrarSesionLocal() {
-            localStorage.removeItem('midental_user_id');
-            localStorage.removeItem('midental_user_tipo');
-            window.location.href = 'index.html';
-        }
     </script>
 </body>
 </html>
