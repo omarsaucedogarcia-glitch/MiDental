@@ -3,441 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiDental - Encuentra tu especialista</title>
+    <title>MiDental - Buscar Especialista</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <link rel="stylesheet" href="css/style.css"> 
-    <link rel="stylesheet" href="css/mapa.css">
-    
+    <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Layout Principal Paciente */
-        body { margin: 0; padding: 0; height: 100vh; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; }
-        .patient-main-layout { display: grid; grid-template-columns: 1fr 380px; height: 100vh; width: 100vw; }
+        body { background-color: #f8fafc; padding-bottom: 80px; }
         
-        /* Zona Izquierda (Buscador y Mapa) */
-        .map-search-area { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; background: white; }
-        .map-background-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.15; z-index: 1; pointer-events: none; }
+        /* Encabezado limpio y fijo */
+        .header-search { background: white; padding: 20px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .search-title { margin: 0; color: var(--blue-elegant); font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
+        .search-input-wrapper { display: flex; align-items: center; background: #f1f5f9; padding: 12px 15px; border-radius: 20px; margin-top: 15px; border: 1px solid #e2e8f0; }
+        .search-input-wrapper input { border: none; background: transparent; outline: none; width: 100%; margin-left: 10px; color: #334155; font-size: 0.95rem; }
         
-        .floating-search-bar { position: relative; z-index: 10; background: white; padding: 20px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
-        .logo-small { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .search-input-group { flex: 1; max-width: 500px; margin: 0 20px; position: relative; }
-        .search-input-group input { width: 100%; padding: 15px 20px 15px 50px; border-radius: 30px; border: 2px solid #e2e8f0; font-size: 1rem; outline: none; transition: 0.3s; }
-        .search-input-group input:focus { border-color: var(--pixar-cyan); box-shadow: 0 0 0 4px rgba(0,180,216,0.1); }
-        .search-input-group .material-symbols-outlined { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        /* Contenedor centralizado */
+        .directorio-container { padding: 20px; max-width: 800px; margin: 0 auto; }
         
-        .results-scroll-area { position: relative; z-index: 10; flex: 1; overflow-y: auto; padding: 30px; }
-        .doctor-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        
-        .doctor-card { background: white; border-radius: 20px; padding: 20px; border: 1px solid #eee; box-shadow: 0 5px 15px rgba(0,0,0,0.02); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
-        .doctor-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,180,216,0.1); border-color: var(--pixar-cyan); }
-        .doc-card-header { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; }
-        .doc-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #f0f0f0; }
-        .doc-info h3 { margin: 0 0 5px 0; color: var(--blue-elegant); font-size: 1.1rem; }
-        .doc-info p { margin: 0; color: #64748b; font-size: 0.85rem; }
-        .location-badge { background: #f1f5f9; color: #475569; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-weight: bold; }
-        
-        /* Zona Derecha (Panel Ofertas Flash Lateral) */
-        .flash-sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; display: flex; flex-direction: column; border-left: 5px solid var(--pixar-orange); position: relative; overflow: hidden; }
-        .flash-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .flash-header h2 { margin: 0; font-size: 1.5rem; color: var(--pixar-orange); display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .pulse-icon { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
-        
-        .flash-carousel { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
-        
-        .offer-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; transition: 0.5s opacity; cursor: pointer; }
-        .offer-card:hover { background: rgba(255,255,255,0.1); border-color: var(--pixar-orange); }
-        .offer-img { width: 100%; height: 180px; object-fit: cover; background: #333; }
-        .offer-details { padding: 15px; }
-        .offer-title { font-size: 1.1rem; font-weight: bold; margin: 0 0 10px 0; color: white; }
-        .offer-price-row { display: flex; justify-content: space-between; align-items: center; }
-        .price-old { text-decoration: line-through; color: #94a3b8; font-size: 0.9rem; }
-        .price-new { color: var(--pixar-orange); font-size: 1.5rem; font-weight: 900; }
-
-        /* User Profile Mini */
-        .user-mini-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 10px; border-radius: 20px; transition: 0.2s; }
-        .user-mini-profile:hover { background: #f1f5f9; }
-        .avatar-circle-small { width: 40px; height: 40px; background: var(--pixar-cyan); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
-        /* Ficha Doctor Modal */
-        .modal-ficha { max-width: 500px; width: 90%; padding: 0; overflow: hidden; }
-        .ficha-header-bg { height: 100px; background: linear-gradient(135deg, var(--blue-elegant), var(--pixar-cyan)); position: relative; }
-        .btn-close-white { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
-        .ficha-avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; position: absolute; bottom: -50px; left: 30px; object-fit: cover; background: white; }
-        .ficha-info-body { padding: 60px 30px 30px; }
-        
-        .calendar-track { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; margin-top: 20px; }
-        .day-col { min-width: 90px; text-align: center; }
-        .day-header-cal { font-size: 0.85rem; color: #64748b; font-weight: bold; margin-bottom: 10px; }
-        .time-slot-btn { background: white; border: 1px solid #cbd5e1; color: var(--blue-elegant); padding: 8px 0; border-radius: 8px; width: 100%; font-weight: bold; margin-bottom: 5px; cursor: pointer; transition: 0.2s; }
-        .time-slot-btn:hover { border-color: var(--pixar-cyan); color: var(--pixar-cyan); }
-        .time-slot-btn.selected { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); }
+        /* Modal ajustado para móvil/app */
+        .modal-content { max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 20px; }
+        .day-col { border: 1px solid #eee; padding: 10px; border-radius: 10px; background: #f8fafc; }
     </style>
 </head>
 <body>
 
-    <div class="patient-main-layout">
-        
-        <div class="map-search-area">
-            <img src="assets/mapa_placeholder.jpg" class="map-background-img" alt="Fondo Mapa">
-            
-            <div class="floating-search-bar">
-                <div class="logo-small" onclick="window.location.href='index.html'">
-                    <img src="assets/LogoMiDental.png" style="height: 35px;" alt="Logo">
-                </div>
-                
-                <div class="search-input-group">
-                    <span class="material-symbols-outlined">location_on</span>
-                    <input type="text" id="inputBuscarComuna" placeholder="Filtrar especialistas por comuna (Ej: Providencia, Quilicura...)" oninput="filtrarPorComunaEnVivo()">
-                </div>
-                
-                <div class="user-mini-profile" onclick="window.location.href='perfil.paciente.html'" title="Mi Perfil">
-                    <div style="text-align: right;">
-                        <span style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--blue-elegant);">Mi Perfil</span>
-                        <span style="display: block; font-size: 0.7rem; color: #888;">Configuración</span>
-                    </div>
-                    <div class="avatar-circle-small" id="userInitials">P</div>
-                </div>
-            </div>
-
-            <div class="results-scroll-area">
-                <h2 style="color: var(--blue-elegant); margin-top: 0; display: flex; align-items: center; gap: 8px;">
-                    <span class="material-symbols-outlined">dentistry</span> Directorio Médico
-                </h2>
-                <p style="color: #64748b; margin-bottom: 25px;" id="contadorResultados">Buscando especialistas cerca de ti...</p>
-                
-                <div class="doctor-list-grid" id="listaDoctoresContenedor">
-                    </div>
-            </div>
+    <div class="header-search">
+        <h2 class="search-title"><span class="material-symbols-outlined">dentistry</span> Directorio Médico</h2>
+        <div class="search-input-wrapper">
+            <span class="material-symbols-outlined" style="color: #94a3b8;">location_on</span>
+            <input type="text" id="filtroComuna" placeholder="Filtrar especialistas por comuna (Ej: Providencia)...">
         </div>
-
-        <div class="flash-sidebar">
-            <div class="flash-header">
-                <h2><span class="material-symbols-outlined pulse-icon">bolt</span> Ofertas Flash</h2>
-                <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Promociones exclusivas por tiempo limitado</p>
-            </div>
-            
-            <div class="flash-carousel" id="ofertasFlashContenedor">
-                <div style="text-align: center; padding: 40px; color: #64748b;">Buscando ofertas...</div>
-            </div>
-        </div>
-
+        <p id="contadorResultados" style="font-size: 0.85rem; color: #64748b; margin-top: 10px; font-weight: 500;">Buscando especialistas...</p>
     </div>
 
-    <div id="modalFichaDoctor" class="modal-overlay" style="display: none; background: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
-        <div class="modal-content modal-ficha">
-            <div class="ficha-header-bg">
-                <button class="btn-close-white" onclick="cerrarModal('modalFichaDoctor')"><span class="material-symbols-outlined" style="font-size: 1.2rem;">close</span></button>
-                <img src="assets/avatar-default-doctor.png" id="modalDocAvatar" class="ficha-avatar">
+    <div class="directorio-container" id="listaDoctoresContenedor">
+        </div>
+
+    <div id="modalFichaDoctor" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="btn-close" onclick="document.getElementById('modalFichaDoctor').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img id="modalDocAvatar" src="assets/avatar-default-doctor.png" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pixar-cyan);">
+                <h2 id="modalDocNombre" style="margin: 10px 0 5px 0; color: var(--blue-elegant);">Cargando...</h2>
+                <p id="modalDocEspecialidad" style="margin: 0; color: #64748b; font-size: 0.9rem;">Especialidad</p>
+                <p style="margin: 5px 0; font-size: 0.85rem; background: #f1f5f9; display: inline-block; padding: 4px 10px; border-radius: 10px;"><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">location_on</span> <span id="modalDocDireccion">Dirección</span></p>
             </div>
             
-            <div class="ficha-info-body">
-                <h2 id="modalDocNombre" style="margin: 0 0 5px; color: var(--blue-elegant); font-size: 1.5rem;">Cargando...</h2>
-                <p id="modalDocEspecialidad" style="margin: 0 0 15px; color: #64748b; font-weight: bold;">Especialidad</p>
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="margin: 0 0 10px; color: var(--blue-elegant); font-size: 0.9rem;">📍 Ubicación de Atención:</h4>
-                    <p id="modalDocDireccion" style="margin: 0; color: #475569; font-size: 0.9rem;">Cargando dirección...</p>
+            <h3 style="font-size: 1rem; border-bottom: 2px solid #eee; padding-bottom: 5px;">Horarios Disponibles</h3>
+            <div id="modalCalendarioHoras" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px;">
                 </div>
-
-                <h3 style="color: var(--blue-elegant); font-size: 1.1rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-top: 30px;">Selecciona tu Horario</h3>
-                
-                <div class="calendar-track" id="modalCalendarioHoras">
-                    <p style="color: #888; font-size: 0.9rem;">El doctor no tiene horas disponibles en esta sede.</p>
-                </div>
-
-                <button class="btn-pixar btn-full mt-20" id="btnConfirmarCita" disabled style="padding: 18px; font-size: 1.1rem; opacity: 0.5;" onclick="confirmarAgendamientoPaciente()">
-                    Selecciona una hora para agendar
-                </button>
-            </div>
+            
+            <button id="btnConfirmarCita" class="btn-pixar btn-search btn-full" onclick="window.confirmarAgendamientoPaciente()" disabled style="opacity: 0.5;">Selecciona una hora arriba</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
-
-    <script>
-        let todasLasSedes = [];
-        let slotSeleccionadoGlobal = null;
-        let dentistaIdSeleccionado = null;
-        let telefonoDentistaSeleccionado = "";
-
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarDirectorioDoctores();
-            cargarOfertasFlashLaterales();
-            
-            setInterval(() => {
-                const tarjetas = document.querySelectorAll('.offer-card');
-                if(tarjetas.length > 1) {
-                    const primero = tarjetas[0];
-                    primero.style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('ofertasFlashContenedor').appendChild(primero);
-                        primero.style.opacity = '1';
-                    }, 500);
-                }
-            }, 8000);
-        });
-
-        // 1. ZONA DE BÚSQUEDA Y DIRECTORIO
-        async function cargarDirectorioDoctores() {
-            const contador = document.getElementById('contadorResultados');
-            try {
-                const { data, error } = await window.midental.from('sedes_dentistas')
-                    .select('*, perfiles_dentistas(id, nombre_completo, prefijo, especialidad, avatar_url, telefono)');
-
-                if (error) throw error;
-                todasLasSedes = data || [];
-                renderizarDirectorio(todasLasSedes);
-            } catch (err) {
-                contador.innerText = "Error al cargar el directorio médico.";
-                console.error(err);
-            }
-        }
-
-        function renderizarDirectorio(sedes) {
-            const contenedor = document.getElementById('listaDoctoresContenedor');
-            const contador = document.getElementById('contadorResultados');
-            
-            contenedor.innerHTML = "";
-            contador.innerText = `${sedes.length} resultados encontrados`;
-
-            if (sedes.length === 0) {
-                contenedor.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; background: white; border-radius: 20px; border: 1px dashed #ccc; color: #888;">No se encontraron especialistas en esta zona.</div>`;
-                return;
-            }
-
-            sedes.forEach(sede => {
-                const drInfo = sede.perfiles_dentistas || {};
-                const drName = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Dentista'}`;
-                const avatar = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
-                const qtyHoras = sede.horarios_json ? sede.horarios_json.length : 0;
-
-                const card = document.createElement('div');
-                card.className = 'doctor-card';
-                card.onclick = () => abrirPerfilDoctor(drInfo, sede);
-
-                card.innerHTML = `
-                    <div class="doc-card-header">
-                        <img src="${avatar}" class="doc-avatar">
-                        <div class="doc-info">
-                            <h3>${drName}</h3>
-                            <p>${drInfo.especialidad || 'Odontología General'}</p>
-                            <span class="location-badge">
-                                <span class="material-symbols-outlined" style="font-size: 1rem; color: var(--pixar-cyan);">map</span>
-                                ${sede.comuna}
-                            </span>
-                        </div>
-                    </div>
-                    <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.85rem; color: #64748b;">${qtyHoras} horas disponibles</span>
-                        <button style="background: none; border: none; color: var(--pixar-cyan); font-weight: bold; cursor: pointer; font-size: 0.9rem;">Ver Agenda &rarr;</button>
-                    </div>
-                `;
-                contenedor.appendChild(card);
-            });
-        }
-
-        function filtrarPorComunaEnVivo() {
-            const query = document.getElementById('inputBuscarComuna').value.toLowerCase().trim();
-            if (!query) {
-                renderizarDirectorio(todasLasSedes);
-                return;
-            }
-            const filtrados = todasLasSedes.filter(sede => {
-                return sede.comuna && sede.comuna.toLowerCase().includes(query);
-            });
-            renderizarDirectorio(filtrados);
-        }
-
-        // 2. PANEL LATERAL: OFERTAS FLASH
-        async function cargarOfertasFlashLaterales() {
-            const contenedor = document.getElementById('ofertasFlashContenedor');
-            try {
-                const { data: ofertas, error } = await window.midental.from('ofertas_flash')
-                    .select('*, perfiles_dentistas(prefijo, nombre_completo)')
-                    .eq('activa', true)
-                    .gte('expira_at', new Date().toISOString())
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                if (!ofertas || ofertas.length === 0) {
-                    contenedor.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5;">No hay ofertas flash activas en este momento.</div>`;
-                    return;
-                }
-
-                contenedor.innerHTML = "";
-                ofertas.forEach(oferta => {
-                    const dr = oferta.perfiles_dentistas || {};
-                    const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || ''}`;
-                    const imgPlaceholder = oferta.imagen_url || 'https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial';
-                    
-                    const card = document.createElement('div');
-                    card.className = 'offer-card';
-                    card.onclick = () => alert("Redirigiendo a reservar oferta: " + oferta.servicio_nombre);
-
-                    card.innerHTML = `
-                        <img src="${imgPlaceholder}" class="offer-img">
-                        <div class="offer-details">
-                            <span style="background: var(--pixar-orange); color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: inline-block;">DESTACADO</span>
-                            <h3 class="offer-title">${oferta.servicio_nombre}</h3>
-                            <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #cbd5e1;">Por ${drName}</p>
-                            <div class="offer-price-row">
-                                <span class="price-old">$${oferta.precio_real.toLocaleString('es-CL')}</span>
-                                <span class="price-new">$${oferta.precio_oferta.toLocaleString('es-CL')}</span>
-                            </div>
-                        </div>
-                    `;
-                    contenedor.appendChild(card);
-                });
-            } catch (err) {
-                console.error("Error al cargar ofertas:", err);
-            }
-        }
-
-        // 3. FICHA DEL DOCTOR Y AGENDAMIENTO CON FECHAS REALES
-        function abrirPerfilDoctor(drInfo, sedeInfo) {
-            document.getElementById('modalDocNombre').innerText = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Doctor'}`;
-            document.getElementById('modalDocEspecialidad').innerText = drInfo.especialidad || 'Odontología General';
-            document.getElementById('modalDocAvatar').src = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
-            document.getElementById('modalDocDireccion').innerText = `${sedeInfo.nombre_sede || 'Clínica'} - ${sedeInfo.direccion}, ${sedeInfo.comuna}`;
-            
-            dentistaIdSeleccionado = drInfo.id;
-            telefonoDentistaSeleccionado = drInfo.telefono || "";
-            slotSeleccionadoGlobal = null;
-            
-            const btn = document.getElementById('btnConfirmarCita');
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.innerText = "Selecciona una hora para agendar";
-
-            renderizarCalendarioReserva(sedeInfo.horarios_json || []);
-
-            document.getElementById('modalFichaDoctor').style.display = 'flex';
-        }
-
-        function renderizarCalendarioReserva(horariosArray) {
-            const track = document.getElementById('modalCalendarioHoras');
-            track.innerHTML = "";
-
-            if (horariosArray.length === 0) {
-                track.innerHTML = '<p style="color:#ef4444; width:100%; text-align:center; padding: 20px;">No hay horas disponibles en esta sede.</p>';
-                return;
-            }
-
-            // Agrupar horarios por día
-            const agendaAgrupada = {};
-            horariosArray.forEach(slot => {
-                const partes = slot.split('-'); // Ej: ["Lun", "10:00"]
-                if(partes.length === 2) {
-                    if(!agendaAgrupada[partes[0]]) agendaAgrupada[partes[0]] = [];
-                    agendaAgrupada[partes[0]].push(partes[1]);
-                }
-            });
-
-            // Motor de Fechas Dinámicas
-            const hoy = new Date();
-            const lunes = new Date(hoy);
-            lunes.setDate(hoy.getDate() - (hoy.getDay() === 0 ? 7 : hoy.getDay()) + 1);
-
-            const ordenDias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-            const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-            
-            ordenDias.forEach((dia, index) => {
-                if (agendaAgrupada[dia]) {
-                    // Calcular fecha real
-                    let fechaColumna = new Date(lunes);
-                    fechaColumna.setDate(lunes.getDate() + index);
-                    
-                    let diaNum = fechaColumna.getDate();
-                    let mesLetra = mesesCortos[fechaColumna.getMonth()];
-                    let headerTexto = `${dia} ${diaNum} ${mesLetra}`; // Ej: Lun 20 Abr
-
-                    const col = document.createElement('div');
-                    col.className = 'day-col';
-                    
-                    const header = document.createElement('div');
-                    header.className = 'day-header-cal';
-                    header.innerText = headerTexto;
-                    col.appendChild(header);
-
-                    // Ordenar horas y crear botones
-                    agendaAgrupada[dia].sort().forEach(hora => {
-                        const btn = document.createElement('button');
-                        btn.className = 'time-slot-btn';
-                        btn.innerText = hora;
-                        btn.onclick = () => seleccionarSlotReserva(btn, `${dia}-${hora}`);
-                        col.appendChild(btn);
-                    });
-
-                    track.appendChild(col);
-                }
-            });
-        }
-
-        function seleccionarSlotReserva(btnHtml, slotId) {
-            document.querySelectorAll('#modalCalendarioHoras .time-slot-btn').forEach(b => b.classList.remove('selected'));
-            
-            btnHtml.classList.add('selected');
-            slotSeleccionadoGlobal = slotId;
-
-            const btnFinal = document.getElementById('btnConfirmarCita');
-            btnFinal.disabled = false;
-            btnFinal.style.opacity = '1';
-            btnFinal.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">event_available</span> Confirmar Cita: ${slotId}`;
-        }
-
-        async function confirmarAgendamientoPaciente() {
-            const pacienteId = localStorage.getItem('midental_user_id');
-            if (!pacienteId) {
-                alert("Debes iniciar sesión como paciente para agendar una hora.");
-                window.location.href = 'index.html';
-                return;
-            }
-
-            const btn = document.getElementById('btnConfirmarCita');
-            btn.disabled = true;
-            btn.innerText = "Reservando...";
-
-            try {
-                const { error } = await window.midental.from('citas_agenda').insert([{
-                    paciente_id: pacienteId,
-                    dentista_id: dentistaIdSeleccionado,
-                    fecha_hora_formato_slot: slotSeleccionadoGlobal,
-                    estado: 'pendiente',
-                    motivo: 'Evaluación General'
-                }]);
-
-                if (error) throw error;
-
-                alert("🎉 ¡Reserva enviada exitosamente!\nEl especialista recibirá la solicitud en su panel y te confirmará en breve.");
-                cerrarModal('modalFichaDoctor');
-
-                const nombreDr = document.getElementById('modalDocNombre').innerText;
-                const mensajeP = encodeURIComponent(`Hola ${nombreDr}, vi que tienes esta hora disponible (${slotSeleccionadoGlobal}) en el portal MiDental y me gustaría solicitar una hora de atención. ¿Me podría confirmar la hora?`);
-
-                if (telefonoDentistaSeleccionado) {
-                    const telLimpio = telefonoDentistaSeleccionado.replace(/[^0-9]/g, '');
-                    window.open(`https://wa.me/${telLimpio}?text=${mensajeP}`, '_blank');
-                } else {
-                    alert("Nota: El doctor no tiene un WhatsApp público vinculado. Te contactará mediante la plataforma.");
-                }
-
-            } catch (err) {
-                alert("Error al procesar reserva: " + err.message);
-                btn.disabled = false;
-                btn.innerHTML = `Confirmar Cita: ${slotSeleccionadoGlobal}`;
-            }
-        }
-
-        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-    </script>
     <nav class="bottom-nav">
-        <a href="dashboard-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">home</span>Inicio</a>
-        <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
+        <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
+        <a href="mapa-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">search</span>Buscar</a>
         <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
         <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
         <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
     </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/mapa.js"></script>
+    <script>
+        // Pequeño filtro para la barra de búsqueda superior
+        document.getElementById('filtroComuna').addEventListener('input', function(e) {
+            const termino = e.target.value.toLowerCase();
+            const tarjetas = document.querySelectorAll('.doctor-card');
+            tarjetas.forEach(card => {
+                const texto = card.innerText.toLowerCase();
+                card.style.display = texto.includes(termino) ? 'block' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>
