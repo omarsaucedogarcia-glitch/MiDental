@@ -126,7 +126,8 @@ async function iniciarSesion(tipo) {
     const btn = document.querySelector(`#modalLogin${tipo.charAt(0).toUpperCase() + tipo.slice(1)} .btn-pixar`);
 
     if (!rutInput || !password) return alert("⚠️ Ingresa RUT y Contraseña.");
-    const textoOriginal = btn.innerHTML; btn.innerHTML = "Verificando...";
+    const textoOriginal = btn.innerHTML; 
+    btn.innerHTML = "Verificando...";
 
     try {
         const rutLimpio = formatearRutEstricto(rutInput);
@@ -142,7 +143,10 @@ async function iniciarSesion(tipo) {
 
         localStorage.setItem('midental_user_id', session.user.id);
         localStorage.setItem('midental_user_tipo', tipo);
-        window.location.href = (tipo === 'dentista') ? 'dashboard-dentista.html' : 'mapa-paciente.html';
+        
+        // ¡LA REDIRECCIÓN CORREGIDA!
+        window.location.href = (tipo === 'dentista') ? 'dashboard-dentista.html' : 'dashboard-paciente.html';
+        
     } catch (err) {
         alert("Acceso denegado: " + err.message);
         btn.innerHTML = textoOriginal;
@@ -225,7 +229,6 @@ window.cargarAgendaDesdeSedes = async function() {
                     if(estado.toLowerCase() === 'en curso') cls = 'event-inprogress';
                     if(estado.toLowerCase() === 'finalizado') cls = 'event-completed';
                     
-                    // Escapamos los datos para evitar errores en onclick
                     celdaHTML.innerHTML = `<div class="${cls}" onclick="abrirDetallePaciente('${pctName}', '${cita.motivo || 'Consulta'}', '${pctTel}', '${estado}', '${slot}', this.parentElement, '')"><strong>${pctName}</strong></div>`;
                 }
             });
@@ -240,8 +243,18 @@ window.confirmarPorWhatsApp = function(pNombre, diaHora, pTelefono) {
     window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
 }
 
-window.cerrarSesionLocal = function() {
-    localStorage.removeItem('midental_user_id');
-    localStorage.removeItem('midental_user_tipo');
-    window.location.href = 'index.html';
+// Cierre de sesión blindado
+window.cerrarSesionLocal = async function() {
+    try {
+        if (window.midental && window.midental.auth) {
+            await window.midental.auth.signOut();
+        }
+    } catch (err) {
+        console.error("Error al cerrar sesión en BD:", err);
+    } finally {
+        localStorage.removeItem('midental_user_id');
+        localStorage.removeItem('midental_user_tipo');
+        localStorage.removeItem('midental_user_name');
+        window.location.href = 'index.html';
+    }
 }

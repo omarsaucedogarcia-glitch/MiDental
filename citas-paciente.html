@@ -7,61 +7,32 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <style>
-        body { background-color: #f8fafc; padding-bottom: 90px; }
-        .citas-container { padding: 20px; }
+        body { background-color: #f8fafc; padding-bottom: 90px; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .citas-container { padding: 20px; max-width: 800px; margin: 0 auto; }
         .section-title { font-size: 1.1rem; color: var(--blue-elegant); margin: 25px 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
-        .appointment-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; transition: 0.3s; }
-        .appointment-card:active { transform: scale(0.98); }
+        .appointment-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         
         .doc-avatar-mini { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: #eee; }
         .appt-info { flex: 1; }
         .appt-info h4 { margin: 0; color: #334155; font-size: 1rem; }
         .appt-info p { margin: 3px 0; font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 5px; }
         
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 5px; }
         .status-pendiente { background: #fef3c7; color: #92400e; }
         .status-confirmado { background: #dcfce7; color: #166534; }
+        .status-en-curso { background: #e0e7ff; color: #3730a3; }
         .status-finalizado { background: #f1f5f9; color: #475569; }
 
         .btn-whatsapp-small { background: #25d366; color: white; border: none; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         
-        .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; }
-        .empty-state span { font-size: 3rem; margin-bottom: 10px; opacity: 0.3; }
-    /* BARRA DE NAVEGACIÓN INFERIOR (ESTILO APP) */
-        .bottom-nav { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            background: white; 
-            border-top: 1px solid #e2e8f0; 
-            display: flex; 
-            justify-content: space-around; 
-            padding: 10px 0; 
-            z-index: 1000; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); 
-        }
-        .nav-item-bottom { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            text-decoration: none; 
-            color: #94a3b8; 
-            font-size: 0.75rem; 
-            gap: 4px; 
-        }
-        .nav-item-bottom.active { 
-            color: var(--pixar-cyan); 
-        }
-        .nav-item-bottom span { 
-            font-size: 1.5rem; 
-        }
+        .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px dashed #cbd5e1; }
+        .empty-state span { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; color: var(--pixar-cyan); }
     </style>
 </head>
 <body>
 
-    <header style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100;">
+    <header style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
         <h2 style="margin: 0; font-size: 1.3rem; color: var(--blue-elegant);">Mis Citas</h2>
     </header>
 
@@ -71,7 +42,10 @@
             Próximas Atenciones
         </div>
         <div id="listaProximas">
-            <div class="empty-state">Cargando tus citas...</div>
+            <div class="empty-state">
+                <span class="material-symbols-outlined" style="animation: spin 2s linear infinite;">sync</span>
+                <p>Cargando tus citas...</p>
+            </div>
         </div>
 
         <div class="section-title">
@@ -79,14 +53,18 @@
             Historial Pasado
         </div>
         <div id="listaHistorial">
+            <div class="empty-state" style="padding: 20px;">
+                <p style="margin:0; font-size: 0.9rem;">Cargando historial...</p>
             </div>
+        </div>
     </div>
 
     <nav class="bottom-nav">
-        <a href="dashboard-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">home</span>Inicio</a>
+        <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
         <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
+        <a href="ofertas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">play_circle</span>Ofertas/Reels</a>
         <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
-        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
+        <a href="documentos-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">description</span>Documentos</a>
         <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
     </nav>
 
@@ -104,49 +82,58 @@
             const historialCont = document.getElementById('listaHistorial');
 
             if (!pacienteId) {
+                console.error("No hay sesión de paciente activa.");
                 window.location.href = 'index.html';
                 return;
             }
 
             try {
-                // Consultamos las citas y traemos los datos del dentista de una vez
+                // Consultamos las citas y traemos los datos del dentista
                 const { data: citas, error } = await window.midental
                     .from('citas_agenda')
                     .select('*, perfiles_dentistas(nombre_completo, avatar_url, telefono, especialidad)')
                     .eq('paciente_id', pacienteId)
-                    .order('id', { ascending: false }); // Ordenamos por las más recientes
+                    .order('id', { ascending: false });
 
                 if (error) throw error;
 
                 proximasCont.innerHTML = "";
                 historialCont.innerHTML = "";
 
-                if (citas.length === 0) {
+                if (!citas || citas.length === 0) {
                     proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">event_busy</span><p>Aún no tienes citas agendadas.</p></div>`;
+                    historialCont.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">No hay registros anteriores.</p>`;
                     return;
                 }
 
                 citas.forEach(cita => {
-                    const dr = cita.perfiles_dentistas;
+                    // El "|| {}" evita que la pantalla se quede en blanco si el doctor fue borrado
+                    const dr = cita.perfiles_dentistas || {};
+                    const drNombre = dr.nombre_completo || 'Doctor Especialista';
+                    const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
+                    const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g,'') : '';
+                    
+                    // Aseguramos que la clase CSS no tenga espacios (ej: "en curso" -> "en-curso")
+                    const estadoLimpio = (cita.estado || 'pendiente').toLowerCase().replace(' ', '-');
+                    
                     const cardHTML = `
                         <div class="appointment-card">
-                            <img src="${dr.avatar_url || 'assets/avatar-default-doctor.png'}" class="doc-avatar-mini">
+                            <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar Doctor">
                             <div class="appt-info">
-                                <span class="status-pill status-${cita.estado.toLowerCase()}">${cita.estado}</span>
-                                <h4>Dr. ${dr.nombre_completo}</h4>
+                                <span class="status-pill status-${estadoLimpio}">${cita.estado}</span>
+                                <h4>Dr. ${drNombre}</h4>
                                 <p><span class="material-symbols-outlined icon-small">calendar_month</span> ${cita.fecha_hora_formato_slot}</p>
                                 <p><span class="material-symbols-outlined icon-small">medical_services</span> ${cita.motivo || 'Evaluación'}</p>
                             </div>
-                            ${cita.estado !== 'Finalizado' ? `
-                                <a href="https://wa.me/${dr.telefono.replace(/\D/g,'')}" target="_blank" class="btn-whatsapp-small">
+                            ${cita.estado !== 'Finalizado' && drTelefono ? `
+                                <a href="https://wa.me/${drTelefono}" target="_blank" class="btn-whatsapp-small">
                                     <span class="material-symbols-outlined">chat</span>
                                 </a>
                             ` : ''}
                         </div>
                     `;
 
-                    // Lógica para separar: Si el estado es 'Finalizado' va al historial.
-                    // Si es 'Pendiente' o 'Confirmado', va a próximas.
+                    // Filtro de historial vs próximas
                     if (cita.estado === 'Finalizado' || cita.estado === 'Completada') {
                         historialCont.innerHTML += cardHTML;
                     } else {
@@ -154,13 +141,18 @@
                     }
                 });
 
-                // Si alguna sección queda vacía después del filtro
-                if (proximasCont.innerHTML === "") proximasCont.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:0.8rem;">No tienes citas pendientes.</p>`;
-                if (historialCont.innerHTML === "") historialCont.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:0.8rem;">No hay registros anteriores.</p>`;
+                // Si alguna sección queda vacía después de filtrar
+                if (proximasCont.innerHTML === "") {
+                    proximasCont.innerHTML = `<div class="empty-state"><p style="margin:0;">No tienes citas pendientes.</p></div>`;
+                }
+                if (historialCont.innerHTML === "") {
+                    historialCont.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">No hay registros anteriores.</p>`;
+                }
 
             } catch (err) {
-                console.error("Error:", err);
-                proximasCont.innerHTML = `<p style="color:red; text-align:center;">Error al cargar datos.</p>`;
+                console.error("Error cargando citas:", err);
+                proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined" style="color:red;">error</span><p>Error de conexión. Intenta recargar la página.</p></div>`;
+                historialCont.innerHTML = "";
             }
         }
     </script>
