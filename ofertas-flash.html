@@ -35,12 +35,12 @@
                 <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
                 <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
-                <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
+                <a href="ofertas-flash.html" class="nav-item active"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
             </div>
         </aside>
 
@@ -82,7 +82,7 @@
                     </div>
                     <div class="stat-box conversion-box">
                         <span class="material-symbols-outlined">visibility</span>
-                        <div><small>Impactos Visuales</small><strong>0</strong></div>
+                        <div><small>Estado</small><strong id="monitorEstadoPublicacion">Activa</strong></div>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
                     <div class="templates-section mt-20">
                         <p class="subtitle" style="font-weight: bold; margin-bottom: 10px;">1. Selecciona un servicio:</p>
                         <div class="templates-chips" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                            <button class="chip-template active" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer;" onclick="usarPlantilla('Limpieza Dental Profunda', 45000, 19990, this)">Limpieza</button>
+                            <button class="chip-template active" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer; background: var(--blue-elegant); color: white;" onclick="usarPlantilla('Limpieza Dental Profunda', 45000, 19990, this)">Limpieza</button>
                             <button class="chip-template" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer;" onclick="usarPlantilla('Blanqueamiento LED', 80000, 39990, this)">Blanqueamiento</button>
                             <button class="chip-template" style="padding: 8px 15px; border-radius: 20px; border: 1px solid #ccc; cursor: pointer;" onclick="limpiarPlantilla(this)">Personalizado</button>
                         </div>
@@ -143,6 +143,18 @@
                         </div>
                     </div>
 
+                    <div class="schedule-section mt-20">
+                        <p class="subtitle" style="font-weight: bold; margin-bottom: 10px;">5. ¿Cuándo quieres que inicie la campaña?</p>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <select id="tipoInicio" class="apple-input-modal" onchange="toggleProgramacion()" style="background: white; width: 250px;">
+                                <option value="ahora">Empezar ahora mismo</option>
+                                <option value="programado">Programar fecha y hora</option>
+                            </select>
+                            <input type="datetime-local" id="inputFechaInicio" class="apple-input-modal" style="display: none; width: 250px;">
+                        </div>
+                        <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">El tiempo de la oferta comenzará a correr desde este momento exacto.</p>
+                    </div>
+
                     <button class="btn-pixar btn-ofertas btn-full mt-20" id="btnPublicarOferta" onclick="publicarOfertaEnSupabase()" style="padding: 18px; font-size: 1.1rem; background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);">
                         <span class="material-symbols-outlined">rocket_launch</span> Publicar en el Mapa (-1 Token)
                     </button>
@@ -176,9 +188,24 @@
         let archivoPromoSeleccionado = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // sincronizarDatosGlobales() de app.js cargará el saldo de tokens automáticamente
             cargarOfertaActiva();
         });
+
+        // Toggle para mostrar/ocultar el calendario de programación
+        function toggleProgramacion() {
+            const tipo = document.getElementById('tipoInicio').value;
+            const inputFecha = document.getElementById('inputFechaInicio');
+            if (tipo === 'programado') {
+                inputFecha.style.display = 'block';
+                // Setear la fecha mínima para que no programen en el pasado
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                inputFecha.min = now.toISOString().slice(0, 16);
+            } else {
+                inputFecha.style.display = 'none';
+                inputFecha.value = '';
+            }
+        }
 
         // Lógica de Interfaz Local
         function usarPlantilla(n, pr, po, el) {
@@ -241,6 +268,7 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
         // ==========================================
         // COMUNICACIÓN CON SUPABASE
         // ==========================================
@@ -258,36 +286,48 @@
             if (!nombre || !pReal || !pOferta) return alert("Completa todos los datos de la oferta.");
             if (!archivoPromoSeleccionado) return alert("⚠️ Debes subir una imagen promocional obligatoriamente.");
             
-            // Verificar saldo actual (lo leemos visualmente del DOM que ya fue sincronizado por app.js)
-            const saldoActual = parseInt(document.getElementById('sidebarTokenBalance').innerText);
-            if (isNaN(saldoActual) || saldoActual < costoTokensActual) {
-                return alert(`Saldo insuficiente. Necesitas ${costoTokensActual} tokens y tienes ${saldoActual}. Ve al Monedero para recargar.`);
+            // Validar Programación
+            const tipoInicio = document.getElementById('tipoInicio').value;
+            const inputFecha = document.getElementById('inputFechaInicio').value;
+            
+            let fechaInicio = new Date();
+            if (tipoInicio === 'programado') {
+                if (!inputFecha) return alert("Por favor selecciona la fecha y hora de inicio.");
+                fechaInicio = new Date(inputFecha);
+                if (fechaInicio < new Date()) return alert("La fecha programada no puede estar en el pasado.");
+            }
+            
+            // Verificar saldo
+            const saldoActualStr = document.getElementById('sidebarTokenBalance').innerText;
+            const saldoActual = parseInt(saldoActualStr) || 0;
+            if (saldoActual < costoTokensActual) {
+                return alert(`Saldo insuficiente. Necesitas ${costoTokensActual} tokens y tienes ${saldoActual}.`);
             }
 
             btn.disabled = true;
             btn.innerHTML = "Subiendo imagen y publicando...";
 
             try {
-                // 1. Subir la Imagen Promocional al Storage
+                // 1. Subir la Imagen Promocional
                 const fileExt = archivoPromoSeleccionado.name.split('.').pop();
                 const fileName = `promo_${dentistaId}_${Date.now()}.${fileExt}`;
                 const { error: uploadError } = await window.midental.storage.from('ofertas').upload(fileName, archivoPromoSeleccionado);
-                
                 if (uploadError) throw new Error("Error al subir la imagen: " + uploadError.message);
                 
                 const { data: urlData } = window.midental.storage.from('ofertas').getPublicUrl(fileName);
                 const imagenPublicUrl = urlData.publicUrl;
 
-                // 2. Calcular fecha de expiración
-                const fechaExpiracion = new Date();
+                // 2. Calcular fecha de expiración desde la fecha de INICIO
+                const fechaExpiracion = new Date(fechaInicio.getTime());
                 fechaExpiracion.setDate(fechaExpiracion.getDate() + diasDuracionActual);
 
-                // 3. Guardar la Oferta en la Tabla
+                // 3. Guardar en BD (Asegúrate de agregar la columna inicio_at en Supabase)
                 const { error: insertError } = await window.midental.from('ofertas_flash').insert([{
                     dentista_id: dentistaId,
                     servicio_nombre: nombre,
                     precio_real: parseInt(pReal),
                     precio_oferta: parseInt(pOferta),
+                    inicio_at: fechaInicio.toISOString(),
                     expira_at: fechaExpiracion.toISOString(),
                     imagen_url: imagenPublicUrl,
                     tokens_costo: costoTokensActual,
@@ -296,22 +336,27 @@
 
                 if (insertError) throw new Error("Error al guardar la oferta: " + insertError.message);
 
-                // 4. Descontar los Tokens del Perfil del Dentista
+                // 4. Descontar Tokens
                 const nuevoSaldo = saldoActual - costoTokensActual;
                 const { error: tokenError } = await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', dentistaId);
-
-                if (tokenError) throw new Error("La oferta se publicó, pero hubo un error actualizando tu saldo.");
+                if (tokenError) throw new Error("Oferta publicada, pero hubo un error con el saldo.");
 
                 // 5. Éxito
-                alert("🚀 ¡Campaña activa! Los pacientes ya pueden verla destacada en el mapa.");
-                sincronizarDatosGlobales(); // Actualiza los números del monedero en la cabecera
+                if (tipoInicio === 'programado') {
+                    alert(`✅ ¡Campaña programada con éxito! Iniciará el ${fechaInicio.toLocaleString('es-CL')}.`);
+                } else {
+                    alert("🚀 ¡Campaña activa! Los pacientes ya pueden verla destacada.");
+                }
+                
+                window.sincronizarDatosGlobales();
                 cargarOfertaActiva();
 
                 // Limpiar formulario
                 archivoPromoSeleccionado = null;
                 document.getElementById('uploadPlaceholder').style.display = 'block';
                 document.getElementById('promoPreview').style.display = 'none';
-                limpiarPlantilla(document.querySelector('.chip-template:last-child'));
+                document.getElementById('tipoInicio').value = 'ahora';
+                toggleProgramacion();
 
             } catch (err) {
                 alert(err.message);
@@ -321,7 +366,6 @@
             }
         }
 
-        // Cargar la última oferta activa para mostrarla en el monitor
         async function cargarOfertaActiva() {
             const dentistaId = localStorage.getItem('midental_user_id');
             if (!dentistaId) return;
@@ -331,7 +375,7 @@
                 .select('*')
                 .eq('dentista_id', dentistaId)
                 .eq('activa', true)
-                .gte('expira_at', new Date().toISOString()) // Solo las que no han expirado
+                .gte('expira_at', new Date().toISOString())
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .single();
@@ -342,8 +386,14 @@
                 const fechaExp = new Date(data.expira_at);
                 document.getElementById('monitorCronometro').innerText = fechaExp.toLocaleDateString('es-CL') + " " + fechaExp.toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'});
                 
+                // Determinar si está activa o en espera
+                let estado = "Activa en el muro";
+                if(data.inicio_at && new Date(data.inicio_at) > new Date()) {
+                    estado = "Programada (En Espera)";
+                }
+                document.getElementById('monitorEstadoPublicacion').innerText = estado;
+
                 document.getElementById('monitorOfertaActiva').style.display = 'block';
-                // Opcional: Podríamos guardar el ID de la oferta activa globalmente para apagarla luego
                 window.ofertaActivaId = data.id; 
             } else {
                 document.getElementById('monitorOfertaActiva').style.display = 'none';
@@ -354,16 +404,10 @@
             if(!window.ofertaActivaId) return;
             if(confirm("¿Estás seguro de detener esta campaña? Los tokens descontados no se devuelven.")) {
                 await window.midental.from('ofertas_flash').update({ activa: false }).eq('id', window.ofertaActivaId);
-                alert("Campaña detenida. Ya no aparecerás destacado en el mapa.");
+                alert("Campaña detenida.");
                 cargarOfertaActiva();
             }
         }
-        // Y para inyectar los datos en el HTML:
-if(data) {
-    document.getElementById('dashCampaignName').innerText = data.servicio_nombre;
-    document.getElementById('dashCampaignReservas').innerText = data.clics_conteo || 0; // Muestra clics/reservas
-    // Configura el cronómetro restando data.expira_at a la fecha actual...
-}
     </script>
 </body>
 </html>

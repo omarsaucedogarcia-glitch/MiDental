@@ -54,11 +54,12 @@
         async function cargarOfertas() {
             const contenedor = document.getElementById('ofertasFlashContenedor');
             try {
-                // 1. Llamada a Supabase (trae ofertas y datos del doctor al mismo tiempo)
-                const { data: ofertas, error } = await window.midental
-                    .from('ofertas_flash')
-                    .select('*, perfiles_dentistas(prefijo, nombre_completo)')
-                    .order('created_at', { ascending: false });
+               // 1. Llamada a Supabase (trae ofertas y datos del doctor al mismo tiempo)
+const { data: ofertas, error } = await window.midental
+    .from('ofertas_flash')
+    .select('*, perfiles_dentistas(prefijo, nombre_completo)')
+    .lte('inicio_at', new Date().toISOString())
+    .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
