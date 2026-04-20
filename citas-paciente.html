@@ -11,23 +11,36 @@
         .citas-container { padding: 20px; max-width: 800px; margin: 0 auto; }
         .section-title { font-size: 1.1rem; color: var(--blue-elegant); margin: 25px 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
-        .appointment-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        /* Tarjeta Base */
+        .appointment-card { border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.3s; background-color: white; }
         
-        .doc-avatar-mini { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: #eee; }
+        /* COLORES DINÁMICOS DE FONDO PARA LAS TARJETAS */
+        .card-confirmado { background-color: #f0fdf4; border-color: #bbf7d0; } /* Verde suave */
+        .card-finalizado, .card-completada { background-color: #f0f9ff; border-color: #bae6fd; } /* Azul celeste suave */
+        .card-cancelado { background-color: #fef2f2; border-color: #fecaca; } /* Rojo suave */
+        .card-pendiente { background-color: #fffbeb; border-color: #fde68a; } /* Amarillo suave */
+        .card-en-curso { background-color: #eef2ff; border-color: #c7d2fe; } /* Índigo suave */
+
+        .doc-avatar-mini { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .appt-info { flex: 1; }
         .appt-info h4 { margin: 0; color: #334155; font-size: 1rem; }
         .appt-info p { margin: 3px 0; font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 5px; }
         
+        /* Pills de estado */
         .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 5px; }
         .status-pendiente { background: #fef3c7; color: #92400e; }
         .status-confirmado { background: #dcfce7; color: #166534; }
         .status-en-curso { background: #e0e7ff; color: #3730a3; }
-        .status-finalizado { background: #f1f5f9; color: #475569; }
+        .status-finalizado, .status-completada { background: #e2e8f0; color: #475569; }
+        .status-cancelado { background: #fee2e2; color: #991b1b; }
 
-        .btn-whatsapp-small { background: #25d366; color: white; border: none; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .btn-whatsapp-small { background: #25d366; color: white; border: none; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3); }
         
         .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px dashed #cbd5e1; }
         .empty-state span { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; color: var(--pixar-cyan); }
+
+        /* Ajuste de barra inferior */
+        .bottom-nav { background: white; border-top: none; }
     </style>
 </head>
 <body>
@@ -63,8 +76,8 @@
         <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
         <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
         <a href="ofertas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">play_circle</span>Ofertas/Reels</a>
-        <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
-        <a href="documentos-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">description</span>Documentos</a>
+        <a href="citas-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
+        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
         <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
     </nav>
 
@@ -107,17 +120,16 @@
                 }
 
                 citas.forEach(cita => {
-                    // El "|| {}" evita que la pantalla se quede en blanco si el doctor fue borrado
                     const dr = cita.perfiles_dentistas || {};
                     const drNombre = dr.nombre_completo || 'Doctor Especialista';
                     const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
                     const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g,'') : '';
                     
-                    // Aseguramos que la clase CSS no tenga espacios (ej: "en curso" -> "en-curso")
                     const estadoLimpio = (cita.estado || 'pendiente').toLowerCase().replace(' ', '-');
                     
+                    // Inyectamos la clase de color dinámico en el div principal (card-${estadoLimpio})
                     const cardHTML = `
-                        <div class="appointment-card">
+                        <div class="appointment-card card-${estadoLimpio}">
                             <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar Doctor">
                             <div class="appt-info">
                                 <span class="status-pill status-${estadoLimpio}">${cita.estado}</span>
@@ -125,7 +137,7 @@
                                 <p><span class="material-symbols-outlined icon-small">calendar_month</span> ${cita.fecha_hora_formato_slot}</p>
                                 <p><span class="material-symbols-outlined icon-small">medical_services</span> ${cita.motivo || 'Evaluación'}</p>
                             </div>
-                            ${cita.estado !== 'Finalizado' && drTelefono ? `
+                            ${(estadoLimpio !== 'finalizado' && estadoLimpio !== 'completada' && estadoLimpio !== 'cancelado') && drTelefono ? `
                                 <a href="https://wa.me/${drTelefono}" target="_blank" class="btn-whatsapp-small">
                                     <span class="material-symbols-outlined">chat</span>
                                 </a>
@@ -133,15 +145,15 @@
                         </div>
                     `;
 
-                    // Filtro de historial vs próximas
-                    if (cita.estado === 'Finalizado' || cita.estado === 'Completada') {
+                    // Filtro inteligente: Si está finalizada, completada o CANCELADA, va al historial
+                    if (estadoLimpio === 'finalizado' || estadoLimpio === 'completada' || estadoLimpio === 'cancelado') {
                         historialCont.innerHTML += cardHTML;
                     } else {
                         proximasCont.innerHTML += cardHTML;
                     }
                 });
 
-                // Si alguna sección queda vacía después de filtrar
+                // Limpieza final de estados vacíos
                 if (proximasCont.innerHTML === "") {
                     proximasCont.innerHTML = `<div class="empty-state"><p style="margin:0;">No tienes citas pendientes.</p></div>`;
                 }
