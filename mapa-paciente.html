@@ -9,10 +9,10 @@
     <style>
         body { background-color: #f4f7f9; padding-bottom: 90px; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* Encabezado Premium */
+        /* Encabezado Premium con Logo */
         .header-search { 
             background: linear-gradient(to bottom, #ffffff, #f8fafc); 
-            padding: 25px 20px 20px 20px; 
+            padding: 20px 20px 20px 20px; 
             border-bottom: 1px solid #e2e8f0; 
             position: sticky; 
             top: 0; 
@@ -20,7 +20,13 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
             border-radius: 0 0 20px 20px;
         }
-        .search-title { margin: 0; color: var(--blue-elegant); font-size: 1.4rem; display: flex; align-items: center; gap: 8px; font-weight: 800; line-height: 1.2; }
+        
+        .brand-container-small { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+        .brand-container-small img { height: 28px; }
+        .brand-container-small span { font-size: 1.3rem; font-weight: 900; color: var(--blue-elegant); letter-spacing: -0.5px; }
+
+        .search-title { margin: 0; color: #334155; font-size: 1.1rem; display: flex; align-items: center; gap: 6px; font-weight: 600; line-height: 1.3; }
+        .search-title .material-symbols-outlined { color: var(--pixar-cyan); font-size: 1.4rem; }
         
         /* Barra de búsqueda flotante */
         .search-input-wrapper { 
@@ -29,7 +35,7 @@
             background: white; 
             padding: 14px 20px; 
             border-radius: 30px; 
-            margin-top: 18px; 
+            margin-top: 15px; 
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
             transition: all 0.3s ease;
@@ -38,57 +44,10 @@
             border-color: var(--pixar-cyan);
             box-shadow: 0 4px 12px rgba(0, 180, 216, 0.1);
         }
-        .search-input-wrapper input { border: none; background: transparent; outline: none; width: 100%; margin-left: 10px; color: #334155; font-size: 1rem; }
+        .search-input-wrapper input { border: none; background: transparent; outline: none; width: 100%; margin-left: 10px; color: #334155; font-size: 0.95rem; }
         
         /* Contenedor centralizado */
         .directorio-container { padding: 25px 20px; max-width: 800px; margin: 0 auto; }
-        
-        /* ====================================================
-           NUEVOS ESTILOS PARA LA TARJETA UNIFICADA (CON FOOTER VERDE)
-           ==================================================== */
-        .card-wrapper {
-            background: white;
-            border-radius: 22px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            overflow: hidden; /* Esto asegura que el verde no se salga de las esquinas curvas */
-            border: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s;
-        }
-        .card-wrapper:active { transform: scale(0.98); }
-        
-        /* Limpiamos la tarjeta interna generada por JS para que se fusione */
-        .card-wrapper .doctor-card {
-            background: transparent !important;
-            box-shadow: none !important;
-            border: none !important;
-            margin-bottom: 0 !important;
-            padding: 20px !important;
-        }
-
-        /* El footer verde llamativo estilo MiDental */
-        .card-footer-green {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; /* Verde Esmeralda Premium */
-            color: white !important;
-            padding: 15px 20px !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-        
-        /* Forzamos a que todo el texto y enlaces dentro del verde sean blancos */
-        .card-footer-green * {
-            color: white !important;
-            text-decoration: none !important;
-            margin: 0 !important;
-        }
-        .card-footer-green a:hover {
-            opacity: 0.8;
-        }
         
         /* Modal Premium */
         .modal-content { max-height: 90vh; overflow-y: auto; padding: 30px 25px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
@@ -101,13 +60,19 @@
 <body>
 
     <div class="header-search">
+        <div class="brand-container-small">
+            <img src="assets/LogoMiDental.png" alt="Logo MiDental">
+            <span>MiDental</span>
+        </div>
+
         <h2 class="search-title">
-            <span class="material-symbols-outlined" style="color: var(--pixar-cyan); font-size: 1.8rem;">location_on</span> 
+            <span class="material-symbols-outlined">location_on</span> 
             Dentistas disponibles en tu ubicación
         </h2>
+        
         <div class="search-input-wrapper">
             <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">search</span>
-            <input type="text" id="filtroComuna" placeholder="¿En qué comuna buscas? (Ej: Providencia)...">
+            <input type="text" id="filtroComuna" placeholder="Buscar por comuna o nombre del dentista...">
         </div>
         <p id="contadorResultados" style="font-size: 0.85rem; color: #64748b; margin-top: 15px; margin-bottom: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Buscando especialistas...</p>
     </div>
@@ -159,13 +124,15 @@
     <script src="js/app.js"></script>
     <script src="js/mapa.js"></script>
     <script>
-        // Filtro ultra-rápido para la barra de búsqueda superior
+        // Filtro ultra-rápido para la barra de búsqueda superior (Comuna y Nombre)
         document.getElementById('filtroComuna').addEventListener('input', function(e) {
             const termino = e.target.value.toLowerCase();
-            const tarjetas = document.querySelectorAll('.card-wrapper');
+            // Ahora busca en la tarjeta principal generada por el nuevo mapa.js
+            const tarjetas = document.querySelectorAll('.doctor-card');
             let visibles = 0;
             
             tarjetas.forEach(wrapper => {
+                // Al extraer el texto de toda la tarjeta, busca en el nombre, comuna, especialidad, etc.
                 const texto = wrapper.innerText.toLowerCase();
                 if(texto.includes(termino)) {
                     wrapper.style.display = 'flex';
@@ -177,12 +144,6 @@
             
             document.getElementById('contadorResultados').innerText = `${visibles} especialistas encontrados`;
         });
-
-            // Le decimos al observador que vigile el contenedor en tiempo real
-        const contenedorFiltro = document.getElementById('listaDoctoresContenedor');
-        if (contenedorFiltro) {
-            observer.observe(contenedorFiltro, { childList: true, subtree: true });
-        }
     </script>
 </body>
 </html>

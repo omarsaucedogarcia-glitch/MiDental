@@ -8,57 +8,98 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Estilos específicos para la vista móvil del paciente */
-        body { background-color: #f8fafc; padding-bottom: 70px; }
-        .patient-header { padding: 20px; background: white; border-bottom: 1px solid #eee; }
-        .search-bar-mock { background: #f1f5f9; padding: 15px; border-radius: 30px; display: flex; align-items: center; gap: 10px; color: #64748b; margin-top: 15px; cursor: pointer; }
+        body { background-color: #f8fafc; padding-bottom: 90px; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        .specialty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
-        .specialty-btn { background: white; border: 1px solid #e2e8f0; padding: 15px 5px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.8rem; color: #334155; text-align: center; }
+        .patient-header { padding: 25px 20px; background: white; border-bottom: 1px solid #e2e8f0; border-radius: 0 0 20px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); position: sticky; top: 0; z-index: 50;}
         
-        .sync-card { background: white; margin: 20px; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .brand-container { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .brand-container img { height: 35px; }
+        .brand-container span { font-size: 1.5rem; font-weight: 900; color: var(--blue-elegant); letter-spacing: -0.5px; }
+
+        .search-bar-mock { background: #f1f5f9; padding: 14px 20px; border-radius: 30px; display: flex; align-items: center; gap: 12px; color: #64748b; margin-top: 15px; cursor: pointer; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .search-bar-mock:active { transform: scale(0.98); background: #e2e8f0; }
         
-        /* BARRA DE NAVEGACIÓN INFERIOR (ESTILO APP) */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
-        .nav-item-bottom { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 0.75rem; gap: 4px; }
-        .nav-item-bottom.active { color: var(--pixar-cyan); }
-        .nav-item-bottom span { font-size: 1.5rem; }
+        .specialty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; }
+        .specialty-btn { background: white; border: 1px solid #e2e8f0; padding: 15px 5px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.75rem; color: #334155; text-align: center; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s; cursor: pointer; }
+        .specialty-btn:active { transform: scale(0.95); border-color: var(--pixar-cyan); }
+        .specialty-btn .material-symbols-outlined { color: var(--pixar-cyan); font-size: 1.8rem; }
+
+        .urgency-btn { grid-column: span 3; flex-direction: row; justify-content: center; background: #fef2f2; border-color: #fca5a5; padding: 16px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15); }
+        .urgency-btn .material-symbols-outlined { color: #ef4444; }
+        .urgency-btn span:last-child { color: #b91c1c; font-size: 1rem; font-weight: bold; }
+        
+        .sync-card { background: white; margin: 0 20px 20px 20px; padding: 25px 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        
+        /* BARRA DE NAVEGACIÓN INFERIOR */
+        .bottom-nav { background: white; border-top: none; }
     </style>
 </head>
 <body>
 
     <header class="patient-header">
-        <img src="assets/LogoMiDental.png" alt="MiDental" style="height: 35px;">
-        <h1 style="margin-top: 15px; font-size: 1.5rem; color: var(--blue-elegant);">Hola, <span id="nombrePacienteUi">...</span>.</h1>
+        <div class="brand-container">
+            <img src="assets/LogoMiDental.png" alt="Logo MiDental">
+            <span>MiDental</span>
+        </div>
+        
+        <h1 style="margin: 0; font-size: 1.6rem; color: var(--blue-elegant);">Hola, <span id="nombrePacienteUi" style="color: var(--pixar-cyan);">...</span> 👋</h1>
         
         <div class="search-bar-mock" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">search</span>
+            <span class="material-symbols-outlined" style="font-size: 1.3rem;">search</span>
             <span>Encuentra especialista o clínica</span>
         </div>
     </header>
 
     <div class="specialty-grid">
-        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'"><span class="material-symbols-outlined">dentistry</span> Dentista General</div>
-        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'"><span class="material-symbols-outlined">child_care</span> Odontopediatría</div>
-        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'"><span class="material-symbols-outlined">medical_information</span> Ortodoncia</div>
-        <div class="specialty-btn" onclick="window.location.href='ofertas-paciente.html'" style="border-color: var(--pixar-orange);"><span class="material-symbols-outlined" style="color: var(--pixar-orange);">campaign</span> Ofertas Flash</div>
-        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html?urgencia=true'" style="border-color: red;"><span class="material-symbols-outlined" style="color: red;">emergency</span> Urgencias</div>
+        <div class="specialty-btn urgency-btn" onclick="window.location.href='mapa-paciente.html?urgencia=true'">
+            <span class="material-symbols-outlined">emergency</span>
+            <span>Urgencia Dental</span>
+        </div>
+
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">dentistry</span>Odontología General
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">format_shapes</span>Ortodoncia
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">healing</span>Endodoncia
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">view_in_ar</span>Implantología
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">spa</span>Periodoncia
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">face_retouching_natural</span>Estética Facial
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">child_care</span>Odontopediatría
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">sentiment_satisfied</span>Rehabilitación Oral
+        </div>
+        <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
+            <span class="material-symbols-outlined">medical_services</span>Cirugía Maxilofacial
+        </div>
     </div>
 
     <div class="sync-card">
-        <div style="background: #f0fdfa; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
-            <span class="material-symbols-outlined" style="color: var(--pixar-cyan); font-size: 2rem;">health_and_safety</span>
+        <div style="background: #f0fdfa; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+            <span class="material-symbols-outlined" style="color: var(--pixar-cyan); font-size: 2.2rem;">health_and_safety</span>
         </div>
-        <h3 style="margin-bottom: 10px;">Todas tus citas en el mismo lugar</h3>
-        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">Aquí tendrás tu historial clínico, radiografías y próximas reservas aseguradas.</p>
-        <button class="btn-pixar btn-outline" style="width: 100%; border-radius: 20px;" onclick="window.location.href='citas-paciente.html'">Ver mis citas &rarr;</button>
+        <h3 style="margin: 0 0 10px 0; color: var(--blue-elegant);">Todas tus citas en el mismo lugar</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Aquí tendrás tu historial clínico, radiografías y próximas reservas aseguradas.</p>
+        <button class="btn-pixar btn-outline" style="width: 100%; border-radius: 15px; padding: 12px; font-size: 1rem; border-width: 2px;" onclick="window.location.href='citas-paciente.html'">Ver mis citas &rarr;</button>
     </div>
 
     <nav class="bottom-nav">
-        <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
+        <a href="dashboard-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">home</span>Inicio</a>
         <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
         <a href="ofertas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">play_circle</span>Ofertas/Reels</a>
         <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
-        <a href="documentos-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">description</span>Documentos</a>
+        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
         <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
     </nav>
 
@@ -76,11 +117,13 @@
                 return;
             }
 
+            // 1. Intentar cargar rápido de memoria local
             const nombreGuardado = localStorage.getItem('midental_user_name');
             if (nombreGuardado) {
                 displayNombre.innerText = nombreGuardado.split(' ')[0];
             }
 
+            // 2. Actualizar con dato fresco de la base de datos
             try {
                 const { data, error } = await window.midental
                     .from('perfiles_pacientes')

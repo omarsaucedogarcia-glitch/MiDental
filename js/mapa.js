@@ -11,6 +11,15 @@ let esUrgenciaActiva = false;
 document.addEventListener('DOMContentLoaded', () => {
     console.log("📍 Motor del Mapa Paciente Iniciado.");
     
+    // Verificamos si el paciente llegó buscando urgencias (por la URL)
+    const params = new URLSearchParams(window.location.search);
+    esUrgenciaActiva = params.get('urgencia') === 'true';
+    
+    if(esUrgenciaActiva) {
+        document.getElementById('contadorResultados').innerText = "Buscando especialistas para urgencias...";
+        document.getElementById('contadorResultados').style.color = "#ef4444"; // Rojo
+    }
+
     window.cargarDirectorioDoctores();
     window.cargarOfertasFlashLaterales();
     configurarFiltrosChips();
@@ -24,7 +33,8 @@ window.cargarDirectorioDoctores = async function() {
     try {
         const { data: sedes, error } = await window.midental
             .from('sedes_dentistas')
-            .select('*, perfiles_dentistas(id, nombre_completo, prefijo, especialidad, avatar_url, telefono, valor_consulta)');
+            .select('*, perfiles_dentistas(id, nombre_completo, prefijo, especialidad, avatar_url, telefono, valor_consulta, acepta_urgencias)');
+            // ASUME QUE AGREGASTE LA COLUMNA 'acepta_urgencias' BOOLEAN EN perfiles_dentistas
 
         if (error) throw error;
 
@@ -33,6 +43,7 @@ window.cargarDirectorioDoctores = async function() {
 
     } catch (err) {
         console.error("Error cargando directorio:", err.message);
+        listaContainer.innerHTML = `<div style="padding: 40px; text-align: center; color: red;">Error al cargar la red de dentistas.</div>`;
     }
 }
 
@@ -41,14 +52,25 @@ window.renderizarDirectorio = function(sedes) {
     const contador = document.getElementById('contadorResultados') || document.getElementById('contadorDentistas');
     
     contenedor.innerHTML = "";
-    if (contador) contador.innerText = `${sedes.length} especialistas disponibles`;
 
-    if (sedes.length === 0) {
-        contenedor.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #888;">No se encontraron especialistas en esta zona.</div>`;
+    // Filtramos las sedes si el paciente está buscando urgencias
+    let sedesAMostrar = sedes;
+    if (esUrgenciaActiva) {
+        sedesAMostrar = sedes.filter(sede => sede.perfiles_dentistas && sede.perfiles_dentistas.acepta_urgencias === true);
+    }
+
+    if (contador) {
+        contador.innerText = esUrgenciaActiva 
+            ? `${sedesAMostrar.length} especialistas disponibles para urgencias`
+            : `${sedesAMostrar.length} especialistas disponibles`;
+    }
+
+    if (sedesAMostrar.length === 0) {
+        contenedor.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #888;">No se encontraron especialistas ${esUrgenciaActiva ? 'para urgencias ' : ''}en esta zona.</div>`;
         return;
     }
 
-    sedes.forEach(sede => {
+    sedesAMostrar.forEach(sede => {
         const drInfo = sede.perfiles_dentistas || {};
         const drName = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Dentista'}`;
         const avatar = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
@@ -58,9 +80,26 @@ window.renderizarDirectorio = function(sedes) {
         const drInfoStr = encodeURIComponent(JSON.stringify(drInfo));
         const sedeInfoStr = encodeURIComponent(JSON.stringify(sede));
 
-        // NUEVA TARJETA UNIFICADA CON BASE VERDE
+        // Lógica de Urgencias Visual
+        const esDoctorUrgencia = esUrgenciaActiva && drInfo.acepta_urgencias;
+        
+        // Estilos dinámicos para la barra inferior
+        const colorBarra = esDoctorUrgencia 
+            ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' // Rojo Urgencia
+            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)'; // Verde Normal
+        
+        const textoDerecho = esDoctorUrgencia
+            ? `<strong style="color:white; font-size:0.9rem;">Disponible Inmediato &rarr;</strong>`
+            : `<strong style="color:white; font-size:0.9rem;">${qtyHoras} horas disp. &rarr;</strong>`;
+
+        // Si es urgencia, el click va directo a WhatsApp, si no, abre el modal de calendario
+        const funcionClick = esDoctorUrgencia
+            ? `window.solicitarUrgenciaDirecta('${drInfoStr}')`
+            : `window.abrirPerfilDoctor('${drInfoStr}', '${sedeInfoStr}')`;
+
+        // NUEVA TARJETA UNIFICADA
         contenedor.innerHTML += `
-            <div class="doctor-card" onclick="window.abrirPerfilDoctor('${drInfoStr}', '${sedeInfoStr}')" style="background: white; border-radius: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 25px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column;">
+            <div class="doctor-card" onclick="${funcionClick}" style="background: white; border-radius: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 25px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column;">
                 <div style="padding: 20px;">
                     <div style="display:flex; gap:15px; align-items: center;">
                         <img src="${avatar}" style="width:75px; height:75px; border-radius:50%; object-fit:cover; border: 3px solid #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
@@ -73,14 +112,33 @@ window.renderizarDirectorio = function(sedes) {
                         </div>
                     </div>
                 </div>
-                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="background: ${colorBarra}; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size:0.9rem; color:white; font-weight: 500;">Desde $${precio}</span>
-                    <strong style="color:white; font-size:0.9rem;">${qtyHoras} horas disp. &rarr;</strong>
+                    ${textoDerecho}
                 </div>
             </div>
         `;
     });
 }
+
+// --- FLUJO ESPECIAL: URGENCIA DIRECTA POR WHATSAPP ---
+window.solicitarUrgenciaDirecta = function(drInfoStr) {
+    const drInfo = JSON.parse(decodeURIComponent(drInfoStr));
+    const nombreDr = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Doctor'}`;
+    const telefonoDr = drInfo.telefono;
+
+    if (!telefonoDr) {
+        alert("El doctor no tiene un número de contacto público registrado para urgencias.");
+        return;
+    }
+
+    const mensajeUrgencia = `Hola ${nombreDr}, Le escribo desde la plataforma MiDental porque aparece con disponibilidad inmediata para Urgencias Dentales, por favor necesito una hora urgente lo antes posible`;
+    const telLimpio = telefonoDr.replace(/[^0-9]/g, '');
+    
+    // Abre WhatsApp directamente
+    window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensajeUrgencia)}`, '_blank');
+}
+
 
 // --- 2. GENERADOR DE FECHAS REALES (SEMANA ACTUAL) ---
 function obtenerFechasSemana() {
@@ -100,14 +158,14 @@ function obtenerFechasSemana() {
         let ano = f.getFullYear();
 
         mapaFechas[diasAbrev[i]] = {
-            corta: `${dia}/${mes}`,           // Para el calendario visual (Ej: 20/04)
-            bd: `${dia}/${mes}/${ano}`        // Para cruzar con Supabase (Ej: 20/04/2026)
+            corta: `${dia}/${mes}`,           
+            bd: `${dia}/${mes}/${ano}`        
         };
     }
     return mapaFechas;
 }
 
-// --- 3. MODAL Y CALENDARIO REAL ---
+// --- 3. MODAL Y CALENDARIO REAL (FLUJO NORMAL) ---
 window.abrirPerfilDoctor = function(drInfoStr, sedeInfoStr) {
     const drInfo = JSON.parse(decodeURIComponent(drInfoStr));
     const sedeInfo = JSON.parse(decodeURIComponent(sedeInfoStr));
@@ -130,11 +188,10 @@ window.abrirPerfilDoctor = function(drInfoStr, sedeInfoStr) {
 
     renderizarCalendarioReal(sedeInfo.horarios_json || []);
     
-    // --- ESTILOS FLOTANTES Y ELEGANTES PARA EL MODAL ---
     const modalOverlay = document.getElementById('modalFichaDoctor');
     modalOverlay.style.display = 'flex';
-    modalOverlay.style.alignItems = 'center'; // Centra la ventana
-    modalOverlay.style.paddingBottom = '90px'; // La separa del menú inferior
+    modalOverlay.style.alignItems = 'center'; 
+    modalOverlay.style.paddingBottom = '90px'; 
     
     const modalContent = modalOverlay.querySelector('.modal-content');
     modalContent.style.margin = '20px';
@@ -154,7 +211,7 @@ function renderizarCalendarioReal(horariosArray) {
 
     const agendaAgrupada = {};
     horariosArray.forEach(slot => {
-        const partes = slot.split('-'); // "Lun-10:00"
+        const partes = slot.split('-'); 
         if(partes.length === 2) {
             if(!agendaAgrupada[partes[0]]) agendaAgrupada[partes[0]] = [];
             agendaAgrupada[partes[0]].push(partes[1]);
@@ -162,7 +219,7 @@ function renderizarCalendarioReal(horariosArray) {
     });
 
     const ordenDias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    const fechasSemanales = obtenerFechasSemana(); // Calculamos el calendario real
+    const fechasSemanales = obtenerFechasSemana(); 
     
     ordenDias.forEach(dia => {
         if (agendaAgrupada[dia]) {
@@ -174,7 +231,6 @@ function renderizarCalendarioReal(horariosArray) {
             col.style.textAlign = 'center';
             col.style.marginRight = '12px';
             
-            // Inyectamos el Día (Lun) y la Fecha exacta (20/04)
             col.innerHTML = `
                 <div style="font-weight:900; color:var(--blue-elegant); font-size:1.1rem;">${dia}</div>
                 <div style="font-size:0.8rem; color:#64748b; margin-bottom:12px; font-weight:bold;">${fechaInfo.corta}</div>
@@ -195,7 +251,6 @@ function renderizarCalendarioReal(horariosArray) {
                 btn.style.transition = '0.2s';
                 btn.innerText = hora;
                 
-                // Formateamos para Supabase (Ej: 20/04/2026-10:00) y para la vista (Lun 20/04 - 10:00)
                 const slotBD = `${fechaInfo.bd}-${hora}`; 
                 const textoVisual = `${dia} ${fechaInfo.corta} a las ${hora}`;
                 
@@ -218,7 +273,6 @@ window.seleccionarSlotReserva = function(btnHtml, slotIdBD, textoVisual) {
     btnHtml.style.color = 'white';
     btnHtml.style.borderColor = 'var(--pixar-cyan)';
     
-    // Guardamos la fecha completa para la base de datos
     slotSeleccionadoGlobal = slotIdBD;
 
     const btnFinal = document.getElementById('btnConfirmarCita');
@@ -229,7 +283,7 @@ window.seleccionarSlotReserva = function(btnHtml, slotIdBD, textoVisual) {
     }
 }
 
-// --- 4. GUARDADO EN BASE DE DATOS Y WHATSAPP ---
+// --- 4. GUARDADO EN BASE DE DATOS Y WHATSAPP (FLUJO NORMAL) ---
 window.confirmarAgendamientoPaciente = async function() {
     const pacienteId = localStorage.getItem('midental_user_id');
     const tipoUser = localStorage.getItem('midental_user_tipo');
@@ -249,9 +303,9 @@ window.confirmarAgendamientoPaciente = async function() {
         const { error } = await window.midental.from('citas_agenda').insert([{
             paciente_id: pacienteId,
             dentista_id: dentistaIdSeleccionado,
-            fecha_hora_formato_slot: slotSeleccionadoGlobal, // Ahora guarda la fecha completa 20/04/2026-10:00
+            fecha_hora_formato_slot: slotSeleccionadoGlobal,
             estado: 'pendiente',
-            motivo: esUrgenciaActiva ? 'Atención de Urgencia' : 'Evaluación General'
+            motivo: 'Evaluación General'
         }]);
 
         if (error) throw error;
@@ -260,9 +314,7 @@ window.confirmarAgendamientoPaciente = async function() {
         document.getElementById('modalFichaDoctor').style.display = 'none';
 
         const nombreDr = document.getElementById('modalDocNombre').innerText;
-        let mensajeP = esUrgenciaActiva 
-            ? `Hola ${nombreDr}, necesito atención de URGENCIA. Acabo de solicitar la hora (${textoOriginal.replace('Confirmar Cita: ', '')}) por la app MiDental. ¿Me confirma?`
-            : `Hola ${nombreDr}, vi su agenda en la app MiDental y acabo de solicitar una reserva para: ${textoOriginal.replace('Confirmar Cita: ', '')}. ¿Me podría confirmar la hora?`;
+        let mensajeP = `Hola ${nombreDr}, vi su agenda en la app MiDental y acabo de solicitar una reserva para: ${textoOriginal.replace('Confirmar Cita: ', '')}. ¿Me podría confirmar la hora?`;
 
         if (telefonoDentistaSeleccionado) {
             const telLimpio = telefonoDentistaSeleccionado.replace(/[^0-9]/g, '');
@@ -271,7 +323,6 @@ window.confirmarAgendamientoPaciente = async function() {
             alert("Nota: El doctor no tiene WhatsApp público. Te contactará mediante la plataforma.");
         }
         
-        // Recargar página para actualizar estado visual
         window.location.reload();
 
     } catch (err) {
@@ -281,9 +332,5 @@ window.confirmarAgendamientoPaciente = async function() {
     }
 }
 
-// Filtros básicos
-function configurarFiltrosChips() {
-    // Si tuvieras filtros rápidos por botones (Urgencia, etc.)
-}
-
-window.cargarOfertasFlashLaterales = async function() {} // Dejado vacío si no usas sidebar aquí
+function configurarFiltrosChips() {}
+window.cargarOfertasFlashLaterales = async function() {}
