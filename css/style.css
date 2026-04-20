@@ -496,4 +496,35 @@ body {
     #modalPresupuesto, #modalPresupuesto * { visibility: visible; }
     #modalPresupuesto { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
     .btn-close, button { display: none !important; } /* Ocultar botones en la impresión */
+}/* BARRA DE NAVEGACIÓN INFERIOR - ESTILO APP */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex !important; /* Forzamos que sea horizontal */
+    justify-content: space-around;
+    padding: 12px 0;
+    z-index: 9999;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+.nav-item-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none !important;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    gap: 4px;
+}
+
+.nav-item-bottom.active {
+    color: #00b4d8; /* Tu color Cyan */
+}
+
+.nav-item-bottom span {
+    font-size: 1.6rem;
 }

@@ -64,14 +64,37 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const nombre = localStorage.getItem('midental_user_name');
-            if(nombre) {
-                // Muestra solo el primer nombre
-                document.getElementById('nombrePacienteUi').innerText = nombre.split(' ')[0];
-            }
-        });
-    </script>
+    document.addEventListener('DOMContentLoaded', async () => {
+    const userId = localStorage.getItem('midental_user_id');
+    const displayNombre = document.getElementById('nombrePacienteUi');
+
+    if (!userId) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // 1. Intentar mostrar lo que hay en memoria rápido
+    const nombreGuardado = localStorage.getItem('midental_user_name');
+    if (nombreGuardado) {
+        displayNombre.innerText = nombreGuardado.split(' ')[0];
+    }
+
+    // 2. Pedir el nombre REAL y actualizado a Supabase
+    try {
+        const { data, error } = await window.midental
+            .from('perfiles_pacientes')
+            .select('nombre_completo')
+            .eq('id', userId)
+            .single();
+
+        if (data && data.nombre_completo) {
+            // Actualizamos la pantalla y la memoria
+            displayNombre.innerText = data.nombre_completo.split(' ')[0];
+            localStorage.setItem('midental_user_name', data.nombre_completo);
+        }
+    } catch (err) {
+        console.error("Error al actualizar nombre:", err);
+    }
+});
 </body>
 </html>
