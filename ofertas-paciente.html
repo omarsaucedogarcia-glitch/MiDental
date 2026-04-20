@@ -18,6 +18,14 @@
         
         /* Ajuste de barra inferior */
         .bottom-nav { background: white; border-top: none; }
+
+        /* Animación para el cronómetro */
+        @keyframes latido {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); opacity: 0.8; color: #ef4444; }
+            100% { transform: scale(1); }
+        }
+        .reloj-urgencia { animation: latido 1.5s infinite; }
     </style>
 </head>
 <body>
@@ -54,18 +62,20 @@
         async function cargarOfertas() {
             const contenedor = document.getElementById('ofertasFlashContenedor');
             try {
-               // 1. Llamada a Supabase (trae ofertas y datos del doctor al mismo tiempo)
-const { data: ofertas, error } = await window.midental
-    .from('ofertas_flash')
-    .select('*, perfiles_dentistas(prefijo, nombre_completo)')
-    .lte('inicio_at', new Date().toISOString())
-    .order('created_at', { ascending: false });
+                // 1. Llamada a Supabase (Optimizada para seguridad y UX)
+                const { data: ofertas, error } = await window.midental
+                    .from('ofertas_flash')
+                    .select('*, perfiles_dentistas(prefijo, nombre_completo)')
+                    .lte('inicio_at', new Date().toISOString()) // Que ya haya iniciado
+                    .gte('expira_at', new Date().toISOString()) // Que NO haya expirado
+                    .eq('activa', true) // Que el dentista no la haya apagado manualmente
+                    .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
                 // 2. ¿Hay ofertas?
                 if (!ofertas || ofertas.length === 0) {
-                    contenedor.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5; color:white;">No hay ofertas flash activas en este momento.</div>`;
+                    contenedor.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5; color:white;">No hay ofertas flash activas en este momento. Vuelve más tarde.</div>`;
                     return;
                 }
 
@@ -74,22 +84,69 @@ const { data: ofertas, error } = await window.midental
                 ofertas.forEach(oferta => {
                     const dr = oferta.perfiles_dentistas || {};
                     const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || 'Especialista'}`;
-                    
-                    // Si no tiene imagen cargada, le ponemos un fondo bonito de reemplazo
                     const imgUrl = oferta.imagen_url || 'https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial';
                     
+                    // --- CÁLCULO DE DESCUENTO ---
+                    let porcentajeDesc = 0;
+                    if(oferta.precio_real > 0) {
+                        porcentajeDesc = Math.round(((oferta.precio_real - oferta.precio_oferta) / oferta.precio_real) * 100);
+                    }
+
+                    // --- CÁLCULO DEL CRONÓMETRO ---
+                    const expiraDate = new Date(oferta.expira_at);
+                    const ahora = new Date();
+                    const diffMs = expiraDate - ahora;
+                    
+                    let textoTiempo = "";
+                    if (diffMs > 0) {
+                        const horasTotales = Math.floor(diffMs / (1000 * 60 * 60));
+                        const dias = Math.floor(horasTotales / 24);
+                        const horasSueltas = horasTotales % 24;
+                        
+                        if (dias > 0) {
+                            textoTiempo = `Termina en ${dias} d y ${horasSueltas} h`;
+                        } else {
+                            textoTiempo = `¡Termina en ${horasTotales} horas!`;
+                        }
+                    }
+
+                    // Inyección del HTML (Con Position Relative para el Badge flotante)
                     contenedor.innerHTML += `
-                        <div class="offer-card" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; overflow:hidden; margin-bottom:15px;">
-                            <img src="${imgUrl}" style="width:100%; height:160px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial'">
+                        <div class="offer-card" style="position: relative; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; overflow:hidden; margin-bottom:15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                            
+                            <div style="position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 8px 15px; border-radius: 20px; font-weight: 900; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 10;">
+                                -${porcentajeDesc}%
+                            </div>
+
+                            <img src="${imgUrl}" style="width:100%; height:180px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial'">
+                            
                             <div style="padding:15px;">
-                                <span style="background:var(--pixar-orange); color:white; padding:3px 8px; border-radius:10px; font-size:0.7rem; font-weight:bold;">DESTACADO</span>
-                                <h3 style="margin:10px 0 5px 0; color:white; font-size:1.1rem;">${oferta.servicio_nombre}</h3>
-                                <p style="margin:0 0 10px 0; color:#aaa; font-size:0.85rem;">Por ${drName}</p>
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span style="text-decoration:line-through; color:#888;">$${(oferta.precio_real || 0).toLocaleString('es-CL')}</span>
-                                    <span style="color:var(--pixar-orange); font-size:1.3rem; font-weight:bold;">$${(oferta.precio_oferta || 0).toLocaleString('es-CL')}</span>
+                                    <span style="background:var(--pixar-orange); color:white; padding:3px 8px; border-radius:10px; font-size:0.7rem; font-weight:bold;">DESTACADO</span>
+                                    
+                                    <div style="display:flex; align-items:center; gap:5px; color:var(--pixar-orange); font-size:0.85rem; font-weight:bold; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px;">
+                                        <span class="material-symbols-outlined reloj-urgencia" style="font-size:1.1rem;">timer</span>
+                                        ${textoTiempo}
+                                    </div>
                                 </div>
-                                <button class="btn-pixar btn-outline mt-15" style="width:100%; border-radius:10px;" onclick="window.location.href='mapa-paciente.html'">Ver en el Mapa</button>
+                                
+                                <h3 style="margin:12px 0 5px 0; color:white; font-size:1.2rem;">${oferta.servicio_nombre}</h3>
+                                <p style="margin:0 0 15px 0; color:#94a3b8; font-size:0.9rem;">Por ${drName}</p>
+                                
+                                <div style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 12px;">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <span style="font-size:0.75rem; color:#888;">Precio Normal</span>
+                                        <span style="text-decoration:line-through; color:#94a3b8; font-size:0.9rem;">$${(oferta.precio_real || 0).toLocaleString('es-CL')}</span>
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; text-align:right;">
+                                        <span style="font-size:0.75rem; color:var(--pixar-orange); font-weight:bold;">Precio Oferta</span>
+                                        <span style="color:var(--pixar-orange); font-size:1.5rem; font-weight:900;">$${(oferta.precio_oferta || 0).toLocaleString('es-CL')}</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn-pixar btn-outline mt-15" style="width:100%; border-radius:12px; padding: 12px; font-size: 1rem; border-width: 2px;" onclick="window.location.href='mapa-paciente.html'">
+                                    Agendar con este precio
+                                </button>
                             </div>
                         </div>
                     `;
