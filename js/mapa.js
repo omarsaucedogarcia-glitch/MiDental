@@ -22,7 +22,6 @@ window.cargarDirectorioDoctores = async function() {
     if (!listaContainer) return;
 
     try {
-        // Traemos las sedes y los datos del doctor asociado
         const { data: sedes, error } = await window.midental
             .from('sedes_dentistas')
             .select('*, perfiles_dentistas(id, nombre_completo, prefijo, especialidad, avatar_url, telefono, valor_consulta)');
@@ -52,77 +51,60 @@ window.renderizarDirectorio = function(sedes) {
     sedes.forEach(sede => {
         const drInfo = sede.perfiles_dentistas || {};
         const drName = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Dentista'}`;
-        const avatar = drInfo.avatar_url || 'assets/avatar-default-doctor.png'; // FOTO REAL
+        const avatar = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
         const precio = drInfo.valor_consulta ? drInfo.valor_consulta.toLocaleString('es-CL') : '20.000';
         const qtyHoras = sede.horarios_json ? sede.horarios_json.length : 0;
 
-        // Convertimos los objetos a string para pasarlos en el onclick
         const drInfoStr = encodeURIComponent(JSON.stringify(drInfo));
         const sedeInfoStr = encodeURIComponent(JSON.stringify(sede));
 
+        // NUEVA TARJETA UNIFICADA CON BASE VERDE
         contenedor.innerHTML += `
-            <div class="doctor-card" onclick="window.abrirPerfilDoctor('${drInfoStr}', '${sedeInfoStr}')">
-                <div class="doc-card-header" style="display:flex; gap:15px; margin-bottom:15px;">
-                    <img src="${avatar}" style="width:70px; height:70px; border-radius:50%; object-fit:cover;">
-                    <div class="doc-info">
-                        <h3 style="margin:0; color:var(--blue-elegant);">${drName}</h3>
-                        <p style="margin:0; font-size:0.85rem; color:#666;">${drInfo.especialidad || 'Odontología General'}</p>
-                        <span style="background:#f1f5f9; padding:4px 8px; border-radius:10px; font-size:0.8rem; margin-top:5px; display:inline-block;">📍 ${sede.comuna}</span>
+            <div class="doctor-card" onclick="window.abrirPerfilDoctor('${drInfoStr}', '${sedeInfoStr}')" style="background: white; border-radius: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 25px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column;">
+                <div style="padding: 20px;">
+                    <div style="display:flex; gap:15px; align-items: center;">
+                        <img src="${avatar}" style="width:75px; height:75px; border-radius:50%; object-fit:cover; border: 3px solid #f8fafc; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div class="doc-info">
+                            <h3 style="margin:0; color:var(--blue-elegant); font-size: 1.15rem;">${drName}</h3>
+                            <p style="margin:2px 0 0 0; font-size:0.85rem; color:var(--pixar-cyan); font-weight: bold;">${drInfo.especialidad || 'Odontología General'}</p>
+                            <span style="background:#f1f5f9; padding:4px 10px; border-radius:12px; font-size:0.75rem; margin-top:8px; display:inline-flex; align-items: center; gap: 4px; color: #64748b;">
+                                <span class="material-symbols-outlined" style="font-size: 1rem;">location_on</span> ${sede.comuna}
+                            </span>
+                        </div>
                     </div>
                 </div>
-                <div style="border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: space-between;">
-                    <span style="font-size:0.85rem; color:var(--text-light);">Desde $${precio}</span>
-                    <strong style="color:var(--pixar-cyan); font-size:0.85rem;">${qtyHoras} horas disp. &rarr;</strong>
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size:0.9rem; color:white; font-weight: 500;">Desde $${precio}</span>
+                    <strong style="color:white; font-size:0.9rem;">${qtyHoras} horas disp. &rarr;</strong>
                 </div>
             </div>
         `;
     });
 }
 
-// --- 2. OFERTAS FLASH (CON IMÁGENES REALES) ---
-window.cargarOfertasFlashLaterales = async function() {
-    const contenedor = document.getElementById('ofertasFlashContenedor');
-    if (!contenedor) return;
+// --- 2. GENERADOR DE FECHAS REALES (SEMANA ACTUAL) ---
+function obtenerFechasSemana() {
+    const hoy = new Date();
+    const lunes = new Date(hoy);
+    const diaSemana = lunes.getDay() === 0 ? 7 : lunes.getDay();
+    lunes.setDate(lunes.getDate() - diaSemana + 1);
 
-    try {
-        const { data: ofertas, error } = await window.midental.from('ofertas_flash')
-            .select('*, perfiles_dentistas(prefijo, nombre_completo)')
-            .eq('activa', true)
-            .gte('expira_at', new Date().toISOString())
-            .order('created_at', { ascending: false });
+    const diasAbrev = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const mapaFechas = {};
 
-        if (error) throw error;
+    for (let i = 0; i < 7; i++) {
+        let f = new Date(lunes);
+        f.setDate(lunes.getDate() + i);
+        let dia = f.getDate().toString().padStart(2, '0');
+        let mes = (f.getMonth() + 1).toString().padStart(2, '0');
+        let ano = f.getFullYear();
 
-        if (!ofertas || ofertas.length === 0) {
-            contenedor.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5; color:white;">No hay ofertas flash activas.</div>`;
-            return;
-        }
-
-        contenedor.innerHTML = "";
-        ofertas.forEach(oferta => {
-            const dr = oferta.perfiles_dentistas || {};
-            const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || ''}`;
-            // Muestra imagen real o un placeholder bonito
-            const imgUrl = oferta.imagen_url || 'https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial';
-            
-            contenedor.innerHTML += `
-                <div class="offer-card" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; overflow:hidden; margin-bottom:15px;">
-                    <img src="${imgUrl}" style="width:100%; height:160px; object-fit:cover;">
-                    <div style="padding:15px;">
-                        <span style="background:var(--pixar-orange); color:white; padding:3px 8px; border-radius:10px; font-size:0.7rem; font-weight:bold;">DESTACADO</span>
-                        <h3 style="margin:10px 0 5px 0; color:white; font-size:1.1rem;">${oferta.servicio_nombre}</h3>
-                        <p style="margin:0 0 10px 0; color:#aaa; font-size:0.85rem;">Por ${drName}</p>
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="text-decoration:line-through; color:#888;">$${oferta.precio_real.toLocaleString('es-CL')}</span>
-                            <span style="color:var(--pixar-orange); font-size:1.3rem; font-weight:bold;">$${oferta.precio_oferta.toLocaleString('es-CL')}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-    } catch (err) {
-        console.error("Error al cargar ofertas:", err);
+        mapaFechas[diasAbrev[i]] = {
+            corta: `${dia}/${mes}`,           // Para el calendario visual (Ej: 20/04)
+            bd: `${dia}/${mes}/${ano}`        // Para cruzar con Supabase (Ej: 20/04/2026)
+        };
     }
+    return mapaFechas;
 }
 
 // --- 3. MODAL Y CALENDARIO REAL ---
@@ -134,13 +116,12 @@ window.abrirPerfilDoctor = function(drInfoStr, sedeInfoStr) {
     telefonoDentistaSeleccionado = drInfo.telefono || "";
     slotSeleccionadoGlobal = null;
 
-    // Llenar Modal
     document.getElementById('modalDocNombre').innerText = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Doctor'}`;
     document.getElementById('modalDocEspecialidad').innerText = drInfo.especialidad || 'Odontología General';
     document.getElementById('modalDocAvatar').src = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
     document.getElementById('modalDocDireccion').innerText = `${sedeInfo.nombre_sede} - ${sedeInfo.direccion}, ${sedeInfo.comuna}`;
 
-    const btn = document.getElementById('btnConfirmarCita') || document.getElementById('btnConfirmarReserva');
+    const btn = document.getElementById('btnConfirmarCita');
     if(btn) {
         btn.disabled = true;
         btn.style.opacity = '0.5';
@@ -149,11 +130,20 @@ window.abrirPerfilDoctor = function(drInfoStr, sedeInfoStr) {
 
     renderizarCalendarioReal(sedeInfo.horarios_json || []);
     
-    document.getElementById('modalFichaDoctor').style.display = 'flex';
+    // --- ESTILOS FLOTANTES Y ELEGANTES PARA EL MODAL ---
+    const modalOverlay = document.getElementById('modalFichaDoctor');
+    modalOverlay.style.display = 'flex';
+    modalOverlay.style.alignItems = 'center'; // Centra la ventana
+    modalOverlay.style.paddingBottom = '90px'; // La separa del menú inferior
+    
+    const modalContent = modalOverlay.querySelector('.modal-content');
+    modalContent.style.margin = '20px';
+    modalContent.style.borderRadius = '30px';
+    modalContent.style.boxShadow = '0 25px 50px rgba(0,0,0,0.3)';
 }
 
 function renderizarCalendarioReal(horariosArray) {
-    const track = document.getElementById('modalCalendarioHoras') || document.getElementById('patientCalendarDays');
+    const track = document.getElementById('modalCalendarioHoras');
     if(!track) return;
     track.innerHTML = "";
 
@@ -172,30 +162,44 @@ function renderizarCalendarioReal(horariosArray) {
     });
 
     const ordenDias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const fechasSemanales = obtenerFechasSemana(); // Calculamos el calendario real
     
     ordenDias.forEach(dia => {
         if (agendaAgrupada[dia]) {
+            const fechaInfo = fechasSemanales[dia];
+            
             const col = document.createElement('div');
             col.className = 'day-col';
-            col.style.minWidth = '90px';
+            col.style.minWidth = '95px';
             col.style.textAlign = 'center';
-            col.style.marginRight = '10px';
+            col.style.marginRight = '12px';
             
-            col.innerHTML = `<div style="font-weight:bold; color:var(--blue-elegant); margin-bottom:10px;">${dia}</div>`;
+            // Inyectamos el Día (Lun) y la Fecha exacta (20/04)
+            col.innerHTML = `
+                <div style="font-weight:900; color:var(--blue-elegant); font-size:1.1rem;">${dia}</div>
+                <div style="font-size:0.8rem; color:#64748b; margin-bottom:12px; font-weight:bold;">${fechaInfo.corta}</div>
+            `;
 
             agendaAgrupada[dia].sort().forEach(hora => {
                 const btn = document.createElement('button');
                 btn.className = 'time-slot-btn';
                 btn.style.width = '100%';
-                btn.style.padding = '8px';
-                btn.style.marginBottom = '5px';
-                btn.style.border = '1px solid #ccc';
-                btn.style.borderRadius = '5px';
+                btn.style.padding = '10px 5px';
+                btn.style.marginBottom = '8px';
+                btn.style.border = '1px solid #e2e8f0';
+                btn.style.borderRadius = '8px';
                 btn.style.background = 'white';
+                btn.style.color = '#334155';
+                btn.style.fontWeight = 'bold';
                 btn.style.cursor = 'pointer';
+                btn.style.transition = '0.2s';
                 btn.innerText = hora;
                 
-                btn.onclick = () => window.seleccionarSlotReserva(btn, `${dia}-${hora}`);
+                // Formateamos para Supabase (Ej: 20/04/2026-10:00) y para la vista (Lun 20/04 - 10:00)
+                const slotBD = `${fechaInfo.bd}-${hora}`; 
+                const textoVisual = `${dia} ${fechaInfo.corta} a las ${hora}`;
+                
+                btn.onclick = () => window.seleccionarSlotReserva(btn, slotBD, textoVisual);
                 col.appendChild(btn);
             });
             track.appendChild(col);
@@ -203,24 +207,25 @@ function renderizarCalendarioReal(horariosArray) {
     });
 }
 
-window.seleccionarSlotReserva = function(btnHtml, slotId) {
+window.seleccionarSlotReserva = function(btnHtml, slotIdBD, textoVisual) {
     document.querySelectorAll('.time-slot-btn').forEach(b => {
         b.style.background = 'white';
-        b.style.color = 'black';
-        b.style.borderColor = '#ccc';
+        b.style.color = '#334155';
+        b.style.borderColor = '#e2e8f0';
     });
     
     btnHtml.style.background = 'var(--pixar-cyan)';
     btnHtml.style.color = 'white';
     btnHtml.style.borderColor = 'var(--pixar-cyan)';
     
-    slotSeleccionadoGlobal = slotId;
+    // Guardamos la fecha completa para la base de datos
+    slotSeleccionadoGlobal = slotIdBD;
 
-    const btnFinal = document.getElementById('btnConfirmarCita') || document.getElementById('btnConfirmarReserva');
+    const btnFinal = document.getElementById('btnConfirmarCita');
     if(btnFinal) {
         btnFinal.disabled = false;
         btnFinal.style.opacity = '1';
-        btnFinal.innerText = `Confirmar Cita: ${slotId}`;
+        btnFinal.innerText = `Confirmar Cita: ${textoVisual}`;
     }
 }
 
@@ -235,16 +240,16 @@ window.confirmarAgendamientoPaciente = async function() {
         return;
     }
 
-    const btn = document.getElementById('btnConfirmarCita') || document.getElementById('btnConfirmarReserva');
+    const btn = document.getElementById('btnConfirmarCita');
+    const textoOriginal = btn.innerText;
     btn.disabled = true;
     btn.innerText = "Reservando en el sistema...";
 
     try {
-        // ¡Magia! Aquí hacemos el INSERT real en Supabase
         const { error } = await window.midental.from('citas_agenda').insert([{
             paciente_id: pacienteId,
             dentista_id: dentistaIdSeleccionado,
-            fecha_hora_formato_slot: slotSeleccionadoGlobal,
+            fecha_hora_formato_slot: slotSeleccionadoGlobal, // Ahora guarda la fecha completa 20/04/2026-10:00
             estado: 'pendiente',
             motivo: esUrgenciaActiva ? 'Atención de Urgencia' : 'Evaluación General'
         }]);
@@ -254,11 +259,10 @@ window.confirmarAgendamientoPaciente = async function() {
         alert("🎉 ¡Reserva guardada exitosamente en la plataforma!");
         document.getElementById('modalFichaDoctor').style.display = 'none';
 
-        // Ahora enviamos el WhatsApp
         const nombreDr = document.getElementById('modalDocNombre').innerText;
         let mensajeP = esUrgenciaActiva 
-            ? `Hola ${nombreDr}, necesito atención de URGENCIA. Acabo de solicitar la hora (${slotSeleccionadoGlobal}) por la app MiDental. ¿Me confirma?`
-            : `Hola ${nombreDr}, vi su agenda en la app MiDental y acabo de solicitar una reserva para el bloque: ${slotSeleccionadoGlobal}. ¿Me podría confirmar la hora?`;
+            ? `Hola ${nombreDr}, necesito atención de URGENCIA. Acabo de solicitar la hora (${textoOriginal.replace('Confirmar Cita: ', '')}) por la app MiDental. ¿Me confirma?`
+            : `Hola ${nombreDr}, vi su agenda en la app MiDental y acabo de solicitar una reserva para: ${textoOriginal.replace('Confirmar Cita: ', '')}. ¿Me podría confirmar la hora?`;
 
         if (telefonoDentistaSeleccionado) {
             const telLimpio = telefonoDentistaSeleccionado.replace(/[^0-9]/g, '');
@@ -266,26 +270,20 @@ window.confirmarAgendamientoPaciente = async function() {
         } else {
             alert("Nota: El doctor no tiene WhatsApp público. Te contactará mediante la plataforma.");
         }
+        
+        // Recargar página para actualizar estado visual
+        window.location.reload();
 
     } catch (err) {
         alert("Error al procesar reserva: " + err.message);
         btn.disabled = false;
-        btn.innerText = `Reintentar Cita: ${slotSeleccionadoGlobal}`;
+        btn.innerText = textoOriginal;
     }
 }
 
 // Filtros básicos
 function configurarFiltrosChips() {
-    const chips = document.querySelectorAll('.filter-chip');
-    chips.forEach(chip => {
-        chip.addEventListener('click', function() {
-            chips.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            if(this.classList.contains('urgency')) {
-                esUrgenciaActiva = true;
-            } else {
-                esUrgenciaActiva = false;
-            }
-        });
-    });
+    // Si tuvieras filtros rápidos por botones (Urgencia, etc.)
 }
+
+window.cargarOfertasFlashLaterales = async function() {} // Dejado vacío si no usas sidebar aquí

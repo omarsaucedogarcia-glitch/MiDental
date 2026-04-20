@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiDental - Buscar Especialista</title>
+    <title>MiDental - Dentistas Disponibles</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -20,7 +20,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
             border-radius: 0 0 20px 20px;
         }
-        .search-title { margin: 0; color: var(--blue-elegant); font-size: 1.5rem; display: flex; align-items: center; gap: 8px; font-weight: 800; }
+        .search-title { margin: 0; color: var(--blue-elegant); font-size: 1.4rem; display: flex; align-items: center; gap: 8px; font-weight: 800; line-height: 1.2; }
         
         /* Barra de búsqueda flotante */
         .search-input-wrapper { 
@@ -43,19 +43,52 @@
         /* Contenedor centralizado */
         .directorio-container { padding: 25px 20px; max-width: 800px; margin: 0 auto; }
         
-        /* ATRAPADOR DE ESTILOS PARA JS: 
-           Estas reglas embellecen las tarjetas que tu archivo mapa.js inyecta 
-        */
-        .doctor-card {
-            background: white !important;
-            border-radius: 20px !important;
-            padding: 20px !important;
-            margin-bottom: 20px !important;
-            border: 1px solid #f0f0f0 !important;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.04) !important;
-            transition: transform 0.2s, box-shadow 0.2s !important;
+        /* ====================================================
+           NUEVOS ESTILOS PARA LA TARJETA UNIFICADA (CON FOOTER VERDE)
+           ==================================================== */
+        .card-wrapper {
+            background: white;
+            border-radius: 22px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden; /* Esto asegura que el verde no se salga de las esquinas curvas */
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
         }
-        .doctor-card:active { transform: scale(0.98) !important; }
+        .card-wrapper:active { transform: scale(0.98); }
+        
+        /* Limpiamos la tarjeta interna generada por JS para que se fusione */
+        .card-wrapper .doctor-card {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            margin-bottom: 0 !important;
+            padding: 20px !important;
+        }
+
+        /* El footer verde llamativo estilo MiDental */
+        .card-footer-green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; /* Verde Esmeralda Premium */
+            color: white !important;
+            padding: 15px 20px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        
+        /* Forzamos a que todo el texto y enlaces dentro del verde sean blancos */
+        .card-footer-green * {
+            color: white !important;
+            text-decoration: none !important;
+            margin: 0 !important;
+        }
+        .card-footer-green a:hover {
+            opacity: 0.8;
+        }
         
         /* Modal Premium */
         .modal-content { max-height: 90vh; overflow-y: auto; padding: 30px 25px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
@@ -68,7 +101,10 @@
 <body>
 
     <div class="header-search">
-        <h2 class="search-title"><span class="material-symbols-outlined" style="color: var(--pixar-cyan);">location_on</span> Directorio Médico</h2>
+        <h2 class="search-title">
+            <span class="material-symbols-outlined" style="color: var(--pixar-cyan); font-size: 1.8rem;">location_on</span> 
+            Dentistas disponibles en tu ubicación
+        </h2>
         <div class="search-input-wrapper">
             <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">search</span>
             <input type="text" id="filtroComuna" placeholder="¿En qué comuna buscas? (Ej: Providencia)...">
@@ -126,21 +162,27 @@
         // Filtro ultra-rápido para la barra de búsqueda superior
         document.getElementById('filtroComuna').addEventListener('input', function(e) {
             const termino = e.target.value.toLowerCase();
-            const tarjetas = document.querySelectorAll('.doctor-card');
+            const tarjetas = document.querySelectorAll('.card-wrapper');
             let visibles = 0;
             
-            tarjetas.forEach(card => {
-                const texto = card.innerText.toLowerCase();
+            tarjetas.forEach(wrapper => {
+                const texto = wrapper.innerText.toLowerCase();
                 if(texto.includes(termino)) {
-                    card.style.display = 'block';
+                    wrapper.style.display = 'flex';
                     visibles++;
                 } else {
-                    card.style.display = 'none';
+                    wrapper.style.display = 'none';
                 }
             });
             
             document.getElementById('contadorResultados').innerText = `${visibles} especialistas encontrados`;
         });
+
+            // Le decimos al observador que vigile el contenedor en tiempo real
+        const contenedorFiltro = document.getElementById('listaDoctoresContenedor');
+        if (contenedorFiltro) {
+            observer.observe(contenedorFiltro, { childList: true, subtree: true });
+        }
     </script>
 </body>
 </html>
