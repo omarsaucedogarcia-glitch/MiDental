@@ -11,14 +11,8 @@ let esUrgenciaActiva = false;
 document.addEventListener('DOMContentLoaded', () => {
     console.log("📍 Motor del Mapa Paciente Iniciado.");
     
-    // Verificamos si el paciente llegó buscando urgencias (por la URL)
     const params = new URLSearchParams(window.location.search);
     esUrgenciaActiva = params.get('urgencia') === 'true';
-    
-    if(esUrgenciaActiva) {
-        document.getElementById('contadorResultados').innerText = "Buscando especialistas para urgencias...";
-        document.getElementById('contadorResultados').style.color = "#ef4444"; // Rojo
-    }
 
     window.cargarDirectorioDoctores();
     window.cargarOfertasFlashLaterales();
@@ -27,14 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- 1. CARGA DE DOCTORES Y SEDES (DATOS REALES) ---
 window.cargarDirectorioDoctores = async function() {
-    const listaContainer = document.getElementById('listaDoctoresContenedor') || document.getElementById('listaDoctores');
-    if (!listaContainer) return;
-
     try {
         const { data: sedes, error } = await window.midental
             .from('sedes_dentistas')
             .select('*, perfiles_dentistas(id, nombre_completo, prefijo, especialidad, avatar_url, telefono, valor_consulta, acepta_urgencias)');
-            // ASUME QUE AGREGASTE LA COLUMNA 'acepta_urgencias' BOOLEAN EN perfiles_dentistas
 
         if (error) throw error;
 
@@ -43,34 +33,28 @@ window.cargarDirectorioDoctores = async function() {
 
     } catch (err) {
         console.error("Error cargando directorio:", err.message);
-        listaContainer.innerHTML = `<div style="padding: 40px; text-align: center; color: red;">Error al cargar la red de dentistas.</div>`;
+        document.getElementById('cargandoDirectorio').innerHTML = `<div style="color: red;">Error al cargar la red de dentistas.</div>`;
     }
 }
 
 window.renderizarDirectorio = function(sedes) {
-    const contenedor = document.getElementById('listaDoctoresContenedor') || document.getElementById('listaDoctores');
-    const contador = document.getElementById('contadorResultados') || document.getElementById('contadorDentistas');
+    const contenedorCarga = document.getElementById('cargandoDirectorio');
+    const panelColumnas = document.getElementById('panelColumnasBase');
+    const listaUrgencias = document.getElementById('listaUrgencias');
+    const listaNormal = document.getElementById('listaNormal');
+    const contador = document.getElementById('contadorResultados');
     
-    contenedor.innerHTML = "";
+    // Ocultar carga y mostrar columnas
+    if(contenedorCarga) contenedorCarga.style.display = 'none';
+    if(panelColumnas) panelColumnas.style.display = 'grid';
 
-    // Filtramos las sedes si el paciente está buscando urgencias
-    let sedesAMostrar = sedes;
-    if (esUrgenciaActiva) {
-        sedesAMostrar = sedes.filter(sede => sede.perfiles_dentistas && sede.perfiles_dentistas.acepta_urgencias === true);
-    }
+    listaUrgencias.innerHTML = "";
+    listaNormal.innerHTML = "";
+    
+    let conteoNormal = 0;
+    let conteoUrgencia = 0;
 
-    if (contador) {
-        contador.innerText = esUrgenciaActiva 
-            ? `${sedesAMostrar.length} especialistas disponibles para urgencias`
-            : `${sedesAMostrar.length} especialistas disponibles`;
-    }
-
-    if (sedesAMostrar.length === 0) {
-        contenedor.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #888;">No se encontraron especialistas ${esUrgenciaActiva ? 'para urgencias ' : ''}en esta zona.</div>`;
-        return;
-    }
-
-    sedesAMostrar.forEach(sede => {
+    sedes.forEach(sede => {
         const drInfo = sede.perfiles_dentistas || {};
         const drName = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Dentista'}`;
         const avatar = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
@@ -80,25 +64,21 @@ window.renderizarDirectorio = function(sedes) {
         const drInfoStr = encodeURIComponent(JSON.stringify(drInfo));
         const sedeInfoStr = encodeURIComponent(JSON.stringify(sede));
 
-        // Lógica de Urgencias Visual
-        const esDoctorUrgencia = esUrgenciaActiva && drInfo.acepta_urgencias;
+        const esDoctorUrgencia = drInfo.acepta_urgencias === true;
         
-        // Estilos dinámicos para la barra inferior
         const colorBarra = esDoctorUrgencia 
-            ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' // Rojo Urgencia
-            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)'; // Verde Normal
+            ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' 
+            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         
         const textoDerecho = esDoctorUrgencia
-            ? `<strong style="color:white; font-size:0.9rem;">Disponible Inmediato &rarr;</strong>`
+            ? `<strong style="color:white; font-size:0.9rem;">Atención Inmediata &rarr;</strong>`
             : `<strong style="color:white; font-size:0.9rem;">${qtyHoras} horas disp. &rarr;</strong>`;
 
-        // Si es urgencia, el click va directo a WhatsApp, si no, abre el modal de calendario
         const funcionClick = esDoctorUrgencia
-            ? `window.solicitarUrgenciaDirecta('${drInfoStr}')`
+            ? `window.solicitarUrgenciaDirecta('${drInfoStr}', '${sedeInfoStr}')`
             : `window.abrirPerfilDoctor('${drInfoStr}', '${sedeInfoStr}')`;
 
-        // NUEVA TARJETA UNIFICADA
-        contenedor.innerHTML += `
+        const tarjetaHTML = `
             <div class="doctor-card" onclick="${funcionClick}" style="background: white; border-radius: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 25px; cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column;">
                 <div style="padding: 20px;">
                     <div style="display:flex; gap:15px; align-items: center;">
@@ -118,21 +98,44 @@ window.renderizarDirectorio = function(sedes) {
                 </div>
             </div>
         `;
+
+        if (esDoctorUrgencia) {
+            listaUrgencias.innerHTML += tarjetaHTML;
+            conteoUrgencia++;
+        } else {
+            listaNormal.innerHTML += tarjetaHTML;
+            conteoNormal++;
+        }
     });
+
+    if (conteoUrgencia === 0) {
+        listaUrgencias.innerHTML = `<div style="text-align: center; padding: 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px dashed #cbd5e1;">Nadie atiende urgencias en este momento.</div>`;
+    }
+    if (conteoNormal === 0) {
+        listaNormal.innerHTML = `<div style="text-align: center; padding: 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px dashed #cbd5e1;">No hay dentistas para agendamiento normal.</div>`;
+    }
+
+    if (contador) contador.innerText = `${conteoNormal + conteoUrgencia} especialistas disponibles`;
 }
 
 // --- FLUJO ESPECIAL: URGENCIA DIRECTA POR WHATSAPP ---
-window.solicitarUrgenciaDirecta = function(drInfoStr) {
+window.solicitarUrgenciaDirecta = function(drInfoStr, sedeInfoStr) {
     const drInfo = JSON.parse(decodeURIComponent(drInfoStr));
+    const sedeInfo = JSON.parse(decodeURIComponent(sedeInfoStr));
+    
     const nombreDr = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Doctor'}`;
     const telefonoDr = drInfo.telefono;
+    const ubicacionDoctor = `${sedeInfo.nombre_sede}, ${sedeInfo.comuna}`;
+    
+    // Sacamos el nombre del paciente de localStorage
+    const nombrePaciente = localStorage.getItem('midental_user_name') || 'un paciente de MiDental';
 
     if (!telefonoDr) {
         alert("El doctor no tiene un número de contacto público registrado para urgencias.");
         return;
     }
 
-    const mensajeUrgencia = `Hola ${nombreDr}, Le escribo desde la plataforma MiDental porque aparece con disponibilidad inmediata para Urgencias Dentales, por favor necesito una hora urgente lo antes posible`;
+    const mensajeUrgencia = `Hola ${nombreDr}, Le escribo desde la plataforma MiDental porque aparece con disponibilidad inmediata para Atención de Urgencias Dentales en ${ubicacionDoctor}, por favor necesito una hora urgente lo antes posible. Mi nombre es ${nombrePaciente}`;
     const telLimpio = telefonoDr.replace(/[^0-9]/g, '');
     
     // Abre WhatsApp directamente
@@ -314,7 +317,11 @@ window.confirmarAgendamientoPaciente = async function() {
         document.getElementById('modalFichaDoctor').style.display = 'none';
 
         const nombreDr = document.getElementById('modalDocNombre').innerText;
-        let mensajeP = `Hola ${nombreDr}, vi su agenda en la app MiDental y acabo de solicitar una reserva para: ${textoOriginal.replace('Confirmar Cita: ', '')}. ¿Me podría confirmar la hora?`;
+        
+        // ¡AQUÍ ESTÁ LA CORRECCIÓN! Extraemos el nombre del paciente para usarlo en el texto.
+        const nombrePaciente = localStorage.getItem('midental_user_name') || 'un paciente';
+
+        let mensajeP = `Hola ${nombreDr}, vi su agenda en la app MiDental y acabo de solicitar una reserva para: ${textoOriginal.replace('Confirmar Cita: ', '')}. ¿Me podría confirmar la hora por favor? Mi nombre es ${nombrePaciente}`;
 
         if (telefonoDentistaSeleccionado) {
             const telLimpio = telefonoDentistaSeleccionado.replace(/[^0-9]/g, '');

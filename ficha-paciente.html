@@ -10,17 +10,25 @@
     <style>
         .ficha-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; height: calc(100vh - 120px); }
         
-        /* Panel Izquierdo: Historial */
+        /* Panel Izquierdo: Historial y Documentos */
         .historial-panel { background: white; border-radius: 15px; border: 1px solid #eee; display: flex; flex-direction: column; overflow: hidden; }
-        .historial-header { background: var(--blue-elegant); color: white; padding: 15px; text-align: center; }
+        .historial-header { background: var(--blue-elegant); color: white; padding: 20px; text-align: center; position: relative;}
         .historial-body { padding: 15px; overflow-y: auto; flex: 1; background: #f8fafc; }
         
+        /* Botón Interconsulta en el Header */
+        .btn-interconsulta-flotante { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; cursor: pointer; transition: 0.2s;}
+        .btn-interconsulta-flotante:hover { background: white; color: var(--blue-elegant); }
+
         /* Tarjetas de Evolución Pasada */
-        .evolucion-card { background: white; border-left: 4px solid var(--pixar-cyan); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .evo-date { font-size: 0.8rem; color: #888; font-weight: bold; margin-bottom: 5px; }
+        .evolucion-card { background: white; border-left: 4px solid var(--pixar-cyan); padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative;}
+        .evolucion-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-left-color: var(--pixar-orange); }
+        .evolucion-card::after { content: "visibility"; font-family: 'Material Symbols Outlined'; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #cbd5e1; font-size: 1.5rem; opacity: 0; transition: 0.2s;}
+        .evolucion-card:hover::after { opacity: 1; color: var(--pixar-orange); }
+        
+        .evo-date { font-size: 0.8rem; color: #888; font-weight: bold; margin-bottom: 5px; display: flex; justify-content: space-between;}
         .evo-title { font-size: 0.95rem; color: var(--blue-elegant); margin-bottom: 5px; font-weight: bold; }
-        .evo-text { font-size: 0.85rem; color: #555; line-height: 1.4; margin-bottom: 5px; }
-        .evo-price { font-size: 0.85rem; color: var(--green-success); font-weight: bold; text-align: right; }
+        .evo-text { font-size: 0.85rem; color: #555; line-height: 1.4; margin-bottom: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px;}
+        .evo-price { font-size: 0.85rem; color: var(--green-success); font-weight: bold; text-align: right; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px;}
 
         /* Panel Derecho: Nueva Evolución */
         .nueva-evo-panel { background: white; border-radius: 15px; border: 1px solid #eee; padding: 25px; display: flex; flex-direction: column; overflow-y: auto; }
@@ -29,8 +37,31 @@
         .textarea-clinico { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 100px; margin-bottom: 20px; transition: border-color 0.3s; }
         .textarea-clinico:focus { outline: none; border-color: var(--pixar-cyan); box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1); }
         
-        .presupuesto-input-group { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .presupuesto-input-group input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1.1rem; font-weight: bold; color: var(--blue-elegant); }
+        /* Estilos Presupuesto */
+        .presupuesto-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 15px; }
+        .presupuesto-table th { background-color: var(--blue-elegant); color: white; padding: 10px 5px; border: 1px solid #ccc; text-align: left; }
+        .presupuesto-table td { border: 1px solid #e2e8f0; padding: 6px; }
+        .presupuesto-table input { width: 100%; border: none; outline: none; background: transparent; font-family: inherit; }
+        .total-final-box { text-align: right; font-size: 1.2rem; color: var(--blue-elegant); padding: 10px; border-top: 2px solid var(--blue-elegant); margin-top: 10px; font-weight: bold; }
+
+        /* Diseño del PIN Code */
+        .pin-display { background: #f8fafc; border: 2px dashed var(--pixar-orange); padding: 15px; text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 10px; color: var(--pixar-orange); border-radius: 15px; margin: 20px 0; }
+
+        /* Estilos de Impresión */
+        @media print {
+            body * { visibility: hidden; }
+            .sidebar, .topbar, .historial-panel, #btnGuardarFicha, .btn-group-dual, #btnAgregarFila { display: none !important; }
+            .ficha-layout { display: block; height: auto; }
+            
+            .nueva-evo-panel, .nueva-evo-panel * { visibility: visible; }
+            #modalVerRegistroPasado, #modalVerRegistroPasado * { visibility: visible; }
+            
+            .nueva-evo-panel { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
+            #modalVerRegistroPasado .modal-content { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; max-height: none;}
+            
+            .textarea-clinico { border: none; padding: 0; min-height: auto; }
+            .btn-close { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -43,16 +74,9 @@
             </div>
             <nav class="sidebar-nav">
                 <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
-                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="agenda-dentista.html" class="nav-item active"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
-                <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
-                <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
-                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
-            <div class="sidebar-footer">
-                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
-            </div>
         </aside>
 
         <main class="dashboard-content">
@@ -61,51 +85,124 @@
                     <button class="btn-login-outline" style="padding: 5px 10px; margin-bottom: 10px; font-size: 0.8rem;" onclick="window.location.href='agenda-dentista.html'">
                         <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">arrow_back</span> Volver a Agenda
                     </button>
-                    <h1>Ficha Clínica: <span id="headerNombrePaciente" style="color: var(--pixar-cyan);">Cargando...</span> 📑</h1>
-                </div>
-                <div class="topbar-right-area">
-                    <img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" class="profile-pic">
+                    <h1>Ficha Clínica: <span id="headerNombrePaciente" style="color: var(--pixar-cyan);">Cargando...</span></h1>
                 </div>
             </header>
 
             <div class="ficha-layout">
                 <div class="historial-panel">
                     <div class="historial-header">
-                        <span class="material-symbols-outlined" style="font-size: 3rem; margin-bottom: 10px;">account_circle</span>
-                        <h2 id="panelNombrePaciente" style="margin: 0; font-size: 1.2rem;">Nombre Paciente</h2>
-                        <p id="panelRutPaciente" style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.8;">RUT: No registrado</p>
+                        <button class="btn-interconsulta-flotante" onclick="abrirModalInterconsulta()">
+                            <span class="material-symbols-outlined">move_up</span> Derivar
+                        </button>
+                        <span class="material-symbols-outlined" style="font-size: 3.5rem; margin-bottom: 10px;">account_circle</span>
+                        <h2 id="panelNombrePaciente" style="margin: 0; font-size: 1.3rem;">Cargando paciente...</h2>
+                        <p id="panelRutPaciente" style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">RUT: --</p>
+                        <p id="panelTelefonoPaciente" style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.8;">--</p>
                     </div>
+                    
                     <div class="historial-body" id="contenedorHistorial">
-                        <div style="text-align: center; color: #888; margin-top: 40px;">
-                            <span class="material-symbols-outlined" style="font-size: 2rem;">history</span>
-                            <p>Cargando historial clínico...</p>
+                        </div>
+
+                    <div style="padding: 15px; border-top: 2px solid #e2e8f0; background: white;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 1rem; color: var(--blue-elegant); display: flex; align-items: center; gap: 5px;">
+                            <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">folder_open</span> Exámenes Adjuntos
+                        </h3>
+                        <div id="contenedorDocumentosPaciente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 180px; overflow-y: auto;">
+                            <p style="color: #64748b; font-size: 0.85rem; text-align: center; grid-column: 1/-1;">Cargando archivos...</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="nueva-evo-panel">
-                    <h3 class="form-section-title"><span class="material-symbols-outlined">edit_document</span> Registrar Nueva Atención</h3>
+                <div class="nueva-evo-panel" id="zonaImpresionNueva">
+                    <h3 class="form-section-title"><span class="material-symbols-outlined">edit_document</span> Registrar Evolución Médica</h3>
+                    <label class="input-label" style="font-weight: bold; color: #475569;">Motivo de Consulta y Diagnóstico</label>
+                    <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude por dolor en pieza 1.4..."></textarea>
+
+                    <label class="input-label" style="font-weight: bold; color: #475569;">Procedimiento Realizado</label>
+                    <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación de urgencia, se receta amoxicilina..."></textarea>
+
+                    <h3 class="form-section-title mt-20"><span class="material-symbols-outlined">request_quote</span> Generar Presupuesto</h3>
+                    <table class="presupuesto-table">
+                        <thead><tr><th style="width: 20%;">Diente/Pieza</th><th>Tratamiento a Realizar</th><th style="width: 25%;">Valor ($)</th></tr></thead>
+                        <tbody id="tbodyPresupuesto">
+                            <tr>
+                                <td><input type="text" class="input-diente" placeholder="Ej: 1.4"></td>
+                                <td><input type="text" class="input-tratamiento" placeholder="Tratamiento"></td>
+                                <td><input type="number" class="ref-val input-valor" placeholder="0" oninput="calcularGranTotal()"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn-text" id="btnAgregarFila" onclick="agregarFila()">+ Agregar Fila</button>
                     
-                    <form id="formFichaClinica">
-                        <label class="input-label" style="font-weight: bold; color: #475569;">Motivo de Consulta (Anamnesis)</label>
-                        <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude por dolor en pieza 1.4 al morder..."></textarea>
+                    <div class="total-final-box">TOTAL PRESUPUESTO: $ <span id="granTotalPagar">0</span></div>
 
-                        <label class="input-label" style="font-weight: bold; color: #475569;">Acción Realizada / Procedimiento Clínico</label>
-                        <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación de urgencia, se receta amoxicilina 500mg..."></textarea>
-
-                        <label class="input-label" style="font-weight: bold; color: #475569;">Presupuesto Generado ($ CLP)</label>
-                        <div class="presupuesto-input-group">
-                            <span class="material-symbols-outlined" style="color: var(--green-success); font-size: 2rem;">payments</span>
-                            <input type="number" id="fichaPresupuesto" placeholder="0" value="0">
-                        </div>
-
-                        <button type="button" class="btn-pixar btn-full" id="btnGuardarFicha" onclick="guardarFichaClinica()">
-                            <span class="material-symbols-outlined">save</span> Guardar Evolución Médica
+                    <div class="btn-group-dual mt-20">
+                        <button class="btn-login-outline btn-full" onclick="window.print()">
+                            <span class="material-symbols-outlined">print</span> Imprimir / Guardar PDF
                         </button>
-                    </form>
+                    </div>
+
+                    <button type="button" class="btn-pixar btn-full mt-20" id="btnGuardarFicha" onclick="guardarFichaClinica()" style="padding: 15px; font-size: 1.1rem;">
+                        <span class="material-symbols-outlined">save</span> Firmar y Guardar Ficha Oficial
+                    </button>
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="modalVerRegistroPasado" class="modal-overlay" style="display:none; z-index: 1000;">
+        <div class="modal-content modal-xl">
+            <button class="btn-close" onclick="document.getElementById('modalVerRegistroPasado').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+            <div style="border-bottom: 2px solid var(--pixar-cyan); padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="margin:0; color: var(--blue-elegant);">Ficha Clínica Histórica</h2>
+                <p style="margin: 5px 0 0 0; color: #64748b;">Fecha de Registro: <strong id="modalPasadoFecha">--/--/----</strong></p>
+            </div>
+            
+            <h4 style="margin-bottom: 5px; color: var(--blue-elegant);">Diagnóstico / Evolución:</h4>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; font-size: 0.95rem; color: #334155;" id="modalPasadoEvo"></div>
+
+            <h4 style="margin-bottom: 5px; color: var(--blue-elegant);">Procedimiento:</h4>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; font-size: 0.95rem; color: #334155;" id="modalPasadoProcedimiento"></div>
+
+            <div style="background: #f0fdfa; border: 1px dashed var(--green-success); padding: 15px; border-radius: 8px; text-align: right;">
+                <span style="font-size: 0.9rem; color: #64748b;">Presupuesto Emitido:</span><br>
+                <strong style="font-size: 1.5rem; color: var(--green-success);">$ <span id="modalPasadoTotal">0</span></strong>
+            </div>
+
+            <div class="btn-group-dual mt-20">
+                <button class="btn-login-outline btn-full" onclick="window.print()">
+                    <span class="material-symbols-outlined">print</span> Reimprimir PDF
+                </button>
+                <button class="btn-pixar btn-green-whatsapp btn-full" onclick="reenviarPresupuestoPasado()">
+                    <span class="material-symbols-outlined">send_to_mobile</span> Reenviar por WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalInterconsulta" class="modal-overlay" style="display:none; z-index: 1000;">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <button class="btn-close" onclick="document.getElementById('modalInterconsulta').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+            <span class="material-symbols-outlined" style="font-size: 4rem; color: var(--pixar-cyan); margin-bottom: 10px;">move_up</span>
+            <h2 style="color: var(--blue-elegant); margin-top: 0;">Generar Interconsulta</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Se generará un PIN de acceso seguro para proteger los datos de <b id="derivarPcteNombre"></b>.</p>
+            
+            <div style="text-align: left; margin-top: 20px;">
+                <label class="input-label">Motivo de la Derivación</label>
+                <textarea id="motivoDerivacion" class="apple-input-modal" rows="2" placeholder="Ej: Se solicita evaluación por especialista en Endodoncia..."></textarea>
+            </div>
+
+            <button class="btn-pixar btn-full mt-20" id="btnCrearPase" onclick="generarPINSeguro()">Crear Pase Seguro</button>
+
+            <div id="zonaResultadosPIN" style="display: none;">
+                <p style="margin-top: 20px; font-size: 0.9rem;">Dicta o envía este código de 6 dígitos al paciente. El nuevo especialista se lo solicitará para desbloquear su ficha.</p>
+                <div class="pin-display" id="pinMostrado">------</div>
+                <button class="btn-login-outline btn-full" onclick="enviarPinAlPaciente()">
+                    <span class="material-symbols-outlined">chat</span> Enviar Instrucciones al Paciente
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -113,110 +210,236 @@
     <script src="js/app.js"></script>
 
     <script>
-        // Extraer el nombre del paciente de la URL (Ej: ficha-paciente.html?paciente=Pedro+Diaz)
         const urlParams = new URLSearchParams(window.location.search);
-        const pacienteNombreURL = urlParams.get('paciente') || 'Paciente de Urgencia';
-        const presupuestoURL = urlParams.get('presupuesto') || 0;
+        const pacienteIdURL = urlParams.get('paciente');
+        let pacienteActual = { nombre: "Paciente No Encontrado", telefono: "", rut: "" };
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Inicializar UI
-            document.getElementById('headerNombrePaciente').innerText = pacienteNombreURL;
-            document.getElementById('panelNombrePaciente').innerText = pacienteNombreURL;
-            document.getElementById('fichaPresupuesto').value = presupuestoURL;
-            
-            cargarHistorialPaciente();
+            if (!pacienteIdURL) {
+                alert("Error: No se especificó un paciente válido.");
+                window.location.href = 'agenda-dentista.html';
+                return;
+            }
+            cargarDatosPaciente();
         });
 
-        // 1. CARGAR EL HISTORIAL DEL PACIENTE DESDE SUPABASE
+        async function cargarDatosPaciente() {
+            try {
+                const { data: paciente, error } = await window.midental.from('perfiles_pacientes').select('nombre_completo, rut, telefono').eq('id', pacienteIdURL).single();
+                if (error) throw error;
+                
+                if (paciente) {
+                    pacienteActual.nombre = paciente.nombre_completo || "Sin Nombre";
+                    pacienteActual.rut = paciente.rut || "No registrado";
+                    pacienteActual.telefono = paciente.telefono || "";
+
+                    document.getElementById('headerNombrePaciente').innerText = pacienteActual.nombre;
+                    document.getElementById('panelNombrePaciente').innerText = pacienteActual.nombre;
+                    document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut}`;
+                    document.getElementById('panelTelefonoPaciente').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">call</span> ${pacienteActual.telefono || 'Sin teléfono'}`;
+                    document.getElementById('derivarPcteNombre').innerText = pacienteActual.nombre;
+                }
+                cargarHistorialPaciente();
+                cargarDocumentosPaciente(); // NUEVA LLAMADA PARA ARCHIVOS
+            } catch (err) { console.error("Error al cargar paciente:", err); }
+        }
+
         async function cargarHistorialPaciente() {
             const dentistaId = localStorage.getItem('midental_user_id');
             const contenedor = document.getElementById('contenedorHistorial');
-            
             if (!dentistaId) return;
 
             try {
-                const { data: historial, error } = await window.midental
-                    .from('fichas_clinicas')
-                    .select('*')
-                    .eq('dentista_id', dentistaId)
-                    .ilike('paciente_nombre', `%${pacienteNombreURL}%`) // Busca coincidencias de nombre
-                    .order('created_at', { ascending: false });
+                const { data: historial, error } = await window.midental.from('fichas_clinicas').select('*')
+                    .eq('paciente_id', pacienteIdURL).order('created_at', { ascending: false });
 
                 if (error) throw error;
-
                 contenedor.innerHTML = "";
 
                 if (historial.length === 0) {
-                    contenedor.innerHTML = `
-                        <div style="text-align: center; color: #888; margin-top: 40px; background: white; padding: 20px; border-radius: 10px; border: 1px dashed #ccc;">
-                            <p>No hay atenciones previas registradas para este paciente.</p>
-                        </div>`;
+                    contenedor.innerHTML = `<div style="text-align: center; color: #888; margin-top: 40px;"><p>No hay atenciones previas.</p></div>`;
                     return;
                 }
 
                 historial.forEach(ficha => {
-                    const fechaAtencion = new Date(ficha.created_at).toLocaleDateString('es-CL', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
-                    
+                    const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL');
+                    const motivoStr = ficha.historial_json?.diagnostico || ficha.motivo_consulta || 'Sin especificar';
+                    const accionStr = ficha.historial_json?.tratamiento || ficha.accion_realizada || 'Sin registro';
+                    const presupuestoNum = ficha.presupuesto_total || 0;
+
+                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, accion: accionStr, presupuesto: presupuestoNum }));
+
                     contenedor.innerHTML += `
-                        <div class="evolucion-card">
-                            <div class="evo-date">${fechaAtencion}</div>
-                            <div class="evo-title">Motivo:</div>
-                            <div class="evo-text">${ficha.motivo_consulta || 'Sin especificar'}</div>
-                            <div class="evo-title" style="margin-top: 10px;">Acción Clínica:</div>
-                            <div class="evo-text">${ficha.accion_realizada || 'Sin acción registrada'}</div>
-                            ${ficha.presupuesto_total > 0 ? `<div class="evo-price">Presupuesto: $${ficha.presupuesto_total.toLocaleString('es-CL')}</div>` : ''}
+                        <div class="evolucion-card" onclick="abrirBovedaPasada('${dataFichaStr}')" title="Clic para ver detalle y reenviar">
+                            <div class="evo-date"><span>Atención</span><span style="font-weight:normal; font-size:0.7rem;">${fechaAtencion}</span></div>
+                            <div class="evo-title">Evolución Clínica:</div>
+                            <div class="evo-text"><strong>Motivo:</strong> ${motivoStr.substring(0, 40)}...</div>
+                            ${presupuestoNum > 0 ? `<div class="evo-price">Presupuesto Registrado: $${presupuestoNum.toLocaleString('es-CL')}</div>` : ''}
                         </div>
                     `;
                 });
+            } catch (err) { console.error(err); }
+        }
 
+        // ==========================================
+        // CARGAR DOCUMENTOS DEL PACIENTE
+        // ==========================================
+        async function cargarDocumentosPaciente() {
+            const contenedor = document.getElementById('contenedorDocumentosPaciente');
+            if (!contenedor) return;
+            
+            try {
+                const { data: docs, error } = await window.midental
+                    .from('documentos_pacientes')
+                    .select('*')
+                    .eq('paciente_id', pacienteIdURL);
+
+                if (error) throw error;
+                contenedor.innerHTML = "";
+
+                if (!docs || docs.length === 0) {
+                    contenedor.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; text-align: center; grid-column: 1/-1; margin: 10px 0;">El paciente no ha subido archivos aún.</p>';
+                    return;
+                }
+
+                docs.forEach(doc => {
+                    // Validar si el archivo es imagen basándose en la extensión
+                    const esImagen = doc.file_url && doc.file_url.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                    
+                    contenedor.innerHTML += `
+                        <div style="background: #f8fafc; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
+                            <span class="material-symbols-outlined" style="font-size: 2rem; color: var(--pixar-cyan); margin-bottom: 5px;">${esImagen ? 'image' : 'description'}</span>
+                            <p style="font-size: 0.7rem; margin: 0 0 8px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155;" title="${doc.nombre_archivo}">${doc.nombre_archivo}</p>
+                            <a href="${doc.file_url}" target="_blank" style="font-size: 0.7rem; color: white; background: var(--pixar-orange); padding: 4px 8px; border-radius: 6px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box;">Ver Archivo</a>
+                        </div>
+                    `;
+                });
             } catch (err) {
-                contenedor.innerHTML = `<p style="color: red; text-align: center;">Error al cargar historial.</p>`;
-                console.error(err);
+                console.error("Error al cargar documentos:", err);
+                contenedor.innerHTML = '<p style="color: #ef4444; font-size: 0.8rem; grid-column: 1/-1; text-align: center;">No tienes permiso para ver los archivos.</p>';
             }
         }
 
-        // 2. GUARDAR LA NUEVA EVOLUCIÓN EN SUPABASE
+        // ==========================================
+        // LA BÓVEDA DEL TIEMPO (REABRIR REGISTROS PASADOS)
+        // ==========================================
+        let presupuestoEnPantallaActual = 0; 
+
+        function abrirBovedaPasada(dataCodificada) {
+            const data = JSON.parse(decodeURIComponent(dataCodificada));
+            presupuestoEnPantallaActual = data.presupuesto;
+
+            document.getElementById('modalPasadoFecha').innerText = data.fecha;
+            document.getElementById('modalPasadoEvo').innerText = data.motivo;
+            document.getElementById('modalPasadoProcedimiento').innerText = data.accion;
+            document.getElementById('modalPasadoTotal').innerText = data.presupuesto.toLocaleString('es-CL');
+            
+            document.getElementById('modalVerRegistroPasado').style.display = 'flex';
+        }
+
+        function reenviarPresupuestoPasado() {
+            if (!pacienteActual.telefono) return alert("El paciente no tiene teléfono registrado.");
+            const totalStr = presupuestoEnPantallaActual.toLocaleString('es-CL');
+            const fecha = document.getElementById('modalPasadoFecha').innerText;
+            const mensaje = `Hola ${pacienteActual.nombre}, te adjuntamos el detalle del presupuesto dental evaluado el ${fecha} por un total de $${totalStr}. Puedes revisarlo completo desde tu portal en MiDental.`;
+            const telLimpio = pacienteActual.telefono.replace(/[^0-9]/g, '');
+            window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
+        }
+
+        // ==========================================
+        // SISTEMA DE INTERCONSULTA Y PIN
+        // ==========================================
+        function abrirModalInterconsulta() {
+            document.getElementById('modalInterconsulta').style.display = 'flex';
+            document.getElementById('zonaResultadosPIN').style.display = 'none';
+            document.getElementById('btnCrearPase').style.display = 'block';
+            document.getElementById('motivoDerivacion').value = '';
+        }
+
+        async function generarPINSeguro() {
+            const motivo = document.getElementById('motivoDerivacion').value.trim();
+            if(!motivo) return alert("Por favor escribe el motivo de la derivación.");
+
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const nuevoPin = Math.random().toString(36).substring(2, 8).toUpperCase(); 
+
+            document.getElementById('btnCrearPase').innerText = "Generando...";
+
+            try {
+                const { error } = await window.midental.from('interconsultas').insert([{
+                    paciente_id: pacienteIdURL,
+                    dentista_origen_id: dentistaId,
+                    dentista_destino_id: dentistaId, 
+                    motivo: motivo,
+                    token_pin: nuevoPin
+                }]);
+
+                if(error) throw error;
+
+                document.getElementById('btnCrearPase').style.display = 'none';
+                document.getElementById('pinMostrado').innerText = nuevoPin;
+                document.getElementById('zonaResultadosPIN').style.display = 'block';
+
+            } catch (err) {
+                alert("Error al crear pase de derivación: " + err.message);
+                document.getElementById('btnCrearPase').innerText = "Crear Pase Seguro";
+            }
+        }
+
+        function enviarPinAlPaciente() {
+            const pin = document.getElementById('pinMostrado').innerText;
+            const motivo = document.getElementById('motivoDerivacion').value.trim();
+            const mensaje = `Hola ${pacienteActual.nombre}, se ha generado una orden de interconsulta/derivación para ti por el siguiente motivo: "${motivo}". \n\nTu Código de Acceso Seguro (PIN) es: *${pin}*.\n\nPor favor entrégale este código al nuevo especialista para que pueda acceder a tus radiografías y ficha clínica de forma segura.`;
+            
+            if(pacienteActual.telefono) {
+                const telLimpio = pacienteActual.telefono.replace(/[^0-9]/g, '');
+                window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            } else {
+                alert(`Copia este código y envíaselo al paciente: ${pin}`);
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DE PRESUPUESTO ACTUAL
+        // ==========================================
+        function agregarFila() { 
+            const tbody = document.getElementById('tbodyPresupuesto');
+            tbody.insertAdjacentHTML('beforeend', `<tr><td><input type="text" placeholder="Ej: 1.4"></td><td><input type="text" placeholder="Tratamiento"></td><td><input type="number" class="ref-val" placeholder="0" oninput="calcularGranTotal()"></td></tr>`); 
+        }
+        
+        function calcularGranTotal() {
+            let total = 0;
+            document.querySelectorAll('.ref-val').forEach(i => total += (parseFloat(i.value) || 0));
+            document.getElementById('granTotalPagar').innerText = total.toLocaleString('es-CL');
+            return total;
+        }
+
         async function guardarFichaClinica() {
             const dentistaId = localStorage.getItem('midental_user_id');
             const motivo = document.getElementById('fichaMotivo').value.trim();
             const accion = document.getElementById('fichaAccion').value.trim();
-            const presupuesto = document.getElementById('fichaPresupuesto').value || 0;
+            const totalPresupuesto = calcularGranTotal();
             const btn = document.getElementById('btnGuardarFicha');
 
-            if (!motivo || !accion) {
-                return alert("⚠️ Debes ingresar el motivo de consulta y la acción realizada.");
-            }
+            if (!motivo || !accion) return alert("⚠️ Ingresa el motivo y el procedimiento.");
 
-            btn.innerHTML = "Guardando...";
-            btn.disabled = true;
+            btn.innerHTML = "Firmando..."; btn.disabled = true;
 
             try {
-                const { error } = await window.midental
-                    .from('fichas_clinicas')
-                    .insert([{
-                        dentista_id: dentistaId,
-                        paciente_nombre: pacienteNombreURL,
-                        motivo_consulta: motivo,
-                        accion_realizada: accion,
-                        presupuesto_total: parseInt(presupuesto)
-                    }]);
+                const { error } = await window.midental.from('fichas_clinicas').insert([{
+                    dentista_id: dentistaId, paciente_id: pacienteIdURL, paciente_nombre: pacienteActual.nombre,
+                    motivo_consulta: motivo, accion_realizada: accion, presupuesto_total: totalPresupuesto,
+                    ultima_atencion: new Date().toISOString(),
+                    historial_json: { diagnostico: motivo, tratamiento: accion, fecha: new Date().toLocaleDateString('es-CL') }
+                }]);
 
                 if (error) throw error;
-
-                alert("✅ Evolución clínica guardada exitosamente. Se mantendrá por 15 años según normativa.");
-                
-                // Limpiar formulario y recargar historial
-                document.getElementById('fichaMotivo').value = '';
-                document.getElementById('fichaAccion').value = '';
-                document.getElementById('fichaPresupuesto').value = '0';
+                alert("✅ Ficha guardada con éxito.");
+                document.getElementById('fichaMotivo').value = ''; document.getElementById('fichaAccion').value = '';
+                document.getElementById('granTotalPagar').innerText = '0';
                 cargarHistorialPaciente();
-
-            } catch (err) {
-                alert("Error al guardar: " + err.message);
-            } finally {
-                btn.innerHTML = `<span class="material-symbols-outlined">save</span> Guardar Evolución Médica`;
-                btn.disabled = false;
-            }
+            } catch (err) { alert("Error: " + err.message); } 
+            finally { btn.innerHTML = `<span class="material-symbols-outlined">save</span> Firmar y Guardar Ficha Oficial`; btn.disabled = false; }
         }
     </script>
 </body>

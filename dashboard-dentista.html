@@ -30,6 +30,21 @@
         /* Estilos Citas Confirmadas */
         .appointment-card { background: white; border: 1px solid #eee; border-left: 5px solid var(--green-success); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .appointment-time { font-size: 1.2rem; font-weight: bold; color: var(--blue-elegant); min-width: 80px; }
+
+        /* Estilo Switch Apple */
+        .apple-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .apple-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: var(--red-urgency); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .slider.round { border-radius: 34px; }
+        .slider.round:before { border-radius: 50%; }
+        
+        /* Estilo Desbloqueo PIN */
+        .pin-unlock-box { background: #fff; border: 1px solid #e2e8f0; border-left: 5px solid var(--pixar-cyan); border-radius: 18px; padding: 20px; color: #334155; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .pin-input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1; text-transform: uppercase; font-weight: bold; text-align: center; letter-spacing: 3px; font-size: 1.1rem; outline: none; transition: 0.2s; }
+        .pin-input:focus { border-color: var(--pixar-cyan); box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1); }
     </style>
 </head>
 <body>
@@ -42,7 +57,7 @@
                 <h2>MiDental</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="dashboard-dentista.html" class="nav-item active"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
                 <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
                 <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
@@ -51,7 +66,7 @@
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-logout" onclick="window.location.href='index.html'"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
             </div>
         </aside>
 
@@ -64,10 +79,10 @@
                 </div>
                 
                 <div class="topbar-right-area">
-                    <div class="status-toggle-container">
-                        <div class="status-labels">
-                            <span class="status-title">Urgencias</span>
-                            <span class="status-desc" id="statusText">Apagado</span>
+                    <div class="status-toggle-container" style="display: flex; align-items: center; gap: 15px; background: white; padding: 10px 15px; border-radius: 20px; border: 1px solid #eee; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                        <div class="status-labels" style="text-align: right;">
+                            <span class="status-title" style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--blue-elegant);">Urgencias</span>
+                            <span class="status-desc" id="statusText" style="display: block; font-size: 0.75rem; transition: 0.3s;">Apagado</span>
                         </div>
                         <label class="apple-switch">
                             <input type="checkbox" id="toggleDisponible" onchange="cambiarEstadoUrgenciaDB(this)">
@@ -104,6 +119,20 @@
                         <span class="material-symbols-outlined">timer</span>
                         <div><small>Vigente hasta</small><strong id="dashCronometroFlash">--/--/----</strong></div>
                     </div>
+                </div>
+            </div>
+
+            <div class="pin-unlock-box">
+                <div class="monitor-header" style="border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px;">
+                    <div class="monitor-title">
+                        <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">vpn_key</span>
+                        <h3 style="color: var(--blue-elegant); font-weight: bold; margin: 0;">Acceso a Paciente Derivado</h3>
+                    </div>
+                </div>
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: 0;">Ingresa el PIN de seguridad proporcionado por el paciente para desbloquear su ficha clínica y exámenes adjuntos.</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="pinInterconsulta" class="pin-input" placeholder="Ingresa PIN de 6 dígitos">
+                    <button class="btn-pixar" id="btnDesbloquearPin" style="padding: 10px 20px; border-radius: 10px;" onclick="validarPinInterconsulta()">Desbloquear Ficha</button>
                 </div>
             </div>
 
@@ -156,7 +185,6 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // app.js ya llama a sincronizarDatosGlobales() para foto y nombre
             cargarEstadoUrgencia();
             cargarOfertaActivaMonitor();
             cargarSolicitudesPendientes();
@@ -168,10 +196,15 @@
             const userId = localStorage.getItem('midental_user_id');
             if(!userId) return;
 
-            const { data } = await window.midental.from('perfiles_dentistas').select('disponible_urgencia').eq('id', userId).single();
+            const { data, error } = await window.midental
+                .from('perfiles_dentistas')
+                .select('acepta_urgencias')
+                .eq('id', userId)
+                .single();
+                
             if(data) {
                 const checkbox = document.getElementById('toggleDisponible');
-                checkbox.checked = data.disponible_urgencia;
+                checkbox.checked = data.acepta_urgencias;
                 actualizarTextoUrgencia(checkbox.checked);
             }
         }
@@ -181,19 +214,24 @@
             actualizarTextoUrgencia(checkbox.checked);
 
             if(userId) {
-                await window.midental.from('perfiles_dentistas').update({ disponible_urgencia: checkbox.checked }).eq('id', userId);
+                const { error } = await window.midental
+                    .from('perfiles_dentistas')
+                    .update({ acepta_urgencias: checkbox.checked })
+                    .eq('id', userId);
+                    
+                if(error) console.error("Error al actualizar urgencia:", error);
             }
         }
 
         function actualizarTextoUrgencia(isActiva) {
             const texto = document.getElementById('statusText');
             if(isActiva) {
-                texto.innerText = "Disponible Ahora";
-                texto.style.color = "var(--green-success)";
+                texto.innerText = "Recibiendo Casos";
+                texto.style.color = "var(--red-urgency)";
                 texto.style.fontWeight = "bold";
             } else {
                 texto.innerText = "Apagado";
-                texto.style.color = "var(--text-light)";
+                texto.style.color = "#94a3b8";
                 texto.style.fontWeight = "normal";
             }
         }
@@ -252,11 +290,9 @@
         }
 
         async function confirmarCitaReal(citaId) {
-            // Animación de carga en el botón
             const card = document.getElementById(`req-${citaId}`);
             if(card) card.style.opacity = '0.5';
 
-            // Actualizar Supabase a Confirmado
             const { error } = await window.midental.from('citas_agenda').update({ estado: 'Confirmado' }).eq('id', citaId);
             
             if(error) {
@@ -267,7 +303,6 @@
 
             alert("✅ Cita confirmada. Aparecerá en verde en tu Agenda.");
             
-            // Recargar ambas listas
             cargarSolicitudesPendientes();
             cargarProximasCitas();
         }
@@ -279,12 +314,11 @@
             const contador = document.getElementById('dashConfirmedCount');
             if(!userId || !contenedor) return;
 
-            // Busca citas que NO sean pendientes (ej. confirmadas, en curso)
             const { data: citas } = await window.midental.from('citas_agenda')
                 .select('*, perfiles_pacientes(nombre_completo)')
                 .eq('dentista_id', userId)
                 .neq('estado', 'pendiente')
-                .order('fecha_hora', { ascending: true })
+                .order('fecha_hora_formato_slot', { ascending: true })
                 .limit(5);
 
             if(citas && citas.length > 0) {
@@ -308,6 +342,46 @@
                         </div>
                     `;
                 });
+            }
+        }
+
+        // 5. VALIDAR PIN DE INTERCONSULTA (NUEVO)
+        async function validarPinInterconsulta() {
+            const pin = document.getElementById('pinInterconsulta').value.trim().toUpperCase();
+            if(pin.length < 5) return alert("Por favor ingresa el PIN completo de seguridad.");
+
+            const btn = document.getElementById('btnDesbloquearPin');
+            const originalText = btn.innerText;
+            btn.innerText = "Verificando en red...";
+            btn.disabled = true;
+
+            try {
+                // Buscamos si existe el PIN (No importa a quién fue dirigido originalmente)
+                const { data, error } = await window.midental
+                    .from('interconsultas')
+                    .select('paciente_id, id, estado')
+                    .eq('token_pin', pin)
+                    .single();
+
+                if (error || !data) {
+                    throw new Error("Código PIN incorrecto o inexistente. Verifica con el paciente.");
+                }
+
+                // Magia: El dentista que pone el PIN reclama el caso. 
+                // Esto actualiza el 'dentista_destino_id' y abre los candados de seguridad (RLS).
+                const userId = localStorage.getItem('midental_user_id');
+                await window.midental.from('interconsultas').update({ 
+                    estado: 'abierto',
+                    dentista_destino_id: userId
+                }).eq('id', data.id);
+
+                alert("🔓 ¡Apertura de ficha exitosa! Redireccionando al expediente clínico...");
+                window.location.href = `ficha-paciente.html?paciente=${data.paciente_id}`;
+                
+            } catch (err) {
+                alert(err.message);
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
         }
     </script>

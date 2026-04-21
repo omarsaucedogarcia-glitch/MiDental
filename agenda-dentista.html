@@ -19,11 +19,6 @@
         .event-en-curso { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 5px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; }
         .event-completada { background-color: #f3f4f6; border-left: 4px solid #6b7280; color: #374151; padding: 5px; border-radius: 4px; font-size: 0.8rem; text-decoration: line-through; width: 100%; height: 100%; display: flex; align-items: center; cursor: pointer; }
 
-        .presupuesto-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 20px; }
-        .presupuesto-table th { background-color: var(--blue-elegant); color: white; padding: 8px 5px; border: 1px solid #ccc; }
-        .presupuesto-table td { border: 1px solid #ccc; padding: 4px; }
-        .total-final-box { text-align: right; font-size: 1.2rem; color: var(--blue-elegant); padding: 10px; border-top: 2px solid var(--blue-elegant); margin-top: 10px; }
-
         .calendar-wrapper { display: flex; flex-direction: column; height: calc(100vh - 120px); }
         .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #f0f0f0; margin-bottom: 10px; }
         .calendar-grid-container { flex: 1; overflow-y: auto; background: white; border-radius: 15px; border: 1px solid #eee; }
@@ -35,13 +30,6 @@
         .day-header { height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--blue-elegant); border-bottom: 2px solid #ccc; background: #fafafa; position: sticky; top: 0; z-index: 10; flex-direction: column; line-height: 1.1; }
         .day-header small { font-weight: normal; font-size: 0.7rem; color: #666; }
         .time-block { height: 40px; border-bottom: 1px solid #f0f0f0; padding: 2px; }
-        
-        @media print {
-            body * { visibility: hidden; }
-            #modalPresupuesto, #modalPresupuesto * { visibility: visible; }
-            #modalPresupuesto { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; background: white; }
-            .btn-close, .btn-group-dual, .btn-text, .sidebar, .topbar { display: none !important; }
-        }
     </style>
 </head>
 <body>
@@ -124,36 +112,6 @@
         </div>
     </div>
 
-    <div id="modalPresupuesto" class="modal-overlay" style="display:none;">
-        <div class="modal-content modal-xl">
-            <button class="btn-close" onclick="cerrarModal('modalPresupuesto')"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="modal-title" style="text-align:center;">Ficha y Presupuesto</h2>
-            <div class="header-presupuesto-info mt-20">
-                <div><strong>PACIENTE:</strong> <span id="presupuestoNombrePcte">---</span></div>
-            </div>
-            
-            <div style="margin: 20px 0;">
-                <label class="input-label">Diagnóstico / Evolución Clínica</label>
-                <textarea id="textoEvolucionClinica" class="apple-input-modal" rows="3" placeholder="Escribe el diagnóstico o los hallazgos de hoy..."></textarea>
-            </div>
-
-            <table class="presupuesto-table">
-                <thead><tr><th>Diente</th><th>Tratamiento a Realizar</th><th>Valor ($)</th></tr></thead>
-                <tbody id="tbodyPresupuesto">
-                    <tr><td><input type="text"></td><td><input type="text"></td><td><input type="number" class="ref-val" oninput="calcularGranTotal()"></td></tr>
-                </tbody>
-            </table>
-            <button class="btn-text" onclick="agregarFila()">+ Agregar Fila</button>
-            
-            <div class="total-final-box"><strong>TOTAL: $ <span id="granTotalPagar">0</span></strong></div>
-            
-            <div class="btn-group-dual mt-20">
-                <button class="btn-login-outline btn-full" onclick="window.print()"><span class="material-symbols-outlined">print</span> Imprimir PDF</button>
-                <button class="btn-pixar btn-search btn-full" onclick="guardarFichaYFinalizar()"><span class="material-symbols-outlined">save</span> Guardar Ficha y Finalizar Cita</button>
-            </div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
@@ -173,7 +131,6 @@
         }
 
         function cambiarSemana(direccion) {
-            // Suma o resta 7 días a la fecha base
             fechaBase.setDate(fechaBase.getDate() + (direccion * 7));
             renderizarSemanaActual();
         }
@@ -183,20 +140,17 @@
             const daysContainer = document.getElementById('diasSemanaContainer');
             if(!timeLabelsContainer || !daysContainer) return;
 
-            // Encontrar el lunes de la semana de 'fechaBase'
             const lunes = new Date(fechaBase);
-            const diaSemana = lunes.getDay() === 0 ? 7 : lunes.getDay(); // 1=Lunes, 7=Domingo
+            const diaSemana = lunes.getDay() === 0 ? 7 : lunes.getDay(); 
             lunes.setDate(lunes.getDate() - diaSemana + 1);
 
             const diasAbreviados = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
             const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-            // Actualizar el título de la semana
             const domingo = new Date(lunes);
             domingo.setDate(lunes.getDate() + 6);
             document.getElementById('textoSemanaActual').innerText = `${lunes.getDate()} ${mesesCortos[lunes.getMonth()]} - ${domingo.getDate()} ${mesesCortos[domingo.getMonth()]}`;
 
-            // Limpiar y crear la grilla base
             timeLabelsContainer.innerHTML = '';
             daysContainer.innerHTML = '';
 
@@ -213,14 +167,12 @@
                 let añoStr = fechaColumna.getFullYear();
                 let diaLetra = diasAbreviados[i];
 
-                // El "Slot ID" ahora incluye la fecha real exacta (Ej: "Lun-10:00-20/04/2026")
                 let fechaRealStr = `${diaNum.toString().padStart(2, '0')}/${(fechaColumna.getMonth()+1).toString().padStart(2, '0')}/${añoStr}`;
 
                 let colHTML = `<div class="day-col"><div class="day-header">${diaLetra}<small>${diaNum} ${mesStr}</small></div>`;
                 
                 for(let hora = 8; hora <= 20; hora++) {
                     let horaStr = `${hora.toString().padStart(2, '0')}:00`;
-                    // El ID de cruce. Las sedes buscan "Lun-10:00", las citas buscan la fecha real.
                     let slotGenericId = `${diaLetra}-${horaStr}`; 
                     let slotRealId = `${fechaRealStr}-${horaStr}`; 
 
@@ -230,7 +182,6 @@
                 daysContainer.innerHTML += colHTML;
             }
 
-            // Una vez construida la grilla HTML, vamos a Supabase a buscar los datos
             poblarGrillaConDatosDeSupabase(lunes, domingo);
         }
 
@@ -246,7 +197,6 @@
                     sedes.forEach(sede => {
                         if (sede.horarios_json) {
                             sede.horarios_json.forEach(slotGenerico => {
-                                // "Lun-10:00". Buscamos todos los bloques de ese día/hora y los pintamos
                                 document.querySelectorAll(`[data-slot-generic="${slotGenerico}"]`).forEach(celda => {
                                     celda.innerHTML = `<div class="slot-workplace"><div class="watermark-text">${sede.nombre_sede}</div></div>`;
                                 });
@@ -255,19 +205,16 @@
                     });
                 }
 
-                // 2. Colocar las citas reales del paciente (Aquí importan las fechas)
+                // 2. Colocar las citas reales del paciente
                 const { data: citas } = await window.midental
                     .from('citas_agenda')
                     .select('*, perfiles_pacientes(nombre_completo, telefono)')
                     .eq('dentista_id', userId);
-                    // Nota: En producción real, aquí se filtra por el rango de fechas de la semana para no descargar todas las citas del año.
 
                 if (citas) {
                     citas.forEach(cita => {
-                        // cita.fecha_hora_formato_slot debe venir formateada como "20/04/2026-10:00" o mapeada si el paciente agendó con el formato viejo
                         let slotIdBusqueda = cita.fecha_hora_formato_slot; 
                         
-                        // Adaptador de compatibilidad (Si el paciente guardó "Lun-10:00", lo buscamos genéricamente. Idealmente siempre se guarda la fecha real)
                         let celda = document.querySelector(`[data-slot-real="${slotIdBusqueda}"]`);
                         if(!celda) celda = document.querySelector(`[data-slot-generic="${slotIdBusqueda}"]`); 
                         
@@ -275,9 +222,8 @@
                             const pctName = cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente';
                             const pctTel = cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '';
                             const estado = cita.estado || 'Pendiente';
-                            const estadoLimpio = estado.toLowerCase().replace(' ', '-'); // "en curso" -> "en-curso"
+                            const estadoLimpio = estado.toLowerCase().replace(' ', '-');
                             
-                            // Guardamos los datos de la cita en formato String para pasarlos al onclick
                             const citaDataStr = encodeURIComponent(JSON.stringify({
                                 cita_id: cita.id,
                                 paciente_id: cita.paciente_id,
@@ -310,15 +256,13 @@
             badge.innerText = citaEnCursoData.estado.toUpperCase();
             
             const contenedorAcciones = document.getElementById('contenedorBotonesAccion');
-            contenedorAcciones.innerHTML = ''; // Limpiar botones anteriores
+            contenedorAcciones.innerHTML = '';
 
-            // Botón de WhatsApp siempre disponible si hay teléfono
             let btnWhatsApp = '';
             if(citaEnCursoData.telefono) {
                 btnWhatsApp = `<button class="btn-pixar btn-green-whatsapp btn-full" onclick="window.confirmarPorWhatsApp('${citaEnCursoData.nombre}', '${citaEnCursoData.fecha}', '${citaEnCursoData.telefono}')"><span class="material-symbols-outlined">chat</span> Escribir por WhatsApp</button>`;
             }
 
-            // Lógica de botones según el estado
             if (citaEnCursoData.estado.toLowerCase() === 'pendiente') {
                 badge.style.background = '#fef3c7'; badge.style.color = '#92400e';
                 contenedorAcciones.innerHTML = `
@@ -337,20 +281,23 @@
             }
             else if (citaEnCursoData.estado.toLowerCase() === 'en curso') {
                 badge.style.background = '#e0e7ff'; badge.style.color = '#1e40af';
+                // REDIRECCIÓN A LA NUEVA FICHA CLÍNICA
                 contenedorAcciones.innerHTML = `
-                    <button class="btn-pixar btn-search btn-full" onclick="abrirPresupuestoFinal()">Llenar Ficha / Presupuesto</button>
+                    <button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=' + citaEnCursoData.paciente_id">Ir a Ficha Paciente</button>
                     <button class="btn-login-outline btn-full" onclick="actualizarEstadoCita('Completada')">Finalizar Rápido (Sin Ficha)</button>
                 `;
             }
             else if (citaEnCursoData.estado.toLowerCase() === 'completada' || citaEnCursoData.estado.toLowerCase() === 'finalizado') {
                 badge.style.background = '#f1f5f9'; badge.style.color = '#475569';
-                contenedorAcciones.innerHTML = `<p style="text-align:center; color:#64748b; font-size:0.9rem;">Esta atención ya fue finalizada.</p>`;
+                contenedorAcciones.innerHTML = `
+                    <p style="text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:10px;">Esta atención ya fue finalizada.</p>
+                    <button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=' + citaEnCursoData.paciente_id">Ver Ficha de este Paciente</button>
+                `;
             }
 
             document.getElementById('modalDetallePaciente').style.display = 'flex';
         }
 
-        // Función para cambiar el estado en Supabase (Pendiente -> Confirmado -> En Curso -> Completada)
         async function actualizarEstadoCita(nuevoEstado) {
             if(!citaEnCursoData || !citaEnCursoData.cita_id) return;
             
@@ -362,7 +309,7 @@
                 if (error) throw error;
                 
                 cerrarModal('modalDetallePaciente');
-                renderizarSemanaActual(); // Recargar el calendario visualmente
+                renderizarSemanaActual(); 
                 
             } catch (err) {
                 alert("Error al actualizar la cita.");
@@ -370,7 +317,6 @@
             }
         }
 
-        // Función para cancelar (Borrar la cita de la base de datos para liberar el bloque)
         async function cancelarCita() {
             if(!confirm("¿Seguro que deseas cancelar esta hora? El bloque quedará disponible para otro paciente.")) return;
             try {
@@ -381,54 +327,12 @@
             } catch (err) { alert("Error al cancelar."); }
         }
 
-        // Función "No Asistió" (A futuro se conecta a un sistema de rating, por ahora la cancela)
         async function marcarNoAsiste() {
             if(!confirm("¿Marcar inasistencia? Esto afectará la reputación del paciente en la plataforma MiDental.")) return;
             await cancelarCita();
         }
 
-        // --- FLUJO DE LA FICHA CLÍNICA ---
-        function abrirPresupuestoFinal() {
-            document.getElementById('modalDetallePaciente').style.display = 'none';
-            document.getElementById('presupuestoNombrePcte').innerText = citaEnCursoData.nombre;
-            document.getElementById('modalPresupuesto').style.display = 'flex';
-        }
-
-        async function guardarFichaYFinalizar() {
-            const evolucion = document.getElementById('textoEvolucionClinica').value;
-            if(!evolucion) {
-                alert("Por favor escribe un diagnóstico o evolución clínica básica.");
-                return;
-            }
-
-            // 1. Cambiamos la cita a Completada
-            await actualizarEstadoCita('Completada');
-
-            // 2. Guardamos la Ficha Clínica usando la función que hicimos en el paso anterior
-            if(typeof window.guardarFichaEvolucion === 'function') {
-                 // Nota: Esto asume que guardarFichaEvolucion está en app.js. Si no, la defino aquí:
-                 const dentistaId = localStorage.getItem('midental_user_id');
-                 try {
-                     await window.midental.from('fichas_clinicas').update({ 
-                         dentista_id: dentistaId,
-                         ultima_atencion: new Date().toISOString(),
-                         historial_json: { diagnostico: evolucion, tratamiento: "Ver Presupuesto", fecha: new Date().toLocaleDateString('es-CL') }
-                     }).eq('paciente_id', citaEnCursoData.paciente_id);
-                 } catch (e) { console.log("Ficha no actualizada", e); }
-            }
-
-            alert("🎉 ¡Atención Finalizada! Ficha y Presupuesto guardados.");
-            cerrarModal('modalPresupuesto');
-        }
-
-        // Funciones utilitarias para el presupuesto
         function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-        function agregarFila() { document.getElementById('tbodyPresupuesto').insertAdjacentHTML('beforeend', '<tr><td><input type="text"></td><td><input type="text"></td><td><input type="number" class="ref-val" oninput="calcularGranTotal()"></td></tr>'); }
-        function calcularGranTotal() {
-            let total = 0;
-            document.querySelectorAll('.ref-val').forEach(i => total += (parseFloat(i.value) || 0));
-            document.getElementById('granTotalPagar').innerText = total.toLocaleString('es-CL');
-        }
     </script>
 </body>
 </html>
