@@ -19,40 +19,9 @@
         .patient-card:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-left-color: var(--dentist-purple); }
         .patient-basic-info h3 { margin: 0 0 5px 0; color: var(--blue-elegant); font-size: 1.2rem; }
         .patient-basic-info p { margin: 0; color: #64748b; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-
-        /* Timeline de Historial Clínico */
-        .history-timeline { position: relative; padding-left: 30px; margin-top: 20px; }
-        .history-timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; }
-        .history-item { position: relative; margin-bottom: 25px; }
-        .history-item::before { content: ''; position: absolute; left: -29px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--pixar-cyan); border: 3px solid white; box-shadow: 0 0 0 2px var(--pixar-cyan); }
-        .history-date { font-size: 0.85rem; font-weight: bold; color: var(--pixar-cyan); margin-bottom: 5px; display: block; }
-        .history-content { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
-        .history-content h4 { margin: 0 0 10px 0; color: var(--blue-elegant); font-size: 1rem; }
-        .history-content p { margin: 0 0 8px 0; font-size: 0.9rem; color: #475569; line-height: 1.4; }
-
-        /* Estilos de Impresión para la Interconsulta */
-        .document-printable-area { display: none; }
-
-        @media print {
-            /* Ocultar la interfaz web */
-            body * { visibility: hidden; }
-            .sidebar, .topbar, .btn-close, .modal-overlay { display: none !important; }
-            
-            /* Mostrar solo el documento */
-            #documentoInterconsulta, #documentoInterconsulta * { visibility: visible; }
-            #documentoInterconsulta { 
-                position: absolute; left: 0; top: 0; width: 100%; 
-                background: white; padding: 40px; margin: 0;
-            }
-            
-            /* Formateo formal del documento */
-            .doc-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
-            .doc-title { font-size: 24px; font-weight: bold; margin: 0 0 10px 0; text-transform: uppercase; }
-            .doc-field { margin-bottom: 15px; font-size: 14px; line-height: 1.6; }
-            .doc-field strong { display: inline-block; width: 150px; }
-            .doc-body { margin-top: 30px; border: 1px solid #ccc; padding: 20px; min-height: 300px; }
-            .doc-signature { margin-top: 80px; text-align: center; width: 300px; margin-left: auto; border-top: 1px solid #000; padding-top: 10px; }
-        }
+        
+        .btn-abrir-ficha { background: #f8fafc; color: var(--pixar-cyan); border: 1px solid #e2e8f0; padding: 8px 15px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .patient-card:hover .btn-abrir-ficha { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); }
     </style>
 </head>
 <body>
@@ -82,7 +51,7 @@
             <header class="topbar">
                 <div class="welcome-text">
                     <h1 style="margin:0; font-size:1.5rem; color:var(--blue-elegant);">Fichero Clínico 📁</h1>
-                    <p style="margin:5px 0 0; font-size:0.9rem; color:var(--text-light);">Historiales, evoluciones y derivaciones de tus pacientes.</p>
+                    <p style="margin:5px 0 0; font-size:0.9rem; color:var(--text-light);">Directorio de pacientes que has atendido en MiDental.</p>
                 </div>
                 
                 <div class="topbar-right-area">
@@ -95,97 +64,17 @@
             <div class="patients-toolbar">
                 <div class="search-patient-box">
                     <span class="material-symbols-outlined" style="color:#94a3b8;">search</span>
-                    <input type="text" id="buscadorPacientes" placeholder="Buscar por Nombre, Apellido o RUT..." onkeyup="filtrarListaPacientes()">
+                    <input type="text" id="buscadorPacientes" placeholder="Buscar paciente por nombre..." onkeyup="filtrarListaPacientes()">
                 </div>
                 <div style="font-size: 0.9rem; color: #64748b;">
-                    Total registrados: <strong id="totalPacientesContador" style="color: var(--blue-elegant);">0</strong>
+                    Pacientes en tu registro: <strong id="totalPacientesContador" style="color: var(--blue-elegant);">0</strong>
                 </div>
             </div>
 
             <div id="contenedorListaPacientes" style="overflow-y: auto; height: calc(100vh - 220px); padding-right: 10px;">
-                <p style="text-align: center; color: #888; margin-top: 40px;">Cargando base de datos de pacientes...</p>
+                <p style="text-align: center; color: #888; margin-top: 40px;"><span class="material-symbols-outlined" style="animation: spin 2s linear infinite; font-size: 2rem;">sync</span><br>Cargando base de datos...</p>
             </div>
         </main>
-    </div>
-
-    <div id="modalHistorial" class="modal-overlay" style="display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.6);">
-        <div class="modal-content modal-large" style="max-width: 800px; height: 85vh; display: flex; flex-direction: column; padding: 0;">
-            
-            <div style="background: linear-gradient(135deg, var(--blue-elegant), var(--pixar-cyan)); padding: 30px; color: white; position: relative;">
-                <button class="btn-close-white" onclick="cerrarModal('modalHistorial')" style="position: absolute; right: 20px; top: 20px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><span class="material-symbols-outlined">close</span></button>
-                <h2 id="modalPctNombre" style="margin: 0 0 5px; font-size: 1.8rem;">Nombre Paciente</h2>
-                <p id="modalPctRut" style="margin: 0; opacity: 0.8; font-size: 1rem;"><span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">badge</span> RUT: 12.345.678-9</p>
-            </div>
-
-            <div style="padding: 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; color: var(--blue-elegant); font-size: 1.1rem;">Evoluciones Clínicas</h3>
-                <button class="btn-pixar" style="background: var(--dentist-purple); padding: 10px 20px; font-size: 0.9rem;" onclick="abrirGeneradorInterconsulta()">
-                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">assignment_add</span> Crear Derivación
-                </button>
-            </div>
-
-            <div style="flex: 1; overflow-y: auto; padding: 30px;" id="contenedorTimeline">
-                </div>
-        </div>
-    </div>
-
-    <div id="modalInterconsultaForm" class="modal-overlay" style="display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.6);">
-        <div class="modal-content" style="max-width: 600px; padding: 30px;">
-            <button class="btn-close" onclick="cerrarModal('modalInterconsultaForm')"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="modal-title" style="color: var(--dentist-purple); display: flex; align-items: center; gap: 10px;">
-                <span class="material-symbols-outlined">article</span> Generar Interconsulta
-            </h2>
-            <p class="modal-subtitle">Redacta los hallazgos para derivar al paciente <strong id="icNombrePaciente">---</strong>.</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-                <div>
-                    <label class="input-label">Especialidad a Derivar</label>
-                    <input type="text" id="icEspecialidad" class="apple-input-modal" placeholder="Ej: Endodoncia, Cirugía Maxilofacial...">
-                </div>
-                <div>
-                    <label class="input-label">Motivo de la Derivación</label>
-                    <textarea id="icMotivo" class="apple-input-modal" style="height: 60px; resize: none;" placeholder="Ej: Evaluación para tratamiento de conducto en pieza 1.1..."></textarea>
-                </div>
-                <div>
-                    <label class="input-label">Hallazgos Clínicos / Observaciones</label>
-                    <textarea id="icHallazgos" class="apple-input-modal" style="height: 120px; resize: none;" placeholder="Describa el estado actual, exámenes previos, etc."></textarea>
-                </div>
-            </div>
-
-            <button class="btn-pixar btn-full mt-20" onclick="generarPDFInterconsulta()" style="background: var(--blue-elegant); padding: 15px; font-size: 1.05rem;">
-                <span class="material-symbols-outlined" style="vertical-align: middle;">print</span> Generar Documento PDF
-            </button>
-        </div>
-    </div>
-
-    <div id="documentoInterconsulta" class="document-printable-area">
-        <div class="doc-header">
-            <h1 class="doc-title">Documento de Interconsulta Clínica</h1>
-            <p style="margin:0; font-size:12px; color:#555;">Red de Profesionales MiDental</p>
-        </div>
-        
-        <div class="doc-field"><strong>Fecha de Emisión:</strong> <span id="printFecha"></span></div>
-        <div class="doc-field"><strong>Profesional Derivante:</strong> <span id="printDrNombre"></span></div>
-        <div class="doc-field"><strong>Registro SIS:</strong> <span id="printDrSis"></span></div>
-        
-        <hr style="margin: 20px 0; border: none; border-top: 1px dashed #ccc;">
-        
-        <div class="doc-field"><strong>Nombre del Paciente:</strong> <span id="printPctNombre"></span></div>
-        <div class="doc-field"><strong>RUT Paciente:</strong> <span id="printPctRut"></span></div>
-        <div class="doc-field"><strong>Derivado a Especialidad:</strong> <span id="printEspecialidad"></span></div>
-        
-        <div class="doc-body">
-            <h4 style="margin-top:0; text-decoration:underline;">Motivo de Derivación:</h4>
-            <p id="printMotivo" style="font-size:14px; margin-bottom:20px;"></p>
-            
-            <h4 style="text-decoration:underline;">Hallazgos Clínicos:</h4>
-            <p id="printHallazgos" style="font-size:14px; white-space: pre-wrap;"></p>
-        </div>
-        
-        <div class="doc-signature">
-            <p style="margin:0; font-weight:bold;" id="printFirmaNombre"></p>
-            <p style="margin:0; font-size:12px;">Firma del Profesional</p>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -193,35 +82,22 @@
     <script src="js/app.js"></script>
 
     <script>
-        let basePacientes = {}; // Almacenará los pacientes agrupados por RUT/Nombre
-        let pacienteActivoParaDerivacion = null;
-        let datosDentistaFirma = {};
+        let basePacientes = {}; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            // app.js ya maneja el avatar y greeting general
             cargarFicheroCompleto();
-            obtenerDatosFirmaDoctor();
         });
 
-        // 1. Obtener la firma del doctor para los PDF
-        async function obtenerDatosFirmaDoctor() {
-            const userId = localStorage.getItem('midental_user_id');
-            if(!userId) return;
-            const { data } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, registro_sis').eq('id', userId).single();
-            if(data) datosDentistaFirma = data;
-        }
-
-        // 2. Extraer TODAS las atenciones y agruparlas para formar el directorio único de pacientes
+        // Extraer TODAS las atenciones y agruparlas
         async function cargarFicheroCompleto() {
             const userId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('contenedorListaPacientes');
             if(!userId) return;
 
-            const contenedor = document.getElementById('contenedorListaPacientes');
-            
             try {
-                // Descargamos todas las fichas escritas por este doctor
+                // Buscamos todas las fichas donde este doctor haya escrito
                 const { data: fichas, error } = await window.midental.from('fichas_clinicas')
-                    .select('*')
+                    .select('paciente_id, paciente_nombre, created_at, ultima_atencion')
                     .eq('dentista_id', userId)
                     .order('created_at', { ascending: false });
 
@@ -229,20 +105,20 @@
 
                 basePacientes = {};
 
-                // Agrupar las fichas para que si un paciente vino 5 veces, aparezca 1 sola vez en la lista principal
+                // Agrupamos por el UUID del paciente para no repetir tarjetas si vino varias veces
                 fichas.forEach(ficha => {
-                    // Usamos el RUT como identificador principal. Si no hay, usamos el nombre (ej. urgencias sin rut)
-                    const clave = ficha.paciente_rut || ficha.paciente_nombre;
-                    
+                    const clave = ficha.paciente_id;
+                    if(!clave) return; // Saltamos registros antiguos sin ID seguro
+
                     if(!basePacientes[clave]) {
                         basePacientes[clave] = {
-                            nombre: ficha.paciente_nombre,
-                            rut: ficha.paciente_rut || 'Sin RUT registrado',
-                            ultima_visita: ficha.created_at,
-                            historial: []
+                            id: clave,
+                            nombre: ficha.paciente_nombre || 'Paciente',
+                            ultima_visita: ficha.ultima_atencion || ficha.created_at,
+                            num_atenciones: 0
                         };
                     }
-                    basePacientes[clave].historial.push(ficha);
+                    basePacientes[clave].num_atenciones++;
                 });
 
                 renderizarListaPacientes();
@@ -252,7 +128,7 @@
             }
         }
 
-        // 3. Dibujar las tarjetas en pantalla
+        // Dibujar las tarjetas en pantalla
         function renderizarListaPacientes(filtroTexto = "") {
             const contenedor = document.getElementById('contenedorListaPacientes');
             const contador = document.getElementById('totalPacientesContador');
@@ -263,29 +139,40 @@
 
             claves.forEach(clave => {
                 const paciente = basePacientes[clave];
-                const searchText = `${paciente.nombre.toLowerCase()} ${paciente.rut.toLowerCase()}`;
+                const searchText = paciente.nombre.toLowerCase();
                 
                 if(filtroTexto === "" || searchText.includes(filtroTexto)) {
                     mostrados++;
                     
-                    // Formatear fecha de la última visita
                     const fechaAtencion = new Date(paciente.ultima_visita).toLocaleDateString('es-CL');
-                    const numAtenciones = paciente.historial.length;
+                    // Mostramos solo un fragmento del UUID por seguridad visual
+                    const idCorto = paciente.id.split('-')[0].toUpperCase();
 
                     const card = document.createElement('div');
                     card.className = 'patient-card';
-                    card.onclick = () => abrirHistorialClinico(clave);
+                    // Al hacer clic, viajamos directamente a la Ficha Maestra llevando el ID
+                    card.onclick = () => window.location.href = `ficha-paciente.html?paciente=${paciente.id}`;
                     
                     card.innerHTML = `
-                        <div class="patient-basic-info">
-                            <h3>${paciente.nombre}</h3>
-                            <p><span class="material-symbols-outlined" style="font-size:1rem;">badge</span> ${paciente.rut}</p>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="background: #e6f5ff; color: var(--pixar-cyan); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;">
+                                ${paciente.nombre.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="patient-basic-info">
+                                <h3>${paciente.nombre}</h3>
+                                <p><span class="material-symbols-outlined" style="font-size:1rem;">vpn_key</span> ID Seguro: ${idCorto}</p>
+                            </div>
                         </div>
-                        <div style="text-align: right;">
-                            <span style="display:block; font-size:0.8rem; color:#888;">Última visita: ${fechaAtencion}</span>
-                            <span style="background: #e0e7ff; color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: inline-block;">
-                                ${numAtenciones} Evolucion(es)
-                            </span>
+                        <div style="text-align: right; display: flex; align-items: center; gap: 20px;">
+                            <div>
+                                <span style="display:block; font-size:0.8rem; color:#888;">Última atención: ${fechaAtencion}</span>
+                                <span style="background: #e0e7ff; color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: inline-block;">
+                                    ${paciente.num_atenciones} Evolución(es)
+                                </span>
+                            </div>
+                            <button class="btn-abrir-ficha">
+                                Abrir Ficha <span class="material-symbols-outlined" style="font-size: 1.1rem;">arrow_forward</span>
+                            </button>
                         </div>
                     `;
                     contenedor.appendChild(card);
@@ -293,91 +180,13 @@
             });
 
             contador.innerText = mostrados;
-            if(mostrados === 0) contenedor.innerHTML = `<p style="text-align:center; color:#888; margin-top:40px;">No se encontraron pacientes con ese criterio.</p>`;
+            if(mostrados === 0) contenedor.innerHTML = `<p style="text-align:center; color:#888; margin-top:40px;">No se encontraron pacientes en tu registro.</p>`;
         }
 
         function filtrarListaPacientes() {
             const texto = document.getElementById('buscadorPacientes').value.toLowerCase().trim();
             renderizarListaPacientes(texto);
         }
-
-        // 4. Lógica del Timeline de un Paciente Específico
-        function abrirHistorialClinico(clavePaciente) {
-            const paciente = basePacientes[clavePaciente];
-            pacienteActivoParaDerivacion = paciente; // Guardar referencia para el PDF
-
-            document.getElementById('modalPctNombre').innerText = paciente.nombre;
-            document.getElementById('modalPctRut').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">badge</span> RUT: ${paciente.rut}`;
-
-            const timeline = document.getElementById('contenedorTimeline');
-            timeline.innerHTML = '<div class="history-timeline"></div>';
-            const timelineTrack = timeline.querySelector('.history-timeline');
-
-            paciente.historial.forEach(ficha => {
-                const fecha = new Date(ficha.created_at).toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                
-                let htmlAccion = ficha.accion_realizada ? ficha.accion_realizada.replace(/\n/g, '<br>') : 'Sin descripción de procedimiento.';
-                
-                timelineTrack.innerHTML += `
-                    <div class="history-item">
-                        <span class="history-date">${fecha}</span>
-                        <div class="history-content">
-                            <h4>Motivo: ${ficha.motivo_consulta || 'Control'}</h4>
-                            <p><strong>Procedimiento:</strong><br>${htmlAccion}</p>
-                            ${ficha.presupuesto_total > 0 ? `<p style="text-align:right; font-weight:bold; color:var(--green-success); margin: 10px 0 0 0;">Costo: $${ficha.presupuesto_total.toLocaleString('es-CL')}</p>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-
-            document.getElementById('modalHistorial').style.display = 'flex';
-        }
-
-        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // 5. Flujo de Generación de PDF (Interconsulta)
-        function abrirGeneradorInterconsulta() {
-            if(!pacienteActivoParaDerivacion) return;
-            document.getElementById('icNombrePaciente').innerText = pacienteActivoParaDerivacion.nombre;
-            
-            // Limpiar formulario previo
-            document.getElementById('icEspecialidad').value = "";
-            document.getElementById('icMotivo').value = "";
-            document.getElementById('icHallazgos').value = "";
-            
-            document.getElementById('modalInterconsultaForm').style.display = 'flex';
-        }
-
-        function generarPDFInterconsulta() {
-            const esp = document.getElementById('icEspecialidad').value;
-            const mot = document.getElementById('icMotivo').value;
-            const hall = document.getElementById('icHallazgos').value;
-
-            if(!esp || !mot || !hall) return alert("Por favor complete todos los campos de la interconsulta para generar un documento válido.");
-
-            // Poblar el documento oculto
-            const fechaHoy = new Date().toLocaleDateString('es-CL');
-            const drName = `${datosDentistaFirma.prefijo || 'Dr.'} ${datosDentistaFirma.nombre_completo || ''}`;
-            
-            document.getElementById('printFecha').innerText = fechaHoy;
-            document.getElementById('printDrNombre').innerText = drName;
-            document.getElementById('printFirmaNombre').innerText = drName;
-            document.getElementById('printDrSis').innerText = datosDentistaFirma.registro_sis || 'No especificado';
-            
-            document.getElementById('printPctNombre').innerText = pacienteActivoParaDerivacion.nombre;
-            document.getElementById('printPctRut').innerText = pacienteActivoParaDerivacion.rut;
-            
-            document.getElementById('printEspecialidad').innerText = esp.toUpperCase();
-            document.getElementById('printMotivo').innerText = mot;
-            document.getElementById('printHallazgos').innerText = hall;
-
-            // Disparar la orden nativa de impresión del navegador (Que permite guardar como PDF)
-            window.print();
-            
-            // Opcional: Cerrar el formulario después de imprimir
-            cerrarModal('modalInterconsultaForm');
-        }
-
     </script>
 </body>
 </html>

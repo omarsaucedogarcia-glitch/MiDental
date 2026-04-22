@@ -15,6 +15,12 @@
         .historial-header { background: var(--blue-elegant); color: white; padding: 20px; text-align: center; position: relative;}
         .historial-body { padding: 15px; overflow-y: auto; flex: 1; background: #f8fafc; }
         
+        /* Alerta Médica */
+        .alerta-clinica { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; text-align: left; display: none; }
+        .alerta-clinica h4 { margin: 0 0 10px 0; color: #b91c1c; display: flex; align-items: center; gap: 5px; font-size: 0.95rem; }
+        .alerta-item { margin: 0 0 5px 0; font-size: 0.85rem; color: #7f1d1d; line-height: 1.4; }
+        .alerta-item strong { color: #991b1b; }
+
         /* Botón Interconsulta en el Header */
         .btn-interconsulta-flotante { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 10px; border-radius: 10px; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; cursor: pointer; transition: 0.2s;}
         .btn-interconsulta-flotante:hover { background: white; color: var(--blue-elegant); }
@@ -99,6 +105,13 @@
                         <h2 id="panelNombrePaciente" style="margin: 0; font-size: 1.3rem;">Cargando paciente...</h2>
                         <p id="panelRutPaciente" style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">RUT: --</p>
                         <p id="panelTelefonoPaciente" style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.8;">--</p>
+                    </div>
+
+                    <div class="alerta-clinica" id="alertaClinicaContainer">
+                        <h4><span class="material-symbols-outlined">warning</span> Alerta Médica</h4>
+                        <p class="alerta-item"><strong>Crónicas:</strong> <span id="txtCrónicas">--</span></p>
+                        <p class="alerta-item"><strong>Medicamentos:</strong> <span id="txtMedicamentos">--</span></p>
+                        <p class="alerta-item"><strong>Alergias:</strong> <span id="txtAlergias">--</span></p>
                     </div>
                     
                     <div class="historial-body" id="contenedorHistorial">
@@ -225,7 +238,11 @@
 
         async function cargarDatosPaciente() {
             try {
-                const { data: paciente, error } = await window.midental.from('perfiles_pacientes').select('nombre_completo, rut, telefono').eq('id', pacienteIdURL).single();
+                // MODIFICACIÓN: Solicitamos ahora los datos médicos también
+                const { data: paciente, error } = await window.midental.from('perfiles_pacientes')
+                    .select('nombre_completo, rut, telefono, enfermedades_cronicas, medicamentos, alergias')
+                    .eq('id', pacienteIdURL).single();
+                    
                 if (error) throw error;
                 
                 if (paciente) {
@@ -238,9 +255,17 @@
                     document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut}`;
                     document.getElementById('panelTelefonoPaciente').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">call</span> ${pacienteActual.telefono || 'Sin teléfono'}`;
                     document.getElementById('derivarPcteNombre').innerText = pacienteActual.nombre;
+
+                    // NUEVA LÓGICA: Inyectar Anamnesis si existe
+                    if (paciente.enfermedades_cronicas || paciente.medicamentos || paciente.alergias) {
+                        document.getElementById('txtCrónicas').innerText = paciente.enfermedades_cronicas || 'Ninguna';
+                        document.getElementById('txtMedicamentos').innerText = paciente.medicamentos || 'Ninguno';
+                        document.getElementById('txtAlergias').innerText = paciente.alergias || 'Ninguna';
+                        document.getElementById('alertaClinicaContainer').style.display = 'block';
+                    }
                 }
                 cargarHistorialPaciente();
-                cargarDocumentosPaciente(); // NUEVA LLAMADA PARA ARCHIVOS
+                cargarDocumentosPaciente(); 
             } catch (err) { console.error("Error al cargar paciente:", err); }
         }
 
@@ -281,7 +306,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // ==========================================
+       // ==========================================
         // CARGAR DOCUMENTOS DEL PACIENTE
         // ==========================================
         async function cargarDocumentosPaciente() {
@@ -303,14 +328,19 @@
                 }
 
                 docs.forEach(doc => {
-                    // Validar si el archivo es imagen basándose en la extensión
-                    const esImagen = doc.file_url && doc.file_url.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                    // AQUÍ ESTÁ LA MAGIA: Le decimos que lea exactamente tu columna "archivo_url"
+                    const urlSegura = doc.archivo_url;
+                    
+                    if (!urlSegura) return; // Si por algún motivo está vacío, lo ignora
+
+                    // Validar si el archivo es imagen
+                    const esImagen = urlSegura.match(/\.(jpeg|jpg|gif|png)$/i) != null;
                     
                     contenedor.innerHTML += `
                         <div style="background: #f8fafc; padding: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between;">
                             <span class="material-symbols-outlined" style="font-size: 2rem; color: var(--pixar-cyan); margin-bottom: 5px;">${esImagen ? 'image' : 'description'}</span>
-                            <p style="font-size: 0.7rem; margin: 0 0 8px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155;" title="${doc.nombre_archivo}">${doc.nombre_archivo}</p>
-                            <a href="${doc.file_url}" target="_blank" style="font-size: 0.7rem; color: white; background: var(--pixar-orange); padding: 4px 8px; border-radius: 6px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box;">Ver Archivo</a>
+                            <p style="font-size: 0.7rem; margin: 0 0 8px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155;" title="${doc.nombre_archivo}">${doc.nombre_archivo || 'Documento Adjunto'}</p>
+                            <a href="${urlSegura}" target="_blank" style="font-size: 0.7rem; color: white; background: var(--pixar-orange); padding: 4px 8px; border-radius: 6px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box;">Ver Archivo</a>
                         </div>
                     `;
                 });
@@ -321,7 +351,7 @@
         }
 
         // ==========================================
-        // LA BÓVEDA DEL TIEMPO (REABRIR REGISTROS PASADOS)
+        // LA BÓVEDA DEL TIEMPO
         // ==========================================
         let presupuestoEnPantallaActual = 0; 
 
@@ -347,7 +377,7 @@
         }
 
         // ==========================================
-        // SISTEMA DE INTERCONSULTA Y PIN
+        // SISTEMA DE INTERCONSULTA
         // ==========================================
         function abrirModalInterconsulta() {
             document.getElementById('modalInterconsulta').style.display = 'flex';

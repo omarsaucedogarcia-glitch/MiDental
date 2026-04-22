@@ -8,18 +8,18 @@
     <link rel="stylesheet" href="css/style.css">
     
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding-bottom: 80px;}
         .floating-navbar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .logo-small { display: flex; align-items: center; gap: 8px; color: var(--blue-elegant); cursor: pointer; }
         .nav-actions { display: flex; gap: 15px; align-items: center; }
         .nav-btn { background: transparent; border: none; color: var(--text-light); font-weight: bold; font-size: 1rem; cursor: pointer; padding: 10px 15px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .nav-btn.active { color: var(--pixar-cyan); background: #e6f5ff; }
 
-        .patient-profile-wrapper { max-width: 900px; margin: 40px auto; display: grid; grid-template-columns: 300px 1fr; gap: 30px; padding: 0 20px; }
-        .profile-card { background: white; border-radius: 25px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; }
+        .patient-profile-wrapper { max-width: 1000px; margin: 40px auto; display: grid; grid-template-columns: 320px 1fr; gap: 30px; padding: 0 20px; }
+        .profile-card { background: white; border-radius: 25px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; margin-bottom: 25px; }
 
         /* Sidebar: Avatar y Reputación */
-        .patient-sidebar { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .patient-sidebar { text-align: center; display: flex; flex-direction: column; align-items: center; height: fit-content; }
         .patient-avatar-container { position: relative; width: 130px; height: 130px; margin: 0 auto 20px; cursor: pointer; }
         .patient-avatar { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--pixar-cyan); object-fit: cover; background: #e6f5ff; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--pixar-cyan); font-weight: bold; }
         .btn-edit-avatar { position: absolute; bottom: 0; right: 0; background: var(--pixar-cyan); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
@@ -31,28 +31,33 @@
         /* Formulario */
         .section-title { color: var(--blue-elegant); font-size: 1.3rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; margin-bottom: 15px;}
         .input-group label { font-size: 0.85rem; color: #888; font-weight: bold; }
-        .apple-input { padding: 12px 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 1rem; outline: none; transition: 0.3s; }
+        .apple-input { padding: 12px 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 1rem; outline: none; transition: 0.3s; font-family: inherit;}
         .apple-input:focus { border-color: var(--pixar-cyan); box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.1); }
         .input-locked { background-color: #f5f7fa; color: #718096; cursor: not-allowed; opacity: 0.8; }
         
-        .btn-save { background: var(--pixar-cyan); color: white; border: none; padding: 15px; border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 25px; transition: 0.2s; font-size: 1.05rem; }
+        textarea.apple-input { resize: vertical; min-height: 80px; }
+
+        .btn-save { background: var(--pixar-cyan); color: white; border: none; padding: 15px; border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 1.05rem; box-shadow: 0 4px 15px rgba(0, 180, 216, 0.3);}
         .btn-save:hover { background: #0097e6; transform: translateY(-2px); }
 
-        @media (max-width: 768px) { .patient-profile-wrapper { grid-template-columns: 1fr; } }
+        /* Barra inferior estilo app */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-item-bottom { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 0.75rem; gap: 4px; }
+        .nav-item-bottom.active { color: var(--pixar-cyan); }
+
+        @media (max-width: 768px) { .patient-profile-wrapper { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
     <nav class="floating-navbar">
-        <div class="logo-small" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">dentistry</span>
+        <div class="logo-small" onclick="window.location.href='dashboard-paciente.html'">
+            <img src="assets/LogoMiDental.png" alt="MiDental" style="height: 30px;">
             <h2 style="margin:0;">MiDental</h2>
         </div>
         <div class="nav-actions">
-            <button class="nav-btn" onclick="window.location.href='mapa-paciente.html'"><span class="material-symbols-outlined">map</span> Mapa</button>
-            <button class="nav-btn active"><span class="material-symbols-outlined">person</span> Perfil</button>
             <button class="nav-btn" style="color: var(--red-urgency);" onclick="cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Salir</button>
         </div>
     </nav>
@@ -82,43 +87,71 @@
             </div>
         </div>
 
-        <div class="profile-card">
-            <h3 class="section-title"><span class="material-symbols-outlined">manage_accounts</span> Mis Datos Personales</h3>
-            
-            <form id="formConfigPaciente">
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label>Nombre Completo</label>
-                        <input type="text" id="pInputNombre" class="apple-input" placeholder="Tu nombre">
+        <div>
+            <div class="profile-card">
+                <h3 class="section-title"><span class="material-symbols-outlined">manage_accounts</span> Mis Datos Personales</h3>
+                
+                <form id="formConfigPaciente">
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Nombre Completo</label>
+                            <input type="text" id="pInputNombre" class="apple-input" placeholder="Tu nombre">
+                        </div>
+                        <div class="input-group">
+                            <label>RUT (Indexado a Ficha Médica) <span class="material-symbols-outlined" style="font-size: 0.9rem; color: #a0aec0; vertical-align: middle;">lock</span></label>
+                            <input type="text" id="pInputRut" class="apple-input input-locked" disabled title="Tu RUT es tu identificador médico único">
+                        </div>
+                        <div class="input-group">
+                            <label>Correo Electrónico</label>
+                            <input type="email" id="pInputEmail" class="apple-input" placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Teléfono (WhatsApp)</label>
+                            <input type="tel" id="pInputTel" class="apple-input" placeholder="+56 9 XXXX XXXX" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>RUT (Indexado a Ficha Clínica) <span class="material-symbols-outlined" style="font-size: 0.9rem; color: #a0aec0; vertical-align: middle;">lock</span></label>
-                        <input type="text" id="pInputRut" class="apple-input input-locked" disabled title="Tu RUT es tu identificador médico único">
-                    </div>
-                    <div class="input-group">
-                        <label>Correo Electrónico</label>
-                        <input type="email" id="pInputEmail" class="apple-input" placeholder="correo@ejemplo.com">
-                    </div>
-                    <div class="input-group">
-                        <label>Teléfono (WhatsApp)</label>
-                        <input type="tel" id="pInputTel" class="apple-input" placeholder="+56 9 XXXX XXXX" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)">
-                    </div>
-                </div>
+                </form>
+            </div>
 
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 15px; margin-top: 30px; display: flex; gap: 15px; align-items: center;">
-                    <span class="material-symbols-outlined" style="color:#aaa; font-size: 2rem;">shield_person</span>
-                    <p style="margin:0; font-size:0.85rem; color:#666; line-height:1.4;">
-                        Tus datos están protegidos bajo los estándares de salud. Tu información de contacto solo se comparte con el especialista tras confirmar una cita.
+            <div class="profile-card">
+                <h3 class="section-title"><span class="material-symbols-outlined">medical_information</span> Información Médica (Anamnesis)</h3>
+                <div style="background: #fff5f5; border-left: 4px solid #ef4444; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin:0; font-size:0.85rem; color:#b91c1c; line-height:1.4;">
+                        <strong>Importante:</strong> Esta información es estrictamente confidencial. Solo será compartida con los especialistas tratantes para garantizar una atención segura y evitar riesgos de salud.
                     </p>
                 </div>
 
-                <button type="button" class="btn-save" id="btnGuardar" onclick="guardarCambiosPacienteReal()">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Actualizar Perfil
-                </button>
-            </form>
+                <div class="input-group">
+                    <label>Enfermedades Crónicas / Diagnósticos Previos</label>
+                    <textarea id="pInputEnfermedades" class="apple-input" placeholder="Ej: Hipertensión, Diabetes, Asma... (Si no tienes, escribe 'Ninguna')"></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label>Medicamentos de Consumo Actual</label>
+                    <textarea id="pInputMedicamentos" class="apple-input" placeholder="Ej: Losartán 50mg, Eutirox... (Si no consumes, escribe 'Ninguno')"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>Alergias (Medicamentos, Alimentos, Materiales)</label>
+                    <textarea id="pInputAlergias" class="apple-input" placeholder="Ej: Alergia a la Penicilina, al Látex... (Si no tienes, escribe 'Ninguna')"></textarea>
+                </div>
+            </div>
+
+            <button type="button" class="btn-save" id="btnGuardar" onclick="guardarCambiosPacienteReal()">
+                <span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Guardar Toda mi Información
+            </button>
         </div>
 
     </div>
+
+    <nav class="bottom-nav">
+        <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
+        <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
+        <a href="ofertas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">play_circle</span>Ofertas/Reels</a>
+        <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
+        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
+        <a href="perfil-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">person</span>Perfil</a>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
@@ -149,11 +182,16 @@
                 if (error) throw error;
 
                 if (data) {
-                    // Llenar Formulario
+                    // Llenar Formulario Personal
                     document.getElementById('pInputNombre').value = data.nombre_completo || '';
                     document.getElementById('pInputRut').value = data.rut || '';
                     document.getElementById('pInputEmail').value = data.email || '';
                     document.getElementById('pInputTel').value = data.telefono || '';
+
+                    // Llenar Formulario Médico
+                    document.getElementById('pInputEnfermedades').value = data.enfermedades_cronicas || '';
+                    document.getElementById('pInputMedicamentos').value = data.medicamentos || '';
+                    document.getElementById('pInputAlergias').value = data.alergias || '';
 
                     // Actualizar Sidebar
                     const nombreMostrar = data.nombre_completo || 'Paciente';
@@ -186,25 +224,34 @@
             const userId = localStorage.getItem('midental_user_id');
             const btn = document.getElementById('btnGuardar');
             
+            // Datos Personales
             const nombre = document.getElementById('pInputNombre').value.trim();
             const email = document.getElementById('pInputEmail').value.trim();
             const tel = document.getElementById('pInputTel').value.trim();
 
+            // Datos Médicos
+            const enfermedades = document.getElementById('pInputEnfermedades').value.trim();
+            const medicamentos = document.getElementById('pInputMedicamentos').value.trim();
+            const alergias = document.getElementById('pInputAlergias').value.trim();
+
             if (!nombre || !tel) {
-                return alert("El nombre y teléfono son obligatorios.");
+                return alert("El nombre y teléfono son obligatorios para mantener tu perfil activo.");
             }
 
             btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Guardando...`;
             btn.disabled = true;
 
             try {
-                // Actualizamos solo los campos permitidos (El RUT NO se envía, está protegido)
+                // Actualizamos todos los campos en un solo envío
                 const { error } = await window.midental
                     .from('perfiles_pacientes')
                     .update({
                         nombre_completo: nombre,
                         email: email,
-                        telefono: tel
+                        telefono: tel,
+                        enfermedades_cronicas: enfermedades,
+                        medicamentos: medicamentos,
+                        alergias: alergias
                     })
                     .eq('id', userId);
 
@@ -218,17 +265,17 @@
                 }
 
                 btn.style.background = "var(--green-success)";
-                btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">check_circle</span> Cambios Guardados`;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">check_circle</span> Información Guardada Correctamente`;
                 
                 setTimeout(() => {
                     btn.style.background = "var(--pixar-cyan)";
-                    btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Actualizar Perfil`;
+                    btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Guardar Toda mi Información`;
                     btn.disabled = false;
-                }, 2000);
+                }, 2500);
 
             } catch (err) {
                 alert("Error al actualizar: " + err.message);
-                btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Actualizar Perfil`;
+                btn.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Guardar Toda mi Información`;
                 btn.disabled = false;
             }
         }
@@ -242,7 +289,6 @@
             const fileName = `paciente_${userId}_${Date.now()}.${fileExt}`;
 
             try {
-                // Indicador visual de carga
                 const txtEl = document.getElementById('patientAvatarText');
                 const imgEl = document.getElementById('patientAvatarImg');
                 
@@ -250,32 +296,28 @@
                 txtEl.style.display = 'flex';
                 txtEl.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>`;
 
-                // 1. Subir al Storage (Bucket 'avatars')
                 const { error: uploadError } = await window.midental.storage
                     .from('avatars')
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                // 2. Obtener URL
                 const { data: urlData } = window.midental.storage.from('avatars').getPublicUrl(fileName);
                 const publicUrl = urlData.publicUrl;
 
-                // 3. Actualizar BD
                 const { error: dbError } = await window.midental.from('perfiles_pacientes')
                     .update({ avatar_url: publicUrl })
                     .eq('id', userId);
 
                 if (dbError) throw dbError;
 
-                // 4. Mostrar foto
                 txtEl.style.display = 'none';
                 imgEl.src = publicUrl;
                 imgEl.style.display = 'block';
 
             } catch (err) {
                 alert("Error al subir foto: " + err.message);
-                cargarDatosPaciente(); // Restaurar estado original si falla
+                cargarDatosPaciente();
             }
         }
 
@@ -285,12 +327,5 @@
             window.location.href = 'index.html';
         }
     </script>
-    <nav class="bottom-nav">
-        <a href="dashboard-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">home</span>Inicio</a>
-        <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
-        <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
-        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
-        <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
-    </nav>
 </body>
 </html>

@@ -46,13 +46,10 @@
         }
         .search-input-wrapper input { border: none; background: transparent; outline: none; width: 100%; margin-left: 10px; color: #334155; font-size: 0.95rem; }
         
-        /* ====================================================
-           NUEVA ESTRUCTURA DE 2 COLUMNAS (URGENCIAS | NORMAL)
-           ==================================================== */
+        /* Estructura de 2 Columnas */
         .directorio-container { padding: 25px 20px; max-width: 1200px; margin: 0 auto; }
         .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         
-        /* Si la pantalla es pequeña (celular), se ponen uno debajo de otro */
         @media (max-width: 768px) {
             .split-layout { grid-template-columns: 1fr; gap: 20px; }
         }
@@ -70,7 +67,7 @@
 <body>
 
     <div class="header-search">
-        <div class="brand-container-small">
+        <div class="brand-container-small" style="cursor: pointer;" onclick="window.location.href='index.html'">
             <img src="assets/LogoMiDental.png" alt="Logo MiDental">
             <span>MiDental</span>
         </div>
@@ -141,12 +138,12 @@
     </div>
 
     <nav class="bottom-nav">
-        <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
+        <a href="dashboard-paciente.html" class="nav-item-bottom priv-link"><span class="material-symbols-outlined">home</span>Inicio</a>
         <a href="mapa-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">search</span>Buscar</a>
         <a href="ofertas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">play_circle</span>Ofertas/Reels</a>
-        <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
-        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
-        <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
+        <a href="citas-paciente.html" class="nav-item-bottom priv-link"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
+        <a href="documentos-paciente.html" class="nav-item-bottom priv-link"><span class="material-symbols-outlined">description</span>Documentos</a>
+        <a href="perfil-paciente.html" class="nav-item-bottom priv-link"><span class="material-symbols-outlined">person</span>Perfil</a>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -154,7 +151,7 @@
     <script src="js/app.js"></script>
     <script src="js/mapa.js"></script>
     <script>
-        // Filtro actualizado para abarcar ambas columnas
+        // 1. Filtro de búsqueda en tiempo real
         document.getElementById('filtroComuna').addEventListener('input', function(e) {
             const termino = e.target.value.toLowerCase();
             const tarjetas = document.querySelectorAll('.doctor-card');
@@ -169,8 +166,28 @@
                     wrapper.style.display = 'none';
                 }
             });
-            
-            document.getElementById('contadorResultados').innerText = `${visibles} especialistas encontrados en tu búsqueda`;
+            document.getElementById('contadorResultados').innerText = `${visibles} especialistas encontrados`;
+        });
+
+        // ==========================================
+        // 2. GUARDIÁN DE MODO INVITADO (GUEST MODE GUARD)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = localStorage.getItem('midental_user_id');
+            const tipoUser = localStorage.getItem('midental_user_tipo');
+
+            // Si NO hay un usuario logueado legítimamente como paciente
+            if (!userId || tipoUser !== 'paciente') {
+                const enlacesPrivados = document.querySelectorAll('.priv-link');
+                
+                enlacesPrivados.forEach(enlace => {
+                    enlace.addEventListener('click', function(e) {
+                        e.preventDefault(); // Detiene la redirección
+                        alert("🔒 Modo Invitado: Para acceder a tu panel, historial de citas o documentos, debes iniciar sesión o crear una cuenta gratuita.");
+                        window.location.href = 'index.html';
+                    });
+                });
+            }
         });
     </script>
 </body>

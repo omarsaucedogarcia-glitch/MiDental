@@ -6,6 +6,27 @@
     <title>MiDental - Tu salud bucal a un clic</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos adicionales para FAQ Interactivo */
+        .faq-section { padding: 60px 20px; background: white; }
+        .faq-container { max-width: 800px; margin: 0 auto; }
+        .faq-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 15px; overflow: hidden; transition: 0.3s; }
+        .faq-item:hover { border-color: var(--pixar-cyan); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .faq-question { font-weight: bold; color: var(--blue-elegant); font-size: 1.1rem; padding: 20px; margin: 0; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+        .faq-question .q-text { display: flex; align-items: center; gap: 10px; }
+        .faq-answer { color: #64748b; line-height: 1.6; font-size: 0.95rem; margin: 0; padding: 0 20px; max-height: 0; opacity: 0; transition: all 0.3s ease-out; }
+        
+        /* Clases activas para el FAQ */
+        .faq-item.active .faq-answer { padding-bottom: 20px; max-height: 500px; opacity: 1; }
+        .faq-item.active .chevron-icon { transform: rotate(180deg); color: var(--pixar-cyan); }
+        .chevron-icon { transition: transform 0.3s; color: #94a3b8; }
+
+        /* Estilos para Modales Legales (Términos y Condiciones) */
+        .tyc-content { text-align: left; padding-right: 15px; }
+        .tyc-content h3 { color: var(--blue-elegant); font-size: 1.1rem; margin-top: 20px; margin-bottom: 5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; }
+        .tyc-content p, .tyc-content ul { color: #475569; font-size: 0.9rem; line-height: 1.5; margin-top: 5px; }
+        .tyc-content li { margin-bottom: 5px; }
+    </style>
 </head>
 <body>
 
@@ -23,11 +44,11 @@
         </div>
         
         <div class="nav-buttons">
-            <button class="btn-pixar btn-paciente" onclick="abrirLoginPaciente()">
+            <button class="btn-pixar btn-paciente" onclick="abrirModal('modalLoginPaciente')">
                 <span class="material-symbols-outlined">person</span> Acceso Pacientes
             </button>
             
-            <button class="btn-pixar btn-dentista" onclick="abrirLoginDentista()">
+            <button class="btn-pixar btn-dentista" onclick="abrirModal('modalLoginDentista')">
                 <span class="material-symbols-outlined">medical_information</span> Acceso Dentistas
             </button>
         </div>
@@ -58,12 +79,51 @@
             <div class="about-content">
                 <div class="about-text">
                     <h2>¿Qué es MiDental?</h2>
-                    <p class="highlight-text">Somos la plataforma más amigable que conecta al paciente con el dentista.</p>
-                    <p>MiDental es el lugar donde puedes encontrar toda la oferta disponible de las prestaciones dentales que deseas. Nuestro ecosistema está diseñado para que puedas <strong>ahorrar tiempo y dinero en cotizaciones</strong>, comparando opciones reales con profesionales certificados, todo centralizado en un solo lugar.</p>
+                    <p class="highlight-text">El "Booking" de los dentistas: La libertad de elegir sin pagar de más.</p>
+                    <p>Hoy, encontrar un dentista bueno y barato es una lotería. MiDental es la primera plataforma que realmente te conecta con el profesional ideal. Es como un buscador inteligente donde, en lugar de llamar a diez clínicas para preguntar precios y horas, entras y ves quién tiene disponibilidad ahora mismo, quién tiene la mejor oferta y quién está cerca de ti.</p>
+                    <p>Tú buscas lo que necesitas, cotizas en tiempo real y aprovechas las ofertas de horas que los dentistas bajan de precio para no perder el día. Reservas ahí mismo y, si después necesitas un especialista, el sistema te deriva automáticamente para que no tengas que empezar de cero con otro doctor. Es salud transparente, ahorrando tiempo, dinero y burocracia.</p>
                 </div>
                 <div class="about-visual">
-                    <span class="material-symbols-outlined massive-icon">diversity_1</span>
+                    <span class="material-symbols-outlined massive-icon" style="font-size: 8rem; color: var(--pixar-cyan);">health_and_safety</span>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="faq-section">
+        <div class="faq-container">
+            <h2 style="text-align: center; color: var(--blue-elegant); margin-bottom: 40px; font-size: 2rem;">Preguntas Frecuentes</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">person</span> ¿Cómo funciona MiDental para el Paciente?</div>
+                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
+                </div>
+                <p class="faq-answer">Con MiDental tú tienes el control. Buscas lo que necesitas (ej: una limpieza o una urgencia), la plataforma te muestra opciones con precios reales y reservas al instante. Tu información médica te acompaña siempre en tu "Bóveda Digital" de forma segura, evitando que andes con papeles o repitiendo tu historial en cada nueva consulta.</p>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">medical_information</span> ¿Soy Dentista, por qué debería unirme a la red?</div>
+                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
+                </div>
+                <p class="faq-answer"><strong>Cero costo fijo, máxima rentabilidad.</strong> MiDental es una plataforma de interoperabilidad clínica y gestión de activos dentales. ¿Por qué pagar una mensualidad por un software que solo es una agenda? En MiDental el uso clínico es gratuito. Solo inviertes cuando quieres atraer pacientes con publicidad focalizada (Ofertas Flash).</p>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">real_estate_agent</span> ¿Cómo funciona el subarriendo de infraestructura?</div>
+                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
+                </div>
+                <p class="faq-answer">Es la democratización del ejercicio profesional. Si tienes horas muertas o un box vacío, MiDental lo convierte en ingresos. Los publicas en nuestro marketplace interno para arrendar el espacio a colegas emergentes que no tienen clínica propia. Es la herramienta definitiva para optimizar tu capacidad instalada.</p>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">move_up</span> ¿Cómo funcionan las derivaciones a especialistas?</div>
+                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
+                </div>
+                <p class="faq-answer">A través de un sistema de derivación segura mediante códigos PIN únicos. Envías al paciente a un especialista dentro de la red manteniendo la integridad de su ficha clínica, exámenes y radiografías, resguardando su privacidad en todo momento bajo estándares digitales modernos y normativas de salud.</p>
             </div>
         </div>
     </section>
@@ -89,7 +149,7 @@
         <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
             <button class="btn-close" onclick="cerrarModal('modalRegistroPaciente')"><span class="material-symbols-outlined">close</span></button>
             <h2 class="modal-title">Registro Paciente</h2>
-            <form class="form-registro">
+            <form class="form-registro" id="formRegistroPaciente">
                 <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="formatearRutInput(this)" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regPacienteNombre" placeholder="Nombre Completo" class="apple-input-modal" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="formatearTelefonoInput(this)" required></div>
@@ -105,11 +165,11 @@
                 <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 15px; display: flex; align-items: start; gap: 10px;">
                     <input type="checkbox" id="regPacienteTyC" required style="margin-top: 4px; cursor: pointer;">
                     <label for="regPacienteTyC" style="font-size: 0.85rem; color: #4a5568;">
-                        He leído y acepto los <a href="terminos-pacientes.html" target="_blank" style="color: var(--pixar-cyan); text-decoration: underline;">Términos y Condiciones para Pacientes</a> y la Política de Privacidad de MiDental.
+                        He leído y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCPaciente')" style="color: var(--pixar-cyan); text-decoration: underline;">Términos y Condiciones</a>.
                     </label>
                 </div>
                 
-                <button type="button" class="btn-pixar btn-full" onclick="registrarUsuarioMidental('paciente')">Crear mi cuenta</button>
+                <button type="submit" class="btn-pixar btn-full" onclick="event.preventDefault(); if(document.getElementById('formRegistroPaciente').checkValidity()) registrarUsuarioMidental('paciente'); else document.getElementById('formRegistroPaciente').reportValidity();">Crear mi cuenta</button>
             </form>
         </div>
     </div>
@@ -135,7 +195,7 @@
         <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
             <button class="btn-close" onclick="cerrarModal('modalRegistroDentista')"><span class="material-symbols-outlined">close</span></button>
             <h2 class="modal-title">Únete a la Red 🦷</h2>
-            <form class="form-registro">
+            <form class="form-registro" id="formRegistroDentista">
                 <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="formatearRutInput(this)" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regDentistaNombre" placeholder="Nombre y Apellidos" class="apple-input-modal" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regDentistaTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="formatearTelefonoInput(this)" required></div>
@@ -152,13 +212,75 @@
                 <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 15px; display: flex; align-items: start; gap: 10px;">
                     <input type="checkbox" id="regDentistaTyC" required style="margin-top: 4px; cursor: pointer;">
                     <label for="regDentistaTyC" style="font-size: 0.85rem; color: #4a5568;">
-                        Certifico que los datos son reales y acepto los <a href="terminos-dentistas.html" target="_blank" style="color: var(--dentista-color, #4ade80); text-decoration: underline;">Términos y Condiciones de Uso para Profesionales</a>.
+                        Certifico que mis datos son reales, poseo habilitación profesional y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCDentista')" style="color: var(--dentista-color, #4ade80); text-decoration: underline;">Términos y Condiciones</a>.
                     </label>
                 </div>
             
-                <button type="button" class="btn-pixar btn-dentista btn-full" onclick="registrarUsuarioMidental('dentista')">Validar y Crear Cuenta</button>
+                <button type="submit" class="btn-pixar btn-dentista btn-full" onclick="event.preventDefault(); if(document.getElementById('formRegistroDentista').checkValidity()) registrarUsuarioMidental('dentista'); else document.getElementById('formRegistroDentista').reportValidity();">Validar y Crear Cuenta</button>
             </form>
-            <p class="modal-footer-text" style="text-align: center; margin-top: 15px;">¿Ya eres parte de la red? <a href="#" onclick="cambiarModal('modalRegistroDentista', 'modalLoginDentista')">Inicia sesión</a></p>
+            <p class="modal-footer-text" style="text-align: center; margin-top: 15px;">¿Ya eres parte de la red? <a href="javascript:void(0)" onclick="cambiarModal('modalRegistroDentista', 'modalLoginDentista')">Inicia sesión</a></p>
+        </div>
+    </div>
+
+    <div id="modalTyCPaciente" class="modal-overlay" style="display: none; z-index: 2000;">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto; max-width: 600px;">
+            <button class="btn-close" onclick="cerrarModal('modalTyCPaciente')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="color: var(--blue-elegant);">Términos y Condiciones</h2>
+            <div class="tyc-content">
+                <p><strong>Última actualización: 22 de abril de 2026</strong></p>
+                <p>Bienvenido a MiDental. Al utilizar nuestra plataforma, usted acepta los presentes Términos y Condiciones:</p>
+                
+                <h3>1. La Función de Conexión</h3>
+                <p>MiDental funciona exclusivamente como una plataforma tecnológica de intermediación. <strong>No somos un prestador de servicios de salud.</strong> La relación clínica ocurre única y exclusivamente entre el Paciente y el Dentista seleccionado.</p>
+
+                <h3>2. Exclusión de Garantía de Resultados</h3>
+                <p>El Paciente comprende que la odontología es una ciencia de la salud. MiDental no garantiza un resultado específico. El éxito del tratamiento es responsabilidad compartida entre el Paciente y el Dentista.</p>
+
+                <h3>3. Respaldo de Profesionales</h3>
+                <p>Validamos la habilitación de cada dentista mediante el Registro Nacional de Prestadores de Salud. Sin embargo, MiDental no responde por las acciones, negligencias o errores cometidos en el ejercicio privado.</p>
+
+                <h3>4. Pagos y Transacciones</h3>
+                <p>El pago efectuado a través de la plataforma representa la remuneración por un servicio profesional (obligación de medios) y no una compra de un "resultado biológico garantizado".</p>
+
+                <h3>5. Responsabilidad sobre la Información</h3>
+                <p>El Paciente es el único responsable por la exactitud de sus datos médicos (alergias, enfermedades). Omitir información grave libera de responsabilidad a MiDental y al Dentista.</p>
+
+                <h3>6. Privacidad y Seguridad (Bóveda Digital)</h3>
+                <p>Cada ficha está asociada a un código único (UUID). Solo los dentistas a quienes usted otorgue acceso (por agendamiento o código PIN) podrán visualizar su información.</p>
+                
+                <button class="btn-pixar btn-full" style="margin-top: 20px;" onclick="cerrarModal('modalTyCPaciente')">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalTyCDentista" class="modal-overlay" style="display: none; z-index: 2000;">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto; max-width: 600px;">
+            <button class="btn-close" onclick="cerrarModal('modalTyCDentista')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="color: var(--dentista-color, #4ade80);">Términos Profesionales</h2>
+            <div class="tyc-content">
+                <p><strong>Última actualización: 22 de abril de 2026</strong></p>
+                <p>Al crear una cuenta profesional en MiDental, usted declara haber leído y aceptado las siguientes cláusulas:</p>
+
+                <h3>1. Independencia y Responsabilidad Civil</h3>
+                <p>MiDental opera como proveedor de Software (SaaS). No existe relación laboral. El Profesional asume la responsabilidad civil, penal y ética por cualquier diagnóstico o tratamiento. MiDental queda liberada de responsabilidad por negligencia médica.</p>
+
+                <h3>2. Acreditación Obligatoria</h3>
+                <p>El Profesional se obliga a mantener vigente su inscripción en la Superintendencia de Salud. La revocación de su título resultará en la baja inmediata de la plataforma.</p>
+
+                <h3>3. Confidencialidad (Tolerancia Cero)</h3>
+                <p>El Profesional tratará los datos médicos bajo estricto secreto profesional. Queda prohibido difundir información ajena a la atención. La infracción significará la expulsión inmediata de la red MiDental.</p>
+
+                <h3>4. Subarriendo de Infraestructura (Box)</h3>
+                <p>La oferta de un "Box" constituye una prestación de infraestructura compartida. MiDental no es garante ni mediador en acuerdos, pagos o conflictos entre el dentista arrendador y el arrendatario.</p>
+
+                <h3>5. Comportamiento de Pacientes y No-Shows</h3>
+                <p>MiDental no garantiza la asistencia del paciente ni asume responsabilidad por inasistencias. En caso de agresiones o incidentes, la Plataforma facilitará los datos del usuario para constancias legales.</p>
+
+                <h3>6. Uso del Monedero</h3>
+                <p>El saldo recargado (Tokens) no es reembolsable en dinero fiduciario y es de uso exclusivo para herramientas internas de la plataforma.</p>
+                
+                <button class="btn-pixar btn-dentista btn-full" style="margin-top: 20px;" onclick="cerrarModal('modalTyCDentista')">Entendido</button>
+            </div>
         </div>
     </div>
 
@@ -166,14 +288,12 @@
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
-        function abrirLoginPaciente() {
-            document.getElementById('modalLoginPaciente').style.display = 'flex';
+        // Funciones de Modales
+        function abrirModal(idModal) {
+            document.getElementById(idModal).style.display = 'flex';
         }
-        function abrirLoginDentista() {
-            document.getElementById('modalLoginDentista').style.display = 'flex';
-        }
-        function cerrarModal(id) {
-            document.getElementById('id').style.display = 'none';
+        function cerrarModal(idModal) {
+            document.getElementById(idModal).style.display = 'none';
         }
         function cambiarModal(idCerrar, idAbrir) {
             document.getElementById(idCerrar).style.display = 'none';
@@ -186,6 +306,19 @@
                 e.target.style.display = 'none';
             }
         });
+
+        // Lógica interactiva para las Preguntas Frecuentes (Acordeón)
+        function toggleFAQ(element) {
+            // Cierra todos los demás
+            const allItems = document.querySelectorAll('.faq-item');
+            allItems.forEach(item => {
+                if (item !== element) {
+                    item.classList.remove('active');
+                }
+            });
+            // Abre o cierra el que fue clickeado
+            element.classList.toggle('active');
+        }
     </script>
 </body>
 </html>
