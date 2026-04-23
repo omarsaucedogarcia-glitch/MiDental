@@ -8,28 +8,54 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <style>
+        /* 1. BLINDAJE DE LA GRILLA: Medidas matemáticas exactas */
+        .calendar-grid-container * { box-sizing: border-box; }
+
+        .time-slot-label, .time-block {
+            height: 85px !important;
+            min-height: 85px !important;
+            max-height: 85px !important;
+            overflow: hidden; 
+        }
+
+        .time-header-spacer, .day-header {
+            height: 55px !important;
+            min-height: 55px !important;
+            max-height: 55px !important;
+            overflow: hidden;
+        }
+
+        .time-labels { display: flex; flex-direction: column; width: 60px; min-width: 60px; border-right: 1px solid #e2e8f0; position: sticky; left: 0; background: white; z-index: 20; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
+        .time-header-spacer { border-bottom: 2px solid #ccc; background: #fafafa; position: sticky; top: 0; z-index: 30; } 
+        .time-slot-label { display: flex; align-items: flex-start; justify-content: center; font-size: 0.75rem; font-weight: bold; color: #64748b; padding-top: 5px; border-bottom: 1px solid #f1f5f9; }
+        
+        .days-container { display: grid; grid-template-columns: repeat(7, minmax(140px, 1fr)); flex: 1; min-width: max-content; }
+        .day-col { display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; }
+        .day-header { display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--blue-elegant); border-bottom: 2px solid #ccc; background: #fafafa; position: sticky; top: 0; z-index: 10; flex-direction: column; line-height: 1.2; }
+        .day-header small { font-weight: normal; font-size: 0.75rem; color: #64748b; }
+        .time-block { border-bottom: 1px solid #f1f5f9; padding: 4px; }
+
         .event-blocked { background: #f1f2f6; color: #a4b0be; border: 1px dashed #ced6e0; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         
-        .slot-workplace { background: #e0f7fa; border: 1px dashed var(--pixar-cyan); width: 100%; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s; }
-        .slot-workplace:hover { background: var(--pixar-cyan); color: white; border-style: solid; }
-        .watermark-text { color: inherit; opacity: 0.8; font-size: 0.75rem; font-weight: bold; text-align: center; pointer-events: none; }
+        .slot-workplace { background: #e0f7fa; border: 1px dashed var(--pixar-cyan); width: 100%; height: 100%; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .slot-workplace:hover { background: var(--pixar-cyan); color: white; border-style: solid; box-shadow: 0 4px 10px rgba(0, 180, 216, 0.2); }
+        .watermark-text { color: inherit; opacity: 0.9; font-size: 0.8rem; font-weight: bold; text-align: center; pointer-events: none; line-height: 1.2; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 90%;}
 
-        .event-pendiente { background-color: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; padding: 5px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; }
-        .event-confirmado { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; padding: 5px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; }
-        .event-en-curso { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 5px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; }
-        .event-completada { background-color: #f3f4f6; border-left: 4px solid #6b7280; color: #374151; padding: 5px; border-radius: 4px; font-size: 0.8rem; text-decoration: line-through; width: 100%; height: 100%; display: flex; align-items: center; cursor: pointer; }
+        .event-pendiente { background-color: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; padding: 6px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .event-confirmado { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; padding: 6px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .event-en-curso { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; padding: 6px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .event-completada { background-color: #f1f5f9; border-left: 4px solid #94a3b8; color: #475569; padding: 6px; border-radius: 6px; font-size: 0.8rem; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; cursor: pointer; }
 
         .calendar-wrapper { display: flex; flex-direction: column; height: calc(100vh - 120px); }
-        .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-radius: 15px; border: 1px solid #f0f0f0; margin-bottom: 10px; }
-        .calendar-grid-container { flex: 1; overflow-y: auto; background: white; border-radius: 15px; border: 1px solid #eee; }
-        
-        .time-labels { display: flex; flex-direction: column; width: 60px; border-right: 1px solid #eee; }
-        .time-slot-label { height: 40px; display: flex; align-items: flex-start; justify-content: center; font-size: 0.7rem; color: #888; padding-top: 5px; border-bottom: 1px solid #f9f9f9; }
-        .days-container { display: grid; grid-template-columns: repeat(7, 1fr); flex: 1; }
-        .day-col { display: flex; flex-direction: column; border-right: 1px solid #eee; }
-        .day-header { height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--blue-elegant); border-bottom: 2px solid #ccc; background: #fafafa; position: sticky; top: 0; z-index: 10; flex-direction: column; line-height: 1.1; }
-        .day-header small { font-weight: normal; font-size: 0.7rem; color: #666; }
-        .time-block { height: 40px; border-bottom: 1px solid #f0f0f0; padding: 2px; }
+        .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px 20px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 15px; flex-wrap: wrap; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
+        .calendar-grid-container { flex: 1; overflow-x: auto; overflow-y: auto; background: white; border-radius: 15px; border: 1px solid #e2e8f0; display: flex; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+
+        @media (max-width: 768px) {
+            .calendar-toolbar-compact { flex-direction: column; align-items: stretch; }
+            .cal-nav-buttons { justify-content: space-between; width: 100%; }
+            #textoSemanaActual { font-size: 1.1rem; }
+            .cal-leyend-compact { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -72,9 +98,9 @@
                 <div class="calendar-toolbar-compact">
                     <div class="cal-nav-buttons" style="display: flex; align-items: center; gap: 10px;">
                         <button class="icon-btn-cal" onclick="cambiarSemana(-1)"><span class="material-symbols-outlined">chevron_left</span></button>
-                        <h2 class="cal-current-week" id="textoSemanaActual" style="margin: 0; min-width: 150px; text-align: center;">Semana Actual</h2>
+                        <h2 class="cal-current-week" id="textoSemanaActual" style="margin: 0; min-width: 250px; text-align: center; color: var(--blue-elegant);">Semana Actual</h2>
                         <button class="icon-btn-cal" onclick="cambiarSemana(1)"><span class="material-symbols-outlined">chevron_right</span></button>
-                        <button class="btn-text" onclick="irAHoy()" style="font-size: 0.8rem;">Ir a Hoy</button>
+                        <button class="btn-text" onclick="irAHoy()" style="font-size: 0.9rem; font-weight: bold; color: var(--pixar-cyan); margin-left: 10px;">Ir a Hoy</button>
                     </div>
                     <div class="cal-leyend-compact">
                         <span class="leyend-item"><div class="dot" style="background:#f59e0b;"></div> Pendiente</span>
@@ -83,7 +109,7 @@
                     </div>
                 </div>
 
-                <div class="calendar-grid-container" style="display: flex;">
+                <div class="calendar-grid-container">
                     <div class="time-labels" id="timeLabelsContainer"></div>
                     <div class="days-container" id="diasSemanaContainer"></div>
                 </div>
@@ -107,8 +133,45 @@
                 <div class="info-row"><span class="material-symbols-outlined">call</span><span id="detalleTelefono">Teléfono</span></div>
             </div>
             
-            <div id="contenedorBotonesAccion" class="mt-20" style="display: flex; flex-direction: column; gap: 10px;">
+            <div id="contenedorBotonesAccion" class="mt-20" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <div id="modalAgendarManual" class="modal-overlay" style="display:none; z-index: 1000;">
+        <div class="modal-content" style="max-width: 500px;">
+            <button class="btn-close" onclick="cerrarModal('modalAgendarManual')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="color: var(--pixar-cyan); display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined">person_add</span> Agendar Paciente
+            </h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0;">Bloque seleccionado: <strong id="lblBloqueManual" style="color: var(--blue-elegant);">--/--/----</strong></p>
+
+            <div class="input-group-modal" style="margin-top: 20px;">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">RUT del Paciente</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="manualRut" class="apple-input-modal" placeholder="Ej: 12345678-9" oninput="formatearRutInput(this)">
+                    <button class="btn-pixar" style="padding: 10px;" onclick="buscarPacienteRed()"><span class="material-symbols-outlined">search</span></button>
                 </div>
+                <small id="statusBusquedaRut" style="color:var(--pixar-orange); display: block; margin-top: 5px;"></small>
+            </div>
+            
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Nombre Completo</label>
+                <input type="text" id="manualNombre" class="apple-input-modal" placeholder="Nombre del paciente">
+            </div>
+            
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Teléfono (WhatsApp)</label>
+                <input type="text" id="manualTelefono" class="apple-input-modal" placeholder="Ej: 56912345678" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)">
+            </div>
+            
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Motivo de Consulta</label>
+                <input type="text" id="manualMotivo" class="apple-input-modal" placeholder="Ej: Evaluación, Limpieza, Urgencia...">
+            </div>
+
+            <button class="btn-pixar btn-full mt-20" id="btnGuardarManual" onclick="guardarCitaManual()">
+                Agendar y Enviar Invitación
+            </button>
         </div>
     </div>
 
@@ -117,9 +180,11 @@
     <script src="js/app.js"></script>
 
     <script>
-        // --- MOTOR DE TIEMPO (CALENDARIO REAL) ---
-        let fechaBase = new Date(); // El "ancla" del calendario
-        let citaEnCursoData = null; // Guarda los datos de la cita seleccionada para procesarla
+        let fechaBase = new Date(); 
+        let citaEnCursoData = null; 
+
+        let slotManualId = null;
+        let pacienteManualEncontradoId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             irAHoy();
@@ -149,9 +214,10 @@
 
             const domingo = new Date(lunes);
             domingo.setDate(lunes.getDate() + 6);
-            document.getElementById('textoSemanaActual').innerText = `${lunes.getDate()} ${mesesCortos[lunes.getMonth()]} - ${domingo.getDate()} ${mesesCortos[domingo.getMonth()]}`;
+            
+            document.getElementById('textoSemanaActual').innerText = `Semana ${lunes.getDate()} ${mesesCortos[lunes.getMonth()]} al ${domingo.getDate()} ${mesesCortos[domingo.getMonth()]} ${lunes.getFullYear()}`;
 
-            timeLabelsContainer.innerHTML = '';
+            timeLabelsContainer.innerHTML = '<div class="time-header-spacer"></div>';
             daysContainer.innerHTML = '';
 
             for(let h = 8; h <= 20; h++) {
@@ -162,12 +228,13 @@
                 let fechaColumna = new Date(lunes);
                 fechaColumna.setDate(lunes.getDate() + i);
                 
-                let diaNum = fechaColumna.getDate();
+                let diaNum = fechaColumna.getDate().toString().padStart(2, '0');
+                let mesNum = (fechaColumna.getMonth()+1).toString().padStart(2, '0');
                 let mesStr = mesesCortos[fechaColumna.getMonth()];
                 let añoStr = fechaColumna.getFullYear();
                 let diaLetra = diasAbreviados[i];
 
-                let fechaRealStr = `${diaNum.toString().padStart(2, '0')}/${(fechaColumna.getMonth()+1).toString().padStart(2, '0')}/${añoStr}`;
+                let fechaRealStr = `${diaNum}/${mesNum}/${añoStr}`;
 
                 let colHTML = `<div class="day-col"><div class="day-header">${diaLetra}<small>${diaNum} ${mesStr}</small></div>`;
                 
@@ -182,30 +249,33 @@
                 daysContainer.innerHTML += colHTML;
             }
 
-            poblarGrillaConDatosDeSupabase(lunes, domingo);
+            poblarGrillaConDatosDeSupabase();
         }
 
-        // --- SINCRONIZACIÓN CON SUPABASE ---
-        async function poblarGrillaConDatosDeSupabase(lunesReal, domingoReal) {
+        async function poblarGrillaConDatosDeSupabase() {
             const userId = localStorage.getItem('midental_user_id');
             if (!userId) return;
 
             try {
-                // 1. Pintar los bloques donde el dentista atiende (Sedes)
                 const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, horarios_json').eq('dentista_id', userId);
                 if (sedes) {
                     sedes.forEach(sede => {
                         if (sede.horarios_json) {
                             sede.horarios_json.forEach(slotGenerico => {
                                 document.querySelectorAll(`[data-slot-generic="${slotGenerico}"]`).forEach(celda => {
-                                    celda.innerHTML = `<div class="slot-workplace"><div class="watermark-text">${sede.nombre_sede}</div></div>`;
+                                    const slotReal = celda.getAttribute('data-slot-real');
+                                    celda.innerHTML = `
+                                        <div class="slot-workplace" onclick="abrirModalAgendarManual('${slotReal}')">
+                                            <div class="watermark-text">${sede.nombre_sede}</div>
+                                            <div style="font-size:0.65rem; color:var(--pixar-cyan); background:white; padding:2px 8px; border-radius:12px; margin-top:2px; display:inline-block; font-weight:bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">+ Agendar</div>
+                                        </div>
+                                    `;
                                 });
                             });
                         }
                     });
                 }
 
-                // 2. Colocar las citas reales del paciente
                 const { data: citas } = await window.midental
                     .from('citas_agenda')
                     .select('*, perfiles_pacientes(nombre_completo, telefono)')
@@ -214,19 +284,17 @@
                 if (citas) {
                     citas.forEach(cita => {
                         let slotIdBusqueda = cita.fecha_hora_formato_slot; 
-                        
                         let celda = document.querySelector(`[data-slot-real="${slotIdBusqueda}"]`);
-                        if(!celda) celda = document.querySelector(`[data-slot-generic="${slotIdBusqueda}"]`); 
                         
                         if (celda) {
-                            const pctName = cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente';
-                            const pctTel = cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '';
+                            const pctName = cita.paciente_nombre_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente');
+                            const pctTel = cita.paciente_telefono_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '');
                             const estado = cita.estado || 'Pendiente';
                             const estadoLimpio = estado.toLowerCase().replace(' ', '-');
                             
                             const citaDataStr = encodeURIComponent(JSON.stringify({
                                 cita_id: cita.id,
-                                paciente_id: cita.paciente_id,
+                                paciente_id: cita.paciente_id || '', 
                                 nombre: pctName,
                                 motivo: cita.motivo,
                                 telefono: pctTel,
@@ -234,7 +302,12 @@
                                 fecha: slotIdBusqueda
                             }));
 
-                            celda.innerHTML = `<div class="event-${estadoLimpio}" onclick="abrirOpcionesCita('${citaDataStr}')"><strong>${pctName}</strong></div>`;
+                            celda.innerHTML = `
+                                <div class="event-${estadoLimpio}" onclick="abrirOpcionesCita('${citaDataStr}')">
+                                    <strong style="font-size:0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: inherit;">${pctName}</strong>
+                                    <span style="font-size:0.7rem; opacity:0.9; margin-top: 2px;">${cita.motivo || ''}</span>
+                                </div>
+                            `;
                         }
                     });
                 }
@@ -243,7 +316,102 @@
             }
         }
 
-        // --- GESTIÓN DE ESTADOS DE LA CITA ---
+        function abrirModalAgendarManual(slotRealId) {
+            slotManualId = slotRealId;
+            pacienteManualEncontradoId = null;
+            
+            document.getElementById('lblBloqueManual').innerText = slotManualId.replace('-', ' a las ');
+            document.getElementById('manualRut').value = "";
+            document.getElementById('manualNombre').value = "";
+            document.getElementById('manualTelefono').value = "";
+            document.getElementById('manualMotivo').value = "Atención General";
+            document.getElementById('statusBusquedaRut').innerText = "Ingresa RUT para buscar en la red.";
+            
+            document.getElementById('modalAgendarManual').style.display = 'flex';
+        }
+
+        async function buscarPacienteRed() {
+            const rut = document.getElementById('manualRut').value.trim();
+            const status = document.getElementById('statusBusquedaRut');
+            if(!rut) return;
+
+            status.innerText = "Buscando...";
+            status.style.color = "var(--blue-elegant)";
+
+            try {
+                const { data, error } = await window.midental.from('perfiles_pacientes').select('id, nombre_completo, telefono').eq('rut', rut).single();
+                
+                if(data) {
+                    pacienteManualEncontradoId = data.id;
+                    document.getElementById('manualNombre').value = data.nombre_completo || '';
+                    document.getElementById('manualTelefono').value = data.telefono || '';
+                    status.innerText = "✅ Paciente encontrado y vinculado.";
+                    status.style.color = "var(--green-success)";
+                } else {
+                    pacienteManualEncontradoId = null;
+                    status.innerText = "Paciente nuevo. Ingresa sus datos abajo.";
+                    status.style.color = "var(--pixar-orange)";
+                }
+            } catch(e) {
+                pacienteManualEncontradoId = null;
+                status.innerText = "Paciente nuevo. Ingresa sus datos abajo.";
+                status.style.color = "var(--pixar-orange)";
+            }
+        }
+
+        async function guardarCitaManual() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const rut = document.getElementById('manualRut').value.trim();
+            const nombre = document.getElementById('manualNombre').value.trim();
+            const telInput = document.getElementById('manualTelefono').value.trim();
+            const motivo = document.getElementById('manualMotivo').value.trim();
+            
+            if(!nombre || !telInput) return alert("El Nombre y Teléfono son obligatorios.");
+
+            const btn = document.getElementById('btnGuardarManual');
+            btn.innerText = "Agendando..."; btn.disabled = true;
+
+            try {
+                // Inteligencia de WhatsApp: Asegurar que el formato chileno (569) esté perfecto
+                let telLimpio = telInput.replace(/[^0-9]/g, '');
+                if (telLimpio.length === 8) {
+                    telLimpio = '569' + telLimpio; // Si puso 12345678, le ponemos 569 adelante
+                } else if (telLimpio.length === 9 && telLimpio.startsWith('9')) {
+                    telLimpio = '56' + telLimpio; // Si puso 912345678, le ponemos 56 adelante
+                }
+
+                const { error } = await window.midental.from('citas_agenda').insert([{
+                    dentista_id: dentistaId,
+                    paciente_id: pacienteManualEncontradoId, 
+                    paciente_rut_manual: rut,
+                    paciente_nombre_manual: nombre,
+                    paciente_telefono_manual: telLimpio, // Guardamos el número ya limpio y perfecto
+                    fecha_hora_formato_slot: slotManualId,
+                    estado: 'Confirmado',
+                    motivo: motivo
+                }]);
+
+                if(error) throw error;
+
+                let mensaje = `Hola ${nombre}, te hemos reservado una hora en MiDental para el día ${slotManualId.replace('-', ' a las ')}. `;
+                if(!pacienteManualEncontradoId) {
+                    mensaje += `Te invitamos a registrarte gratis con tu RUT para gestionar tu Ficha Clínica aquí: www.midental.cl`;
+                }
+
+                alert("✅ Cita agregada exitosamente.");
+                cerrarModal('modalAgendarManual');
+                renderizarSemanaActual();
+
+                // Abrimos el link limpio
+                window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+            } catch (err) {
+                alert("Error al agendar: " + err.message);
+            } finally {
+                btn.innerText = "Agendar y Enviar Invitación"; btn.disabled = false;
+            }
+        }
+
         function abrirOpcionesCita(citaDataEncodeada) {
             citaEnCursoData = JSON.parse(decodeURIComponent(citaDataEncodeada));
             
@@ -260,7 +428,9 @@
 
             let btnWhatsApp = '';
             if(citaEnCursoData.telefono) {
-                btnWhatsApp = `<button class="btn-pixar btn-green-whatsapp btn-full" onclick="window.confirmarPorWhatsApp('${citaEnCursoData.nombre}', '${citaEnCursoData.fecha}', '${citaEnCursoData.telefono}')"><span class="material-symbols-outlined">chat</span> Escribir por WhatsApp</button>`;
+                // Como ya lo guardamos limpio, WhatsApp funcionará siempre
+                let telWA = citaEnCursoData.telefono.replace(/[^0-9]/g, '');
+                btnWhatsApp = `<button class="btn-pixar btn-green-whatsapp btn-full" onclick="window.open('https://wa.me/${telWA}', '_blank')"><span class="material-symbols-outlined">chat</span> Escribir por WhatsApp</button>`;
             }
 
             if (citaEnCursoData.estado.toLowerCase() === 'pendiente') {
@@ -281,17 +451,26 @@
             }
             else if (citaEnCursoData.estado.toLowerCase() === 'en curso') {
                 badge.style.background = '#e0e7ff'; badge.style.color = '#1e40af';
-                // REDIRECCIÓN A LA NUEVA FICHA CLÍNICA
+                
+                let btnFicha = citaEnCursoData.paciente_id 
+                    ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ir a Ficha Paciente</button>`
+                    : `<p style="color:var(--pixar-orange); font-size:0.85rem; text-align:center;">El paciente no tiene cuenta en la plataforma. Solo puede finalizarse rápido.</p>`;
+
                 contenedorAcciones.innerHTML = `
-                    <button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=' + citaEnCursoData.paciente_id">Ir a Ficha Paciente</button>
+                    ${btnFicha}
                     <button class="btn-login-outline btn-full" onclick="actualizarEstadoCita('Completada')">Finalizar Rápido (Sin Ficha)</button>
                 `;
             }
             else if (citaEnCursoData.estado.toLowerCase() === 'completada' || citaEnCursoData.estado.toLowerCase() === 'finalizado') {
                 badge.style.background = '#f1f5f9'; badge.style.color = '#475569';
+                
+                let btnFichaHistorial = citaEnCursoData.paciente_id 
+                    ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ver Ficha de este Paciente</button>`
+                    : '';
+
                 contenedorAcciones.innerHTML = `
                     <p style="text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:10px;">Esta atención ya fue finalizada.</p>
-                    <button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=' + citaEnCursoData.paciente_id">Ver Ficha de este Paciente</button>
+                    ${btnFichaHistorial}
                 `;
             }
 
@@ -300,21 +479,12 @@
 
         async function actualizarEstadoCita(nuevoEstado) {
             if(!citaEnCursoData || !citaEnCursoData.cita_id) return;
-            
             try {
-                const { error } = await window.midental.from('citas_agenda')
-                    .update({ estado: nuevoEstado })
-                    .eq('id', citaEnCursoData.cita_id);
-
+                const { error } = await window.midental.from('citas_agenda').update({ estado: nuevoEstado }).eq('id', citaEnCursoData.cita_id);
                 if (error) throw error;
-                
                 cerrarModal('modalDetallePaciente');
                 renderizarSemanaActual(); 
-                
-            } catch (err) {
-                alert("Error al actualizar la cita.");
-                console.error(err);
-            }
+            } catch (err) { alert("Error al actualizar."); }
         }
 
         async function cancelarCita() {
