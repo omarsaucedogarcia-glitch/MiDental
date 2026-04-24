@@ -27,13 +27,13 @@
         /* Lista de Documentos */
         .doc-item { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px; transition: 0.2s; }
         .doc-item:active { transform: scale(0.98); }
-        .doc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .doc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;}
         .doc-icon.pdf { background: #fee2e2; color: #ef4444; }
         .doc-icon.img { background: #e0f2fe; color: #0ea5e9; }
         .doc-info { flex: 1; overflow: hidden; }
         .doc-info h4 { margin: 0; font-size: 0.95rem; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .doc-info p { margin: 3px 0 0 0; font-size: 0.8rem; color: #94a3b8; }
-        .doc-action { color: var(--pixar-cyan); background: #f0fdfa; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .doc-action { color: var(--pixar-cyan); background: #f0fdfa; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0;}
 
         .empty-state { text-align: center; padding: 30px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px solid #e2e8f0; }
     </style>
@@ -98,23 +98,24 @@
             cargarDocumentos(userId);
         });
 
-        // 1. OBTENER LA ÚLTIMA ATENCIÓN FINALIZADA
+        // 1. OBTENER LA ÚLTIMA ATENCIÓN FINALIZADA (AHORA DESDE LA FICHA CLÍNICA REAL)
         async function cargarUltimaAtencion(userId) {
             const contenedor = document.getElementById('contenedorUltimaAtencion');
             try {
                 const { data, error } = await window.midental
-                    .from('citas_agenda')
-                    .select('*, perfiles_dentistas(nombre_completo, especialidad)')
+                    .from('fichas_clinicas')
+                    .select('*, perfiles_dentistas(nombre_completo)')
                     .eq('paciente_id', userId)
-                    .in('estado', ['Finalizado', 'Completada'])
                     .order('created_at', { ascending: false })
                     .limit(1)
-                    .single(); // Trae solo 1 o da error si no hay
+                    .single(); 
 
                 if (error) throw error;
 
                 if (data) {
-                    const dr = data.perfiles_dentistas || {};
+                    const drName = data.perfiles_dentistas ? data.perfiles_dentistas.nombre_completo : 'Especialista';
+                    const fechaAtencion = new Date(data.ultima_atencion || data.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+
                     contenedor.innerHTML = `
                         <div class="summary-card">
                             <div class="summary-header">
@@ -122,24 +123,24 @@
                                     <span class="material-symbols-outlined">check_circle</span>
                                 </div>
                                 <div>
-                                    <h3>Dr. ${dr.nombre_completo || 'Especialista'}</h3>
-                                    <p>${data.fecha_hora_formato_slot.split('-').join(' a las ')}</p>
+                                    <h3>Dr/a. ${drName}</h3>
+                                    <p>${fechaAtencion}</p>
                                 </div>
                             </div>
                             <div class="summary-body">
-                                <strong>Motivo de consulta:</strong> ${data.motivo || 'Evaluación General'}<br><br>
-                                <span style="color:#94a3b8; font-style:italic;">* El historial completo se encuentra en resguardo de tu especialista tratante.</span>
+                                <strong>Diagnóstico:</strong> ${data.motivo_consulta || 'Evaluación General'}<br><br>
+                                <strong>Procedimiento:</strong> ${data.accion_realizada || 'Atención de rutina'}<br><br>
+                                <span style="color:#94a3b8; font-style:italic;">* El historial completo está resguardado por tu especialista. Los presupuestos oficiales emitidos están en tus archivos guardados abajo.</span>
                             </div>
                         </div>
                     `;
                 }
             } catch (err) {
-                // Si entra aquí, probablemente es porque no encontró ninguna cita finalizada (el array está vacío)
-                contenedor.innerHTML = `<div class="empty-state"><p style="margin:0;">No tienes atenciones finalizadas aún.</p></div>`;
+                contenedor.innerHTML = `<div class="empty-state"><p style="margin:0;">No tienes atenciones clínicas registradas aún.</p></div>`;
             }
         }
 
-        // 2. OBTENER LISTA DE DOCUMENTOS
+        // 2. OBTENER LISTA DE DOCUMENTOS (Exámenes y Presupuestos)
         async function cargarDocumentos(userId) {
             const contenedor = document.getElementById('listaDocumentos');
             try {
@@ -153,26 +154,32 @@
 
                 contenedor.innerHTML = "";
                 if (!data || data.length === 0) {
-                    contenedor.innerHTML = `<div class="empty-state"><p>No has subido ningún documento.</p></div>`;
+                    contenedor.innerHTML = `<div class="empty-state"><p>No tienes documentos ni presupuestos guardados.</p></div>`;
                     return;
                 }
 
                 data.forEach(doc => {
-                    const esPDF = doc.titulo.toLowerCase().includes('.pdf');
+                    const nombreDoc = doc.nombre_archivo || doc.titulo || 'Documento sin nombre';
+                    const esPDF = nombreDoc.toLowerCase().includes('.pdf');
+                    
+                    // Si el documento se llama "Presupuesto...", le damos un color especial para destacarlo
+                    const esPresupuesto = nombreDoc.toLowerCase().includes('presupuesto');
+                    
                     const iconClass = esPDF ? 'pdf' : 'img';
-                    const iconSymbol = esPDF ? 'picture_as_pdf' : 'image';
+                    const iconSymbol = esPresupuesto ? 'request_quote' : (esPDF ? 'picture_as_pdf' : 'image');
                     const fecha = new Date(doc.created_at).toLocaleDateString('es-CL');
+                    const urlSegura = doc.archivo_url || doc.file_url;
 
                     contenedor.innerHTML += `
-                        <div class="doc-item">
-                            <div class="doc-icon ${iconClass}">
+                        <div class="doc-item" style="${esPresupuesto ? 'border-color: var(--pixar-cyan); background: #f0fdfa;' : ''}">
+                            <div class="doc-icon ${iconClass}" style="${esPresupuesto ? 'background: var(--pixar-cyan); color: white;' : ''}">
                                 <span class="material-symbols-outlined">${iconSymbol}</span>
                             </div>
                             <div class="doc-info">
-                                <h4>${doc.titulo}</h4>
-                                <p>Subido el ${fecha}</p>
+                                <h4>${nombreDoc}</h4>
+                                <p>${esPresupuesto ? 'Generado por tu Dentista el ' : 'Subido el '}${fecha}</p>
                             </div>
-                            <a href="${doc.archivo_url}" target="_blank" class="doc-action">
+                            <a href="${urlSegura}" target="_blank" class="doc-action">
                                 <span class="material-symbols-outlined">download</span>
                             </a>
                         </div>
@@ -185,7 +192,7 @@
             }
         }
 
-        // 3. LOGICA PARA SUBIR DOCUMENTO
+        // 3. LOGICA PARA SUBIR DOCUMENTO POR PARTE DEL PACIENTE
         async function procesarSubidaDocumento(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -202,32 +209,29 @@
             }
 
             botonTxt.innerText = "Subiendo archivo... ⏳";
-            input.disabled = true; // Bloqueamos temporalmente
+            input.disabled = true;
 
             try {
-                // 1. Generar nombre único para no sobreescribir
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${userId}_${Date.now()}.${fileExt}`;
                 const filePath = `${fileName}`;
 
-                // 2. Subir al Bucket de Supabase
                 const { error: uploadError } = await window.midental.storage
                     .from('documentos_clinicos')
                     .upload(filePath, file);
 
                 if (uploadError) throw uploadError;
 
-                // 3. Obtener URL pública
                 const { data: publicUrlData } = window.midental.storage
                     .from('documentos_clinicos')
                     .getPublicUrl(filePath);
 
-                // 4. Guardar registro en la tabla SQL
+                // CORRECCIÓN: Guardamos bajo 'nombre_archivo' para estandarizar con el dentista
                 const { error: dbError } = await window.midental
                     .from('documentos_pacientes')
                     .insert([{
                         paciente_id: userId,
-                        titulo: file.name,
+                        nombre_archivo: file.name,
                         tipo: file.type.includes('pdf') ? 'pdf' : 'imagen',
                         archivo_url: publicUrlData.publicUrl
                     }]);
@@ -235,14 +239,14 @@
                 if (dbError) throw dbError;
 
                 alert("✅ ¡Documento guardado con éxito!");
-                cargarDocumentos(userId); // Recargar la lista
+                cargarDocumentos(userId); 
 
             } catch (err) {
                 alert("Hubo un error al subir: " + err.message);
             } finally {
                 botonTxt.innerText = "Seleccionar Archivo";
                 input.disabled = false;
-                input.value = ""; // Limpiar el input
+                input.value = ""; 
             }
         }
     </script>

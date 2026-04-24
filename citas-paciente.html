@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiDental - Mis Citas</title>
+    <title>MiDental - Mis Citas y Atenciones</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <style>
@@ -12,41 +12,40 @@
         .section-title { font-size: 1.1rem; color: var(--blue-elegant); margin: 25px 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         
         /* Tarjeta Base */
-        .appointment-card { border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.3s; background-color: white; }
+        .appointment-card { border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.3s; background-color: white; }
         
-        /* COLORES DINÁMICOS DE FONDO PARA LAS TARJETAS */
-        .card-confirmado { background-color: #f0fdf4; border-color: #bbf7d0; } /* Verde suave */
-        .card-finalizado, .card-completada { background-color: #f0f9ff; border-color: #bae6fd; } /* Azul celeste suave */
-        .card-cancelado { background-color: #fef2f2; border-color: #fecaca; } /* Rojo suave */
-        .card-pendiente { background-color: #fffbeb; border-color: #fde68a; } /* Amarillo suave */
-        .card-en-curso { background-color: #eef2ff; border-color: #c7d2fe; } /* Índigo suave */
+        /* COLORES DINÁMICOS */
+        .card-confirmado { background-color: #f0fdf4; border-color: #bbf7d0; } 
+        .card-cancelado { background-color: #fef2f2; border-color: #fecaca; } 
+        .card-pendiente { background-color: #fffbeb; border-color: #fde68a; } 
+        .card-en-curso { background-color: #eef2ff; border-color: #c7d2fe; } 
+        .card-ficha-clinica { background-color: white; border-left: 5px solid var(--pixar-cyan); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
 
-        .doc-avatar-mini { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .doc-avatar-mini { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;}
         .appt-info { flex: 1; }
-        .appt-info h4 { margin: 0; color: #334155; font-size: 1rem; }
-        .appt-info p { margin: 3px 0; font-size: 0.85rem; color: #64748b; display: flex; align-items: center; gap: 5px; }
+        .appt-info h4 { margin: 0 0 5px 0; color: #334155; font-size: 1.05rem; }
+        .appt-info p { margin: 3px 0; font-size: 0.85rem; color: #64748b; display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;}
         
         /* Pills de estado */
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 5px; }
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
         .status-pendiente { background: #fef3c7; color: #92400e; }
         .status-confirmado { background: #dcfce7; color: #166534; }
         .status-en-curso { background: #e0e7ff; color: #3730a3; }
-        .status-finalizado, .status-completada { background: #e2e8f0; color: #475569; }
         .status-cancelado { background: #fee2e2; color: #991b1b; }
+        .status-completada { background: #e0f2fe; color: #0369a1; }
 
-        .btn-whatsapp-small { background: #25d366; color: white; border: none; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3); }
+        .btn-whatsapp-small { background: #25d366; color: white; border: none; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3); flex-shrink: 0;}
         
         .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px dashed #cbd5e1; }
         .empty-state span { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; color: var(--pixar-cyan); }
 
-        /* Ajuste de barra inferior */
         .bottom-nav { background: white; border-top: none; }
     </style>
 </head>
 <body>
 
     <header style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-        <h2 style="margin: 0; font-size: 1.3rem; color: var(--blue-elegant);">Mis Citas</h2>
+        <h2 style="margin: 0; font-size: 1.3rem; color: var(--blue-elegant);">Mis Citas y Atenciones</h2>
     </header>
 
     <div class="citas-container">
@@ -61,9 +60,9 @@
             </div>
         </div>
 
-        <div class="section-title">
-            <span class="material-symbols-outlined" style="color: #64748b;">history</span>
-            Historial Pasado
+        <div class="section-title" style="margin-top: 35px;">
+            <span class="material-symbols-outlined" style="color: #64748b;">history_edu</span>
+            Historial Clínico Pasado
         </div>
         <div id="listaHistorial">
             <div class="empty-state" style="padding: 20px;">
@@ -95,76 +94,102 @@
             const historialCont = document.getElementById('listaHistorial');
 
             if (!pacienteId) {
-                console.error("No hay sesión de paciente activa.");
                 window.location.href = 'index.html';
                 return;
             }
 
             try {
-                // Consultamos las citas y traemos los datos del dentista
-                const { data: citas, error } = await window.midental
+                // 1. TRAER CITAS FUTURAS (Agenda)
+                const { data: citas, error: errorCitas } = await window.midental
                     .from('citas_agenda')
-                    .select('*, perfiles_dentistas(nombre_completo, avatar_url, telefono, especialidad)')
+                    .select('*, perfiles_dentistas(nombre_completo, avatar_url, telefono)')
                     .eq('paciente_id', pacienteId)
                     .order('id', { ascending: false });
 
-                if (error) throw error;
+                // 2. TRAER ATENCIONES REALIZADAS (Fichas Clínicas Oficiales)
+                const { data: fichas, error: errorFichas } = await window.midental
+                    .from('fichas_clinicas')
+                    .select('*, perfiles_dentistas(nombre_completo, avatar_url)')
+                    .eq('paciente_id', pacienteId)
+                    .order('created_at', { ascending: false });
 
                 proximasCont.innerHTML = "";
                 historialCont.innerHTML = "";
 
-                if (!citas || citas.length === 0) {
-                    proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">event_busy</span><p>Aún no tienes citas agendadas.</p></div>`;
-                    historialCont.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">No hay registros anteriores.</p>`;
-                    return;
-                }
+                // PROCESAR CITAS FUTURAS O CANCELADAS
+                let hayProximas = false;
+                if (citas) {
+                    citas.forEach(cita => {
+                        const dr = cita.perfiles_dentistas || {};
+                        const drNombre = dr.nombre_completo || 'Especialista';
+                        const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
+                        const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g,'') : '';
+                        const estadoLimpio = (cita.estado || 'pendiente').toLowerCase().replace(' ', '-');
 
-                citas.forEach(cita => {
-                    const dr = cita.perfiles_dentistas || {};
-                    const drNombre = dr.nombre_completo || 'Doctor Especialista';
-                    const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
-                    const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g,'') : '';
-                    
-                    const estadoLimpio = (cita.estado || 'pendiente').toLowerCase().replace(' ', '-');
-                    
-                    // Inyectamos la clase de color dinámico en el div principal (card-${estadoLimpio})
-                    const cardHTML = `
-                        <div class="appointment-card card-${estadoLimpio}">
-                            <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar Doctor">
-                            <div class="appt-info">
-                                <span class="status-pill status-${estadoLimpio}">${cita.estado}</span>
-                                <h4>Dr. ${drNombre}</h4>
-                                <p><span class="material-symbols-outlined icon-small">calendar_month</span> ${cita.fecha_hora_formato_slot}</p>
-                                <p><span class="material-symbols-outlined icon-small">medical_services</span> ${cita.motivo || 'Evaluación'}</p>
+                        // Si la cita ya fue completada, la ignoramos porque la Ficha Clínica Oficial la reemplazará abajo
+                        if (estadoLimpio === 'completada' || estadoLimpio === 'finalizado') return;
+
+                        const cardHTML = `
+                            <div class="appointment-card card-${estadoLimpio}">
+                                <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar">
+                                <div class="appt-info">
+                                    <span class="status-pill status-${estadoLimpio}">${cita.estado}</span>
+                                    <h4>Dr. ${drNombre}</h4>
+                                    <p style="font-weight:bold; color:var(--blue-elegant);"><span class="material-symbols-outlined icon-small">calendar_month</span> ${cita.fecha_hora_formato_slot}</p>
+                                    <p><span class="material-symbols-outlined icon-small">medical_services</span> ${cita.motivo || 'Evaluación'}</p>
+                                </div>
+                                ${(estadoLimpio !== 'cancelado') && drTelefono ? `
+                                    <a href="https://wa.me/${drTelefono}" target="_blank" class="btn-whatsapp-small">
+                                        <span class="material-symbols-outlined">chat</span>
+                                    </a>
+                                ` : ''}
                             </div>
-                            ${(estadoLimpio !== 'finalizado' && estadoLimpio !== 'completada' && estadoLimpio !== 'cancelado') && drTelefono ? `
-                                <a href="https://wa.me/${drTelefono}" target="_blank" class="btn-whatsapp-small">
-                                    <span class="material-symbols-outlined">chat</span>
-                                </a>
-                            ` : ''}
-                        </div>
-                    `;
+                        `;
 
-                    // Filtro inteligente: Si está finalizada, completada o CANCELADA, va al historial
-                    if (estadoLimpio === 'finalizado' || estadoLimpio === 'completada' || estadoLimpio === 'cancelado') {
-                        historialCont.innerHTML += cardHTML;
-                    } else {
-                        proximasCont.innerHTML += cardHTML;
-                    }
-                });
+                        if (estadoLimpio === 'cancelado') {
+                            historialCont.innerHTML += cardHTML; // Las canceladas van al historial
+                        } else {
+                            proximasCont.innerHTML += cardHTML;
+                            hayProximas = true;
+                        }
+                    });
+                }
 
-                // Limpieza final de estados vacíos
-                if (proximasCont.innerHTML === "") {
-                    proximasCont.innerHTML = `<div class="empty-state"><p style="margin:0;">No tienes citas pendientes.</p></div>`;
+                // PROCESAR FICHAS CLÍNICAS (Historial Oficial)
+                let hayHistorial = false;
+                if (fichas) {
+                    fichas.forEach(ficha => {
+                        const dr = ficha.perfiles_dentistas || {};
+                        const drNombre = dr.nombre_completo || 'Especialista';
+                        const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
+                        const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+
+                        historialCont.innerHTML += `
+                            <div class="appointment-card card-ficha-clinica">
+                                <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar">
+                                <div class="appt-info">
+                                    <span class="status-pill status-completada">Atención Realizada</span>
+                                    <h4>Dr. ${drNombre}</h4>
+                                    <p style="font-weight:bold; color:var(--pixar-cyan); margin-bottom: 10px; text-transform: capitalize;"><span class="material-symbols-outlined icon-small">calendar_today</span> ${fechaAtencion}</p>
+                                    
+                                    <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                        <p style="margin-bottom: 5px;"><strong style="color:var(--blue-elegant);">Diagnóstico:</strong><br>${ficha.motivo_consulta || 'Evaluación General'}</p>
+                                        <p><strong style="color:var(--blue-elegant);">Procedimiento:</strong><br>${ficha.accion_realizada || 'Sin detalles'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        hayHistorial = true;
+                    });
                 }
-                if (historialCont.innerHTML === "") {
-                    historialCont.innerHTML = `<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">No hay registros anteriores.</p>`;
-                }
+
+                // Validaciones visuales si están vacíos
+                if (!hayProximas) proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">event_busy</span><p>No tienes citas futuras agendadas.</p></div>`;
+                if (!hayHistorial && historialCont.innerHTML === "") historialCont.innerHTML = `<div class="empty-state" style="padding: 20px;"><p style="margin:0;">No hay atenciones pasadas en tu historial.</p></div>`;
 
             } catch (err) {
                 console.error("Error cargando citas:", err);
-                proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined" style="color:red;">error</span><p>Error de conexión. Intenta recargar la página.</p></div>`;
-                historialCont.innerHTML = "";
+                proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined" style="color:red;">error</span><p>Error de conexión.</p></div>`;
             }
         }
     </script>
