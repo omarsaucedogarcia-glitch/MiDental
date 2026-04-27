@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="css/dashboard.css">
     <style>
         /* =========================================================
-           OVERRIDE: MODO PANTALLA COMPLETA (FOCUS MODE)
+           OVERRIDE: MODO PANTALLA COMPLETA Y MENÚ FLOTANTE
            ========================================================= */
         .dashboard-layout { display: block !important; height: 100vh; overflow: hidden; }
         
@@ -20,23 +20,41 @@
             height: 100vh; 
             display: flex; 
             flex-direction: column; 
-            padding: 15px 20px; /* Ajuste de márgenes para respirar */
+            padding: 15px 20px; 
         }
 
-        /* Convertir Sidebar en un menú oculto deslizable */
+        /* Blindaje del Sidebar para que NO se haga horizontal en celular */
         .sidebar {
             position: fixed !important;
-            left: -300px; /* Escondido a la izquierda */
-            top: 0;
-            width: 260px;
-            height: 100vh;
+            left: -300px; 
+            top: 0 !important;
+            width: 260px !important;
+            height: 100vh !important;
             z-index: 9999;
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 5px 0 25px rgba(0,0,0,0.15);
+            display: flex !important;
+            flex-direction: column !important;
+            bottom: auto !important;
+            background: white !important;
         }
         .sidebar.open { left: 0 !important; }
+        
+        .sidebar-nav {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 5px !important;
+        }
+        .sidebar .nav-item {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            width: 100% !important;
+            padding: 12px 20px !important;
+            height: auto !important;
+        }
 
-        /* Velo oscuro detrás del menú al abrirlo */
         .sidebar-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -49,43 +67,27 @@
         }
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
-        /* Botón Hamburguesa */
         .menu-toggle-btn {
-            background: transparent;
-            border: none;
-            color: var(--blue-elegant);
-            cursor: pointer;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px;
-            border-radius: 8px;
-            transition: 0.2s;
+            background: transparent; border: none; color: var(--blue-elegant); cursor: pointer;
+            margin-right: 15px; display: flex; align-items: center; justify-content: center;
+            padding: 5px; border-radius: 8px; transition: 0.2s;
         }
         .menu-toggle-btn:hover { background: #f1f5f9; color: var(--pixar-cyan); }
 
 
         /* =========================================================
-           DISEÑO DE GRILLA ESTILO "MEDILINK"
+           DISEÑO DE GRILLA (Escritorio)
            ========================================================= */
         .calendar-grid-container * { box-sizing: border-box; }
 
-        /* Filas mucho más compactas, estilo Excel Médico */
         .time-slot-label, .time-block {
-            height: 45px !important;
-            min-height: 45px !important;
-            max-height: 45px !important;
+            height: 45px !important; min-height: 45px !important; max-height: 45px !important;
             overflow: hidden; 
         }
-
         .time-header-spacer, .day-header {
-            height: 50px !important;
-            min-height: 50px !important;
-            max-height: 50px !important;
+            height: 50px !important; min-height: 50px !important; max-height: 50px !important;
             overflow: hidden;
         }
-
         .time-labels { display: flex; flex-direction: column; width: 55px; min-width: 55px; border-right: 1px solid #e2e8f0; position: sticky; left: 0; background: white; z-index: 20; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
         .time-header-spacer { border-bottom: 2px solid #cbd5e1; background: #f8fafc; position: sticky; top: 0; z-index: 30; } 
         .time-slot-label { display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: #64748b; border-bottom: 1px solid #e2e8f0; background: #fff; }
@@ -96,50 +98,11 @@
         .day-header small { font-weight: normal; font-size: 0.75rem; color: #64748b; margin-top: 2px;}
         .time-block { border-bottom: 1px solid #e2e8f0; padding: 2px; }
 
-        /* DISEÑO DE BLOQUES DISPONIBLES (Estilo Medilink Verde) */
-        .slot-workplace { 
-            background: #eafaea; 
-            border: 1px solid #cce8dd; 
-            width: 100%; 
-            height: 100%; 
-            border-radius: 4px; 
-            display: flex; 
-            flex-direction: row; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 0 6px;
-            cursor: pointer; 
-            transition: 0.2s; 
-            color: #166534;
-        }
-        .slot-workplace:hover { 
-            background: #d1f4e0; 
-            border-color: #a7e0c4; 
-        }
-        .sede-text-mini {
-            font-size: 0.7rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
-            text-align: left;
-            margin-left: 4px;
-        }
+        .slot-workplace { background: #eafaea; border: 1px solid #cce8dd; width: 100%; height: 100%; border-radius: 4px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: 0 6px; cursor: pointer; transition: 0.2s; color: #166534; }
+        .slot-workplace:hover { background: #d1f4e0; border-color: #a7e0c4; }
+        .sede-text-mini { font-size: 0.7rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; text-align: left; margin-left: 4px; }
 
-        /* DISEÑO DE CITAS AGENDADAS COMPACTAS */
-        .event-base {
-            padding: 4px 6px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            line-height: 1.2;
-        }
+        .event-base { padding: 4px 6px; border-radius: 4px; cursor: pointer; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); line-height: 1.2; }
         .event-pendiente { background-color: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; }
         .event-confirmado { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; }
         .event-en-curso { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; }
@@ -149,11 +112,34 @@
         .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-radius: 10px 10px 0 0; border: 1px solid #e2e8f0; border-bottom: none; flex-wrap: wrap; gap: 15px;}
         .calendar-grid-container { flex: 1; overflow-x: auto; overflow-y: auto; background: white; border: 1px solid #e2e8f0; display: flex; position: relative; border-radius: 0 0 10px 10px; }
 
+        /* =========================================================
+           MODO CELULAR: PANORÁMICO, ELEGANTE Y COMPACTO
+           ========================================================= */
         @media (max-width: 768px) {
-            .calendar-toolbar-compact { flex-direction: column; align-items: stretch; }
+            .dashboard-content { padding: 10px 10px; }
+            .calendar-toolbar-compact { flex-direction: column; align-items: stretch; padding: 10px; }
             .cal-nav-buttons { justify-content: space-between; width: 100%; }
-            #textoSemanaActual { font-size: 1.1rem; }
-            .cal-leyend-compact { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+            #textoSemanaActual { font-size: 1rem; min-width: 150px;}
+            .cal-leyend-compact { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; }
+            
+            /* Encojemos toda la grilla proporcionalmente para que se vea panorámica */
+            .time-slot-label, .time-block { height: 36px !important; min-height: 36px !important; max-height: 36px !important; }
+            .time-header-spacer, .day-header { height: 42px !important; min-height: 42px !important; max-height: 42px !important; }
+            .time-labels { width: 45px; min-width: 45px; }
+            .time-slot-label { font-size: 0.6rem; }
+            
+            /* Columnas más delgadas para reducir el scroll horizontal */
+            .days-container { grid-template-columns: repeat(7, minmax(90px, 1fr)); }
+            .day-header { font-size: 0.8rem; }
+            .day-header small { font-size: 0.65rem; }
+            
+            /* Textos internos ultra compactos */
+            .event-base { padding: 2px 4px; border-radius: 3px; }
+            .event-base strong { font-size: 0.65rem !important; }
+            .event-base span { font-size: 0.6rem !important; }
+            .slot-workplace { padding: 0 4px; border-radius: 3px; }
+            .sede-text-mini { font-size: 0.6rem; margin-left: 2px; }
+            .slot-workplace .material-symbols-outlined { font-size: 12px !important; }
         }
     </style>
 </head>
@@ -177,7 +163,7 @@
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
-            <div class="sidebar-footer">
+            <div class="sidebar-footer" style="padding: 15px;">
                 <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
             </div>
         </aside>
@@ -383,7 +369,6 @@
                             sede.horarios_json.forEach(slotGenerico => {
                                 document.querySelectorAll(`[data-slot-generic="${slotGenerico}"]`).forEach(celda => {
                                     const slotReal = celda.getAttribute('data-slot-real');
-                                    // DISEÑO TIPO MEDILINK APLICADO AQUÍ
                                     celda.innerHTML = `
                                         <div class="slot-workplace" onclick="abrirModalAgendarManual('${slotReal}')" title="Agendar en ${sede.nombre_sede}">
                                             <span class="material-symbols-outlined" style="font-size: 14px; color: #4ade80;">location_on</span>
@@ -423,7 +408,6 @@
                                 fecha: slotIdBusqueda
                             }));
 
-                            // TEXTOS COMPACTOS PARA QUE QUEPAN EN LOS 45PX
                             celda.innerHTML = `
                                 <div class="event-base event-${estadoLimpio}" onclick="abrirOpcionesCita('${citaDataStr}')" title="${pctName} - ${cita.motivo}">
                                     <strong style="font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit;">${pctName}</strong>

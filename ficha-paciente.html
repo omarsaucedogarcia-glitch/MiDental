@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <style>
-        /* 1. LAYOUT RESPONSIVO MEJORADO (MOBILE-FIRST) */
+        /* 1. LAYOUT RESPONSIVO */
         .ficha-layout { display: flex; flex-direction: column; gap: 20px; }
         
         @media (min-width: 992px) { 
@@ -43,7 +43,7 @@
         .textarea-clinico { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 120px; margin-bottom: 25px; background: #f8fafc; box-sizing: border-box;}
         .textarea-clinico:focus { outline: none; border-color: var(--pixar-cyan); box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1); background: white;}
         
-        /* Tabla Presupuesto Inteligente (Corrección Móvil) */
+        /* Tabla Presupuesto */
         .presupuesto-table-wrapper { overflow-x: auto; margin-bottom: 15px; border-radius: 12px; border: 1px solid #e2e8f0; width: 100%; }
         .presupuesto-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 650px;}
         .presupuesto-table th { background-color: var(--blue-elegant); color: white; padding: 12px 8px; border-bottom: 2px solid #1e3a8a; text-align: left; }
@@ -52,40 +52,13 @@
         .presupuesto-table .input-readonly { background: #f1f5f9; color: #475569; font-weight: bold; padding: 5px; border-radius: 6px;}
         .total-final-box { text-align: right; font-size: 1.3rem; color: var(--blue-elegant); padding: 15px 10px 0; border-top: 2px solid var(--blue-elegant); margin-top: 15px; font-weight: 900; }
 
-        .pin-display { background: #f8fafc; border: 2px dashed var(--pixar-orange); padding: 15px; text-align: center; font-size: 2.5rem; font-weight: 900; letter-spacing: 12px; color: var(--pixar-orange); border-radius: 15px; margin: 20px 0; }
-
-        /* DISEÑO DE IMPRESIÓN PROFESIONAL (PDF) */
-        .print-only { 
-            position: absolute; left: 0; top: 0; width: 800px; padding: 40px; 
-            background: white; color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            box-sizing: border-box; z-index: -9999; opacity: 0.01; pointer-events: none;
-        }
-        
-        .pdf-header { display: flex; justify-content: space-between; border-bottom: 3px solid var(--blue-elegant); padding-bottom: 15px; margin-bottom: 20px; }
-        .pdf-title { text-align: right; }
-        .pdf-title h1 { color: var(--blue-elegant); margin: 0; font-size: 1.8rem; text-transform: uppercase; }
-        .pdf-title p { margin: 5px 0 0; color: #555; font-size: 0.9rem; }
-        .pdf-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .pdf-box { border: 1px solid #cbd5e1; padding: 15px; border-radius: 10px; background: #f8fafc; }
-        .pdf-box h4 { margin: 0 0 10px 0; color: var(--blue-elegant); font-size: 1rem; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px; }
-        .pdf-row { margin: 5px 0; font-size: 0.9rem; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        .pdf-table th { background: var(--blue-elegant); color: white; padding: 10px; text-align: left; font-size: 0.9rem; }
-        .pdf-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 10px; font-size: 0.9rem; }
-        .pdf-total-row { font-weight: 900; font-size: 1.2rem; text-align: right; padding: 15px; border-top: 2px solid var(--blue-elegant); }
-        .pdf-footer { margin-top: 50px; display: flex; justify-content: space-around; text-align: center; }
-        .pdf-firma { width: 250px; border-top: 1px solid #000; padding-top: 10px; margin-top: 60px; font-size: 0.9rem; }
-        
-        /* Ocultar interfaz al imprimir nativamente */
-        @media print {
-            body * { visibility: hidden; }
-            body { background: white; margin: 0; padding: 0; }
-            .print-only, .print-only * { visibility: visible; }
-            .print-only { display: block !important; position: absolute; left: 0; top: 0; width: 100%; opacity: 1; z-index: 9999; }
-            .dashboard-layout, .modal-overlay { display: none !important; }
-        }
+        /* Estilo input file oculto para el botón */
+        .btn-upload-doc { cursor: pointer; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; color: var(--blue-elegant); font-size: 0.8rem; font-weight: bold; border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn-upload-doc:hover { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -139,9 +112,17 @@
                     <div class="historial-body" id="contenedorHistorial"></div>
 
                     <div style="padding: 20px; border-top: 1px solid #e2e8f0; background: white; border-radius: 0 0 20px 20px;">
-                        <h3 style="margin: 0 0 15px 0; font-size: 1.05rem; color: var(--blue-elegant); display: flex; align-items: center; gap: 8px;">
-                            <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">folder_open</span> Exámenes Adjuntos
-                        </h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 1.05rem; color: var(--blue-elegant); display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">folder_open</span> Exámenes Adjuntos
+                            </h3>
+                            
+                            <label class="btn-upload-doc" id="labelBtnSubidaDoc">
+                                <span class="material-symbols-outlined" style="font-size: 1rem;">cloud_upload</span> Subir
+                                <input type="file" accept="image/*,.pdf" style="display: none;" onchange="procesarSubidaDocumentoDentista(event)">
+                            </label>
+                        </div>
+                        
                         <div id="contenedorDocumentosPaciente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; max-height: 200px; overflow-y: auto; padding-bottom: 5px;">
                             <p style="color: #64748b; font-size: 0.9rem; text-align: center; grid-column: 1/-1;">Cargando archivos...</p>
                         </div>
@@ -188,8 +169,8 @@
                     <div class="total-final-box">TOTAL PRESUPUESTO: $ <span id="granTotalPagar">0</span></div>
 
                     <div class="btn-group-dual mt-20" style="margin-top: 30px;">
-                        <button type="button" class="btn-login-outline btn-full" onclick="soloPrevisualizarImprimir()" style="padding: 15px; border-radius: 12px; font-weight: bold;">
-                            <span class="material-symbols-outlined">print</span> Previsualizar / Imprimir PDF
+                        <button type="button" class="btn-login-outline btn-full" onclick="soloPrevisualizarPDF()" style="padding: 15px; border-radius: 12px; font-weight: bold;">
+                            <span class="material-symbols-outlined">visibility</span> Ver / Imprimir PDF
                         </button>
                     </div>
 
@@ -199,65 +180,6 @@
                 </div>
             </div>
         </main>
-    </div>
-
-    <div class="print-only" id="formatoPDF">
-        <div class="pdf-header">
-            <div>
-                <h1 style="color: var(--pixar-cyan); margin: 0;">MiDental</h1>
-                <p style="margin: 0; font-size: 0.8rem; color: #64748b;">Red de Salud Digital</p>
-            </div>
-            <div class="pdf-title">
-                <h1>Ficha y Presupuesto</h1>
-                <p>Fecha de Emisión: <strong id="pdfFechaHoy">--</strong></p>
-            </div>
-        </div>
-
-        <div class="pdf-info-grid">
-            <div class="pdf-box">
-                <h4>Información del Paciente</h4>
-                <div class="pdf-row"><strong>Nombre:</strong> <span id="pdfPctNombre">--</span></div>
-                <div class="pdf-row"><strong>RUT:</strong> <span id="pdfPctRut">--</span></div>
-            </div>
-            <div class="pdf-box">
-                <h4>Profesional Tratante</h4>
-                <div class="pdf-row"><strong>Dentista:</strong> <span id="pdfDrNombre">--</span></div>
-                <div class="pdf-row"><strong>RUT Prof:</strong> <span id="pdfDrRut">--</span></div>
-                <div class="pdf-row"><strong>Registro SIS:</strong> <span id="pdfDrSis">--</span></div>
-                <div class="pdf-row"><strong>Sede:</strong> <span id="pdfDrSede">--</span></div>
-            </div>
-        </div>
-
-        <div class="pdf-box" style="margin-bottom: 30px;">
-            <h4>Evolución Clínica</h4>
-            <div class="pdf-row"><strong>Diagnóstico:</strong> <span id="pdfEvoDiag">--</span></div>
-            <div class="pdf-row" style="margin-top: 10px;"><strong>Procedimiento a Realizar:</strong> <span id="pdfEvoProc">--</span></div>
-        </div>
-
-        <h4 style="color: var(--blue-elegant); border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Detalle de Valores</h4>
-        <table class="pdf-table">
-            <thead>
-                <tr>
-                    <th>Pieza</th>
-                    <th>Diagnóstico</th>
-                    <th>Prestación</th>
-                    <th>Valor Ref.</th>
-                    <th>Descuento</th>
-                    <th style="text-align: right;">Total</th>
-                </tr>
-            </thead>
-            <tbody id="pdfTbodyPresupuesto">
-                </tbody>
-        </table>
-
-        <div class="pdf-total-row">
-            TOTAL A PAGAR: $ <span id="pdfGranTotal">0</span>
-        </div>
-
-        <div class="pdf-footer">
-            <div class="pdf-firma">Firma del Paciente / Apoderado</div>
-            <div class="pdf-firma"><span id="pdfFirmaDr"></span><br>Firma del Profesional</div>
-        </div>
     </div>
 
     <div id="modalVerRegistroPasado" class="modal-overlay" style="display:none; z-index: 1000;">
@@ -276,9 +198,6 @@
                 <strong style="font-size: 2rem; color: var(--green-success);">$ <span id="modalPasadoTotal">0</span></strong>
             </div>
             <div class="btn-group-dual">
-                <button class="btn-login-outline btn-full" onclick="window.print()" style="padding: 15px; border-radius: 12px; font-weight: bold;">
-                    <span class="material-symbols-outlined">print</span> Reimprimir Pantalla
-                </button>
                 <button class="btn-pixar btn-green-whatsapp btn-full" onclick="reenviarPresupuestoPasado()" style="padding: 15px; border-radius: 12px; font-size: 1.05rem;">
                     <span class="material-symbols-outlined">send_to_mobile</span> Reenviar por WhatsApp
                 </button>
@@ -406,6 +325,9 @@
             } catch (err) { console.error(err); }
         }
 
+        // ==========================================
+        // SISTEMA DE DOCUMENTOS Y CARGA DENTISTA
+        // ==========================================
         async function cargarDocumentosPaciente() {
             const contenedor = document.getElementById('contenedorDocumentosPaciente');
             if (!contenedor) return;
@@ -430,22 +352,75 @@
                     if (!urlSegura) return;
 
                     const esImagen = urlSegura.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                    const esPresupuesto = doc.nombre_archivo && doc.nombre_archivo.toLowerCase().includes('presupuesto');
                     
+                    const iconSymbol = esPresupuesto ? 'request_quote' : (esImagen ? 'image' : 'description');
+                    const colorStyle = esPresupuesto ? 'color: white; background: var(--pixar-cyan);' : 'color: var(--pixar-cyan);';
+
                     contenedor.innerHTML += `
                         <div style="background: #f8fafc; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; transition: 0.2s;">
-                            <span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--pixar-cyan); margin-bottom: 8px;">${esImagen ? 'image' : 'description'}</span>
+                            <div style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; ${colorStyle}">
+                                <span class="material-symbols-outlined" style="font-size: 1.8rem;">${iconSymbol}</span>
+                            </div>
                             <p style="font-size: 0.75rem; margin: 0 0 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155; font-weight: bold;" title="${doc.nombre_archivo}">${doc.nombre_archivo || 'Documento Adjunto'}</p>
                             <a href="${urlSegura}" target="_blank" style="font-size: 0.75rem; color: white; background: var(--pixar-orange); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box; display: block;">Ver Archivo</a>
                         </div>
                     `;
                 });
             } catch (err) {
-                contenedor.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; grid-column: 1/-1; text-align: center;">No tienes permiso para ver los archivos.</p>';
+                contenedor.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; grid-column: 1/-1; text-align: center;">Error al cargar archivos.</p>';
+            }
+        }
+
+        async function procesarSubidaDocumentoDentista(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const labelBtn = document.getElementById('labelBtnSubidaDoc');
+
+            if (file.size > 5 * 1024 * 1024) {
+                alert("El archivo es muy pesado. Máximo 5MB.");
+                event.target.value = "";
+                return;
+            }
+
+            labelBtn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Subiendo...';
+
+            try {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `Dr_${dentistaId}_${Date.now()}.${fileExt}`;
+
+                const { error: uploadError } = await window.midental.storage
+                    .from('documentos_clinicos')
+                    .upload(fileName, file);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = window.midental.storage.from('documentos_clinicos').getPublicUrl(fileName);
+
+                const { error: dbError } = await window.midental.from('documentos_pacientes').insert([{
+                    paciente_id: pacienteIdURL,
+                    dentista_id: dentistaId,
+                    nombre_archivo: file.name,
+                    tipo: file.type.includes('pdf') ? 'pdf' : 'imagen',
+                    archivo_url: publicUrlData.publicUrl
+                }]);
+
+                if (dbError) throw dbError;
+
+                alert("✅ Documento subido y vinculado a la ficha del paciente.");
+                cargarDocumentosPaciente();
+
+            } catch (err) {
+                alert("Error al subir el archivo: " + err.message);
+            } finally {
+                labelBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1rem;">cloud_upload</span> Subir <input type="file" accept="image/*,.pdf" style="display: none;" onchange="procesarSubidaDocumentoDentista(event)">';
             }
         }
 
         // ==========================================
-        // LÓGICA DE PRESUPUESTO
+        // LÓGICA DE TABLA DE PRESUPUESTO
         // ==========================================
         function agregarFila() { 
             const tbody = document.getElementById('tbodyPresupuesto');
@@ -489,40 +464,85 @@
         }
 
         // ==========================================
-        // BOTÓN 1: SOLO PREVISUALIZAR E IMPRIMIR (No guarda en DB)
+        // MOTOR NATIVO PDF (JSPDF + AUTOTABLE)
         // ==========================================
-        async function soloPrevisualizarImprimir() {
-            await inyectarDatosAlFormatoPDF();
-            window.print();
-        }
+        async function generarDocumentoJSPDF(dentistaId, motivoTxt, accionTxt) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-        // Función auxiliar para rellenar la plantilla oculta
-        async function inyectarDatosAlFormatoPDF() {
-            const dentistaId = localStorage.getItem('midental_user_id');
+            // 1. Obtener Datos
             const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
             const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna').eq('dentista_id', dentistaId).limit(1);
 
-            document.getElementById('pdfFechaHoy').innerText = new Date().toLocaleDateString('es-CL');
-            document.getElementById('pdfPctNombre').innerText = pacienteActual.nombre;
-            document.getElementById('pdfPctRut').innerText = pacienteActual.rut;
-            
-            const nombreDrStr = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : 'No especificado';
-            document.getElementById('pdfDrNombre').innerText = nombreDrStr;
-            document.getElementById('pdfFirmaDr').innerText = nombreDrStr;
-            document.getElementById('pdfDrRut').innerText = dr ? dr.rut : '--';
-            document.getElementById('pdfDrSis').innerText = dr ? dr.registro_sis : '--';
-            document.getElementById('pdfDrSede').innerText = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
-            
-            document.getElementById('pdfEvoDiag').innerText = document.getElementById('fichaMotivo').value.trim() || 'Evaluación';
-            document.getElementById('pdfEvoProc').innerText = document.getElementById('fichaAccion').value.trim() || 'Presupuesto';
+            const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : 'No especificado';
+            const drRut = dr ? dr.rut : '--';
+            const drSis = dr ? dr.registro_sis : '--';
+            const drSede = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
 
-            const tbodyPDF = document.getElementById('pdfTbodyPresupuesto');
-            tbodyPDF.innerHTML = '';
+            // 2. Cabecera (Branding)
+            doc.setFontSize(22);
+            doc.setTextColor(0, 180, 216); // Pixar Cyan
+            doc.text("MiDental", 14, 20);
             
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text("Red de Salud Digital", 14, 26);
+
+            // Titulo Derecho
+            doc.setFontSize(16);
+            doc.setTextColor(30, 58, 138); // Blue Elegant
+            doc.text("Ficha Clínica y Presupuesto", 200, 20, { align: "right" });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(85, 85, 85);
+            doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 30, 200, 30);
+
+            // 3. Info de Paciente y Doctor
+            doc.setFontSize(12);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Datos del Paciente", 14, 40);
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47);
+            doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
+
+            doc.setFontSize(12);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Profesional Tratante", 110, 40);
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Dentista: ${drName}`, 110, 47);
+            doc.text(`RUT: ${drRut} | Registro SIS: ${drSis}`, 110, 53);
+            doc.text(`Sede: ${drSede}`, 110, 59);
+
+            // 4. Evolución Clínica
+            doc.setFontSize(12);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Evolución Clínica", 14, 70);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            const splitDiag = doc.splitTextToSize(`Diagnóstico: ${motivoTxt}`, 180);
+            doc.text(splitDiag, 14, 77);
+            
+            let startYTrat = 77 + (splitDiag.length * 5) + 2;
+            const splitTrat = doc.splitTextToSize(`Procedimiento: ${accionTxt}`, 180);
+            doc.text(splitTrat, 14, startYTrat);
+
+            let tableStartY = startYTrat + (splitTrat.length * 5) + 10;
+
+            // 5. Generar Tabla con AutoTable
+            const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
+            const tableRows = [];
+            let hayPresupuesto = false;
+
             document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-                const pieza = tr.querySelector('.input-diente').value.trim();
-                const diag = tr.querySelector('.input-diag').value.trim();
-                const trat = tr.querySelector('.input-tratamiento').value.trim();
+                const pieza = tr.querySelector('.input-diente').value || '-';
+                const diag = tr.querySelector('.input-diag').value || '-';
+                const trat = tr.querySelector('.input-tratamiento').value || '-';
                 const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
                 const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
                 
@@ -533,15 +553,62 @@
 
                 if (!pieza && !diag && !trat && refInput === 0 && totalInput === 0) return;
 
+                hayPresupuesto = true;
                 const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
-                tbodyPDF.innerHTML += `<tr><td>${pieza||'-'}</td><td>${diag||'-'}</td><td>${trat||'-'}</td><td>$${refInput.toLocaleString('es-CL')}</td><td>${tdDesc}</td><td style="text-align: right; font-weight: bold;">$${totalInput.toLocaleString('es-CL')}</td></tr>`;
+
+                tableRows.push([pieza, diag, trat, `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
             });
 
-            document.getElementById('pdfGranTotal').innerText = document.getElementById('granTotalPagar').innerText;
+            if (hayPresupuesto) {
+                doc.autoTable({
+                    startY: tableStartY,
+                    head: [tableColumn],
+                    body: tableRows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 58, 138] }, // Blue Elegant
+                    styles: { fontSize: 9 }
+                });
+
+                const finalY = doc.lastAutoTable.finalY || tableStartY + 20;
+                doc.setFontSize(14);
+                doc.setTextColor(30, 58, 138);
+                doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
+            }
+
+            // 6. Firmas
+            const finalPageY = doc.internal.pageSize.height;
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.line(30, finalPageY - 30, 90, finalPageY - 30);
+            doc.text("Firma Paciente", 45, finalPageY - 25);
+            
+            doc.line(120, finalPageY - 30, 180, finalPageY - 30);
+            doc.text("Firma Profesional", 135, finalPageY - 25);
+
+            return doc;
         }
 
         // ==========================================
-        // BOTÓN 2: FIRMAR, GENERAR PDF EN LA NUBE Y LIMPIAR PANTALLA
+        // BOTÓN 1: SOLO PREVISUALIZAR PDF EN NUEVA PESTAÑA
+        // ==========================================
+        async function soloPrevisualizarPDF() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            if(!dentistaId) return alert("Error de sesión.");
+
+            const motivo = document.getElementById('fichaMotivo').value.trim() || 'Evaluación';
+            const accion = document.getElementById('fichaAccion').value.trim() || 'Presupuesto';
+
+            try {
+                const doc = await generarDocumentoJSPDF(dentistaId, motivo, accion);
+                // Abre el PDF generado en una nueva pestaña del navegador para verlo/imprimirlo
+                window.open(doc.output('bloburl'), '_blank');
+            } catch (err) {
+                alert("Error al generar la vista previa: " + err.message);
+            }
+        }
+
+        // ==========================================
+        // BOTÓN 2: FIRMAR Y GUARDAR (NUBE PDF REAL)
         // ==========================================
         async function guardarFichaYPresupuestoOficial() {
             const dentistaId = localStorage.getItem('midental_user_id');
@@ -555,53 +622,39 @@
             btn.disabled = true;
 
             try {
-                // 1. Verificar si hay presupuesto para generar PDF
+                // 1. Revisar si hay presupuesto
                 let hayPresupuesto = false;
                 document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
                     const ref = parseFloat(tr.querySelector('.input-ref').value) || 0;
                     if (ref > 0) hayPresupuesto = true;
                 });
 
-                // Si hay presupuesto, lo generamos y lo subimos
+                // Si hay presupuesto, generamos el PDF Nativo y lo subimos
                 if (hayPresupuesto) {
-                    await inyectarDatosAlFormatoPDF();
+                    const docPDF = await generarDocumentoJSPDF(dentistaId, motivo, accion);
                     
-                    const elementoPDF = document.getElementById('formatoPDF');
-                    // TRUCO DE MAGIA: Hacerlo un poquito opaco para que la cámara de html2pdf lo vea
-                    elementoPDF.style.opacity = '0.01';
-                    
-                    // Aseguramos que la página baje al inicio para evitar cortes en la foto
-                    window.scrollTo(0,0);
-
                     const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
-                    const nombreArchivoBase = `Presupuesto_${nombrePuro}_${Date.now()}`;
+                    const nombreArchivo = `Presupuesto_Oficial_${nombrePuro}_${Date.now()}.pdf`;
                     
-                    const opt = {
-                        margin:       10,
-                        filename:     `${nombreArchivoBase}.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, scrollY: 0, windowWidth: 800 },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                    };
+                    const pdfBlob = docPDF.output('blob');
 
-                    // Generar Blob (foto a la caja invisible)
-                    const pdfBlob = await html2pdf().set(opt).from(elementoPDF).output('blob');
-
-                    // Subir al Storage de Supabase
                     const { error: uploadError } = await window.midental.storage
                         .from('documentos_clinicos')
-                        .upload(`${nombreArchivoBase}.pdf`, pdfBlob, { contentType: 'application/pdf' });
+                        .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
 
                     if (uploadError) throw new Error("Fallo la subida del PDF a Supabase.");
 
-                    // Enlazar a Documentos del Paciente
-                    const { data: publicUrlData } = window.midental.storage.from('documentos_clinicos').getPublicUrl(`${nombreArchivoBase}.pdf`);
+                    const { data: publicUrlData } = window.midental.storage.from('documentos_clinicos').getPublicUrl(nombreArchivo);
+                    
                     await window.midental.from('documentos_pacientes').insert([{
                         paciente_id: pacienteIdURL,
                         nombre_archivo: `Presupuesto Oficial ${new Date().toLocaleDateString('es-CL')}.pdf`,
                         tipo: 'pdf',
                         archivo_url: publicUrlData.publicUrl
                     }]);
+
+                    // Descargar copia local al dentista para sus archivos
+                    docPDF.save(nombreArchivo);
                 }
 
                 // 2. Guardar el registro en Fichas Clínicas
@@ -619,7 +672,7 @@
 
                 if (fichaError) throw fichaError;
 
-                // 3. SOLO AL FINAL: Limpiamos la pantalla visual
+                // 3. Limpiar Pantalla
                 document.getElementById('fichaMotivo').value = ''; 
                 document.getElementById('fichaAccion').value = '';
                 document.getElementById('tbodyPresupuesto').innerHTML = `
@@ -634,7 +687,7 @@
                 `;
                 document.getElementById('granTotalPagar').innerText = '0';
                 
-                alert("✅ Ficha Oficial guardada y sincronizada correctamente.");
+                alert("✅ Ficha Oficial guardada y presupuesto sincronizado.");
                 cargarHistorialPaciente(); 
                 cargarDocumentosPaciente(); 
 
@@ -647,9 +700,7 @@
             }
         }
 
-        // ==========================================
-        // FUNCIONES DE BÓVEDA Y DERIVACIÓN
-        // ==========================================
+        // Funciones de Bóveda e Interconsulta
         let presupuestoEnPantallaActual = 0; 
         function abrirBovedaPasada(dataCodificada) {
             const data = JSON.parse(decodeURIComponent(dataCodificada));

@@ -3,42 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiDental - Ofertas Flash</title>
+    <title>MiDental - Ofertas y Reels</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Modo Oscuro Elegante */
         body { background-color: #0f172a; padding-bottom: 80px; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
         
-        .header-ofertas { padding: 25px 20px; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); z-index: 100;}
-        .header-ofertas h2 { margin: 0; color: var(--pixar-orange); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.6rem; }
-        .header-ofertas p { margin: 5px 0 0 0; font-size: 0.9rem; color: #94a3b8; }
+        .header-ofertas { padding: 25px 20px 0; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); z-index: 100;}
+        .header-ofertas h2 { margin: 0; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.6rem; }
         
-        .ofertas-container { padding: 20px; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        /* Selector de Pestañas (Tabs) */
+        .tabs-container { display: flex; justify-content: center; margin-top: 20px; gap: 10px; }
+        .tab-btn { background: transparent; border: none; color: #94a3b8; font-size: 1rem; font-weight: bold; padding: 10px 20px; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.3s; display: flex; align-items: center; gap: 5px; }
+        .tab-btn.active { color: var(--pixar-cyan); border-bottom-color: var(--pixar-cyan); }
+        .tab-btn:hover { color: white; }
+
+        .content-area { padding: 20px; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
         /* Ajuste de barra inferior */
         .bottom-nav { background: white; border-top: none; }
 
-        /* Animación para el cronómetro */
+        /* Animación Cronómetro Ofertas */
         @keyframes latido {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); opacity: 0.8; color: #ef4444; }
             100% { transform: scale(1); }
         }
         .reloj-urgencia { animation: latido 1.5s infinite; }
+
+        /* Estilos Reels (Shorts) */
+        .reel-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .reel-video-container { width: 100%; aspect-ratio: 9/16; background: #000; position: relative; }
+        .reel-video-container iframe { width: 100%; height: 100%; border: none; }
+        .reel-info { padding: 15px; }
+        .reel-dr { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .reel-dr img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--pixar-cyan); object-fit: cover;}
     </style>
 </head>
 <body>
 
     <div class="header-ofertas">
-        <h2><span class="material-symbols-outlined" style="font-size: 2rem;">bolt</span> Ofertas Flash</h2>
-        <p>Aprovecha estas promociones exclusivas. ¡Se agotan rápido!</p>
+        <h2>Explora MiDental</h2>
+        
+        <div class="tabs-container">
+            <button class="tab-btn active" id="btnTabOfertas" onclick="cambiarPestana('ofertas')">
+                <span class="material-symbols-outlined">bolt</span> Ofertas Flash
+            </button>
+            <button class="tab-btn" id="btnTabReels" onclick="cambiarPestana('reels')">
+                <span class="material-symbols-outlined">play_circle</span> Reels Clínicos
+            </button>
+        </div>
     </div>
 
-    <div class="ofertas-container" id="ofertasFlashContenedor">
-        <div style="text-align:center; padding:40px; color:#64748b;">
-            <span class="material-symbols-outlined" style="font-size: 3rem; animation: spin 2s linear infinite;">sync</span>
-            <p>Buscando las mejores ofertas...</p>
+    <div class="content-area" id="areaOfertas">
+        <div id="ofertasFlashContenedor">
+            <div style="text-align:center; padding:40px; color:#64748b;">
+                <span class="material-symbols-outlined" style="font-size: 3rem; animation: spin 2s linear infinite;">sync</span>
+                <p>Buscando las mejores ofertas...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-area" id="areaReels" style="display: none;">
+        <div id="reelsContenedor">
+            <div style="text-align:center; padding:40px; color:#64748b;">
+                <span class="material-symbols-outlined" style="font-size: 3rem; animation: spin 2s linear infinite;">sync</span>
+                <p>Cargando videos educativos...</p>
+            </div>
         </div>
     </div>
 
@@ -58,42 +90,48 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             cargarOfertas();
+            cargarReels();
         });
 
+        // 1. SISTEMA DE PESTAÑAS (TABS)
+        function cambiarPestana(pestana) {
+            document.getElementById('btnTabOfertas').classList.toggle('active', pestana === 'ofertas');
+            document.getElementById('btnTabReels').classList.toggle('active', pestana === 'reels');
+            
+            document.getElementById('areaOfertas').style.display = pestana === 'ofertas' ? 'flex' : 'none';
+            document.getElementById('areaReels').style.display = pestana === 'reels' ? 'flex' : 'none';
+        }
+
+        // 2. CARGAR OFERTAS FLASH
         async function cargarOfertas() {
             const contenedor = document.getElementById('ofertasFlashContenedor');
             try {
-                // 1. Llamada a Supabase (Optimizada para seguridad y UX)
                 const { data: ofertas, error } = await window.midental
                     .from('ofertas_flash')
                     .select('*, perfiles_dentistas(prefijo, nombre_completo)')
-                    .lte('inicio_at', new Date().toISOString()) // Que ya haya iniciado
-                    .gte('expira_at', new Date().toISOString()) // Que NO haya expirado
-                    .eq('activa', true) // Que el dentista no la haya apagado manualmente
+                    .lte('inicio_at', new Date().toISOString()) 
+                    .gte('expira_at', new Date().toISOString()) 
+                    .eq('activa', true) 
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
-                // 2. ¿Hay ofertas?
                 if (!ofertas || ofertas.length === 0) {
                     contenedor.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5; color:white;">No hay ofertas flash activas en este momento. Vuelve más tarde.</div>`;
                     return;
                 }
 
-                // 3. Pintar ofertas
                 contenedor.innerHTML = "";
                 ofertas.forEach(oferta => {
                     const dr = oferta.perfiles_dentistas || {};
                     const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || 'Especialista'}`;
                     const imgUrl = oferta.imagen_url || 'https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial';
                     
-                    // --- CÁLCULO DE DESCUENTO ---
                     let porcentajeDesc = 0;
                     if(oferta.precio_real > 0) {
                         porcentajeDesc = Math.round(((oferta.precio_real - oferta.precio_oferta) / oferta.precio_real) * 100);
                     }
 
-                    // --- CÁLCULO DEL CRONÓMETRO ---
                     const expiraDate = new Date(oferta.expira_at);
                     const ahora = new Date();
                     const diffMs = expiraDate - ahora;
@@ -104,14 +142,10 @@
                         const dias = Math.floor(horasTotales / 24);
                         const horasSueltas = horasTotales % 24;
                         
-                        if (dias > 0) {
-                            textoTiempo = `Termina en ${dias} d y ${horasSueltas} h`;
-                        } else {
-                            textoTiempo = `¡Termina en ${horasTotales} horas!`;
-                        }
+                        if (dias > 0) textoTiempo = `Termina en ${dias} d y ${horasSueltas} h`;
+                        else textoTiempo = `¡Termina en ${horasTotales} horas!`;
                     }
 
-                    // Inyección del HTML
                     contenedor.innerHTML += `
                         <div class="offer-card" style="position: relative; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; overflow:hidden; margin-bottom:15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
                             
@@ -155,6 +189,86 @@
             } catch (err) {
                 console.error("Error al cargar ofertas:", err);
                 contenedor.innerHTML = `<p style="color:red; text-align:center;">Ocurrió un error al cargar las promociones.</p>`;
+            }
+        }
+
+        // 3. CARGAR REELS (SHORTS) - VERSIÓN INTELIGENTE (NUEVO)
+        async function cargarReels() {
+            const contenedor = document.getElementById('reelsContenedor');
+            try {
+                const { data: videos, error } = await window.midental
+                    .from('shorts_videos')
+                    .select('*, perfiles_dentistas(prefijo, nombre_completo, avatar_url)')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!videos || videos.length === 0) {
+                    contenedor.innerHTML = `<div style="text-align:center; padding:30px; opacity:0.5; color:white;">No hay Reels clínicos disponibles aún.</div>`;
+                    return;
+                }
+
+                contenedor.innerHTML = "";
+                videos.forEach(vid => {
+                    const dr = vid.perfiles_dentistas || {};
+                    const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || 'Especialista'}`;
+                    const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
+                    
+                    // --- LÓGICA ROBUSTA PARA DETECTAR VIDEOS (EL "TRADUCTOR") ---
+                    let embedUrl = "";
+                    let urlOriginal = vid.video_url || "";
+                    let videoId = "";
+
+                    // Extraer ID según el tipo de link que haya pegado el dentista
+                    if (urlOriginal.includes('youtube.com/shorts/')) {
+                        videoId = urlOriginal.split('shorts/')[1].split('?')[0];
+                    } else if (urlOriginal.includes('youtu.be/')) {
+                        videoId = urlOriginal.split('youtu.be/')[1].split('?')[0];
+                    } else if (urlOriginal.includes('youtube.com/watch')) {
+                        try { videoId = new URLSearchParams(urlOriginal.split('?')[1]).get('v'); } catch(e){}
+                    }
+
+                    // Si logramos sacar el ID de YouTube, armamos el iframe seguro
+                    if (videoId) {
+                        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    }
+
+                    contenedor.innerHTML += `
+                        <div class="reel-card">
+                            ${embedUrl ? `
+                                <div class="reel-video-container">
+                                    <iframe src="${embedUrl}" title="Video reproductor" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            ` : `
+                                <div style="padding: 40px 20px; text-align:center; background:#1e293b; color:#94a3b8; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <span class="material-symbols-outlined" style="font-size: 3.5rem; margin-bottom: 10px; color: #475569;">ondemand_video</span><br>
+                                    <p style="margin-top:0; margin-bottom: 15px; font-size: 0.95rem;">El formato de este video requiere abrirse en su aplicación original.</p>
+                                    <a href="${urlOriginal}" target="_blank" style="color: white; font-weight: bold; text-decoration: none; padding: 10px 20px; background: var(--pixar-cyan); border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
+                                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">open_in_new</span> Ver video original
+                                    </a>
+                                </div>
+                            `}
+                            
+                            <div class="reel-info">
+                                <div class="reel-dr">
+                                    <img src="${drAvatar}" alt="Doctor">
+                                    <div>
+                                        <h4 style="margin: 0; color: white; font-size: 1rem;">${drName}</h4>
+                                        <span style="font-size: 0.75rem; color: #94a3b8;">${vid.cta_tipo === 'agendar' ? 'Disponible para Agendar' : 'Video Educativo'}</span>
+                                    </div>
+                                </div>
+                                <p style="margin: 0 0 15px 0; color: #cbd5e1; font-size: 0.9rem; line-height: 1.4;">${vid.descripcion || 'Sin descripción.'}</p>
+                                
+                                <button class="btn-pixar" style="width: 100%; border-radius: 12px; padding: 12px; font-weight: bold;" onclick="window.location.href='mapa-paciente.html'">
+                                    Agendar con ${dr.prefijo || 'Dr.'} ${dr.nombre_completo ? dr.nombre_completo.split(' ')[0] : 'este especialista'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error("Error al cargar Reels:", err);
+                contenedor.innerHTML = `<p style="color:red; text-align:center;">Ocurrió un error al cargar los videos.</p>`;
             }
         }
     </script>
