@@ -20,12 +20,16 @@
         .search-bar-mock:active { transform: scale(0.98); background: #e2e8f0; }
         
         .specialty-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; }
+        
         .specialty-btn { background: white; border: 1px solid #e2e8f0; padding: 15px 5px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.75rem; color: #334155; text-align: center; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s; cursor: pointer; }
         .specialty-btn:active { transform: scale(0.95); border-color: var(--pixar-cyan); }
-        .specialty-btn .material-symbols-outlined { color: var(--pixar-cyan); font-size: 1.8rem; }
+        
+        /* Estilos unificados para íconos de Google y SVG personalizados */
+        .specialty-btn .material-symbols-outlined { color: var(--pixar-cyan); font-size: 2.2rem; margin-bottom: 2px;}
+        .specialty-btn svg { width: 35px; height: 35px; stroke: var(--pixar-cyan); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 2px; }
 
         .urgency-btn { grid-column: span 3; flex-direction: row; justify-content: center; background: #fef2f2; border-color: #fca5a5; padding: 16px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15); }
-        .urgency-btn .material-symbols-outlined { color: #ef4444; }
+        .urgency-btn .material-symbols-outlined { color: #ef4444; font-size: 2rem; margin-bottom: 0;}
         .urgency-btn span:last-child { color: #b91c1c; font-size: 1rem; font-weight: bold; }
         
         .sync-card { background: white; margin: 0 20px 20px 20px; padding: 25px 20px; border-radius: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
@@ -57,31 +61,76 @@
         </div>
 
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">dentistry</span>Odontología General
+            <!-- Diente General -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 8.5 19.5h0A2.5 2.5 0 0 0 11 17v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C12.8 4 11.5 3 10 3z"/>
+            </svg>
+            Odontología General
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">format_shapes</span>Ortodoncia
+            <!-- Diente con Brackets (Ortodoncia) -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 8.5 19.5h0A2.5 2.5 0 0 0 11 17v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C12.8 4 11.5 3 10 3z"/>
+                <path d="M3 9h18" />
+                <rect x="5.5" y="7.5" width="3" height="3" rx="0.5" fill="currentColor" stroke="none"/>
+                <rect x="10.5" y="7.5" width="3" height="3" rx="0.5" fill="currentColor" stroke="none"/>
+                <rect x="15.5" y="7.5" width="3" height="3" rx="0.5" fill="currentColor" stroke="none"/>
+            </svg>
+            Ortodoncia
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">healing</span>Endodoncia
+            <!-- Diente con Conductos Radiculares (Endodoncia) -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 8.5 19.5h0A2.5 2.5 0 0 0 11 17v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C12.8 4 11.5 3 10 3z"/>
+                <path d="M8.5 18 v-6 c0-1.5 1-2 3.5-2 s3.5 .5 3.5 2 v6" />
+            </svg>
+            Endodoncia
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">view_in_ar</span>Implantología
+            <!-- Corona sobre Implante de Titanio -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5 h10 c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5 C12.8 4 11.5 3 10 3z"/>
+                <path d="M9 13.5v5c0 1 1 2 3 2s3-1 3-2v-5" />
+                <path d="M8 15h8 M8 17h8" />
+            </svg>
+            Implantología
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">spa</span>Periodoncia
+            <!-- Diente con Encía/Hueso (Periodoncia) -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 8.5 19.5h0A2.5 2.5 0 0 0 11 17v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C12.8 4 11.5 3 10 3z"/>
+                <path d="M1 12 Q 4 9 7 12 T 13 12 T 19 12 T 23 12" stroke-width="2"/>
+            </svg>
+            Periodoncia
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
             <span class="material-symbols-outlined">face_retouching_natural</span>Estética Facial
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">child_care</span>Odontopediatría
+            <!-- Diente Sonriente (Odontopediatría) -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 8.5 19.5h0A2.5 2.5 0 0 0 11 17v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C12.8 4 11.5 3 10 3z"/>
+                <circle cx="9" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                <circle cx="15" cy="8" r="1.5" fill="currentColor" stroke="none" />
+                <path d="M10 11 c 0 1.5, 4 1.5, 4 0" />
+            </svg>
+            Odontopediatría
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">sentiment_satisfied</span>Rehabilitación Oral
+            <!-- Diente con Destello de Limpieza/Rehabilitación -->
+            <svg viewBox="0 0 24 24">
+                <path d="M7 3c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 8.5 19.5h0A2.5 2.5 0 0 0 11 17v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C12.8 4 11.5 3 10 3z"/>
+                <path d="M18 2 l1 2 l2 1 l-2 1 l-1 2 l-1 -2 l-2 -1 l2 -1 z" fill="currentColor" stroke="none"/>
+            </svg>
+            Rehabilitación Oral
         </div>
         <div class="specialty-btn" onclick="window.location.href='mapa-paciente.html'">
-            <span class="material-symbols-outlined">medical_services</span>Cirugía Maxilofacial
+            <!-- Diente con Cruz Médica (Cirugía Maxilofacial) -->
+            <svg viewBox="0 0 24 24">
+                <path d="M6 5c-2.2 0-4 1.8-4 4 0 2.5 1.5 4.5 3 6.5v3.5A2.5 2.5 0 0 0 7.5 21.5h0A2.5 2.5 0 0 0 10 19v-2h2v2a2.5 2.5 0 0 0 2.5 2.5h0a2.5 2.5 0 0 0 2.5-2.5v-3.5c1.5-2 3-4 3-6.5 0-2.2-1.8-4-4-4-1.5 0-2.8 1-3.5 2.5C11.8 6 10.5 5 9 5z" transform="scale(0.85) translate(0, 3)"/>
+                <path d="M18 2 v3 h3 v2 h-3 v3 h-2 v-3 h-3 v-2 h3 v-3 z" fill="currentColor" stroke="none"/>
+            </svg>
+            Cirugía Maxilofacial
         </div>
     </div>
 

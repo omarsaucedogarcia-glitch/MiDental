@@ -43,18 +43,22 @@
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
             <div class="sidebar-footer">
-                <button class="btn-logout" onclick="cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
+                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
             </div>
         </aside>
 
         <main class="dashboard-content">
-            <header class="topbar">
+            <!-- CABECERA LIMPIA Y UNIFICADA -->
+            <header class="topbar" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
                 <div class="welcome-text">
-                    <h1 style="margin:0; font-size:1.5rem; color:var(--blue-elegant);">Fichero Clínico 📁</h1>
-                    <p style="margin:5px 0 0; font-size:0.9rem; color:var(--text-light);">Directorio de pacientes que has atendido en MiDental.</p>
+                    <h1 style="margin:0; font-size:1.6rem; color:var(--blue-elegant); font-weight: 900;">Mis Pacientes 👥</h1>
+                    <p style="margin:5px 0 0; font-size:0.95rem; color:#475569;">Gestiona el historial y directorio de tus pacientes.</p>
                 </div>
                 
-                <div class="topbar-right-area">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <button id="btnExportarExcel" onclick="exportarPacientesExcel()" class="btn-pixar" style="background: #10b981; display: flex; align-items: center; gap: 8px; padding: 10px 20px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">
+                        <span class="material-symbols-outlined">table_view</span> Descargar Excel
+                    </button>
                     <div class="topbar-profile">
                         <img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" class="profile-pic">
                     </div>
@@ -77,10 +81,13 @@
         </main>
     </div>
 
+    <!-- LIBRERÍAS DE FUNCIONAMIENTO -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script> <!-- LIBRERÍA EXCEL -->
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
 
+    <!-- LÓGICA DE LA PÁGINA (AQUÍ ADENTRO DEBE IR TODO EL CÓDIGO JS) -->
     <script>
         let basePacientes = {}; 
 
@@ -145,7 +152,6 @@
                     mostrados++;
                     
                     const fechaAtencion = new Date(paciente.ultima_visita).toLocaleDateString('es-CL');
-                    // Mostramos solo un fragmento del UUID por seguridad visual
                     const idCorto = paciente.id.split('-')[0].toUpperCase();
 
                     const card = document.createElement('div');
@@ -186,6 +192,95 @@
         function filtrarListaPacientes() {
             const texto = document.getElementById('buscadorPacientes').value.toLowerCase().trim();
             renderizarListaPacientes(texto);
+        }
+
+        // ==========================================
+        // EXPORTACIÓN A EXCEL REPARADA (Dentro del <script>)
+        // ==========================================
+        async function exportarPacientesExcel() {
+            const userId = localStorage.getItem('midental_user_id');
+            if (!userId) return alert("Error de sesión. Vuelve a ingresar.");
+
+            const btn = document.getElementById('btnExportarExcel');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Excel...';
+            btn.disabled = true;
+
+            try {
+                // 1. Pedimos explícitamente el 'rut' dentro de perfiles_pacientes
+                const { data: fichas, error } = await window.midental
+                    .from('fichas_clinicas')
+                    .select('paciente_id, paciente_nombre, paciente_rut, motivo_consulta, ultima_atencion, perfiles_pacientes(rut, telefono, email)')
+                    .eq('dentista_id', userId)
+                    .order('ultima_atencion', { ascending: false });
+
+                if (error) throw error;
+
+                if (!fichas || fichas.length === 0) {
+                    alert("Aún no tienes pacientes registrados para exportar.");
+                    btn.innerHTML = textoOriginal;
+                    btn.disabled = false;
+                    return;
+                }
+
+                const pacientesUnicos = [];
+                const idsVistos = new Set();
+
+                fichas.forEach(ficha => {
+                    const idUnico = ficha.paciente_id;
+                    
+                    if (idUnico && !idsVistos.has(idUnico)) {
+                        idsVistos.add(idUnico);
+                        
+                        // Protección en caso de que Supabase devuelva un arreglo o un objeto nulo
+                        const contacto = Array.isArray(ficha.perfiles_pacientes) ? ficha.perfiles_pacientes[0] : (ficha.perfiles_pacientes || {});
+                        
+                        // Priorizamos el RUT del perfil oficial. Si no existe, buscamos en la ficha, y si no, ponemos 'Sin RUT'.
+                        const rutMostrado = contacto.rut || ficha.paciente_rut || 'Sin RUT';
+                        
+                        pacientesUnicos.push({
+                            "Nombre Completo": ficha.paciente_nombre || 'Sin Nombre',
+                            "RUT": rutMostrado,
+                            "Teléfono": contacto.telefono || 'No registrado',
+                            "Email": contacto.email || 'No registrado',
+                            "Última Atención": new Date(ficha.ultima_atencion).toLocaleDateString('es-CL'),
+                            "Último Motivo": ficha.motivo_consulta || 'Sin especificar'
+                        });
+                    }
+                });
+
+                const hojaDeTrabajo = XLSX.utils.json_to_sheet(pacientesUnicos);
+                const libroDeTrabajo = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, "Mis Pacientes");
+
+                const wbout = XLSX.write(libroDeTrabajo, { bookType: 'xlsx', type: 'binary' });
+
+                function s2ab(s) {
+                    const buf = new ArrayBuffer(s.length);
+                    const view = new Uint8Array(buf);
+                    for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+                    return buf;
+                }
+
+                const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+                const nombreArchivo = `Base_Pacientes_MiDental_${new Date().toLocaleDateString('es-CL').replace(/\//g, '-')}.xlsx`;
+
+                // Método seguro de descarga compatible con todos los navegadores
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = nombreArchivo;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+            } catch (err) {
+                console.error("Error exportando a Excel:", err);
+                alert("Hubo un error al generar el archivo. Por favor, intenta de nuevo.");
+            } finally {
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
+            }
         }
     </script>
 </body>

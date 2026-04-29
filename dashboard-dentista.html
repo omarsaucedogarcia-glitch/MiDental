@@ -80,6 +80,15 @@
         .request-info h4 { margin: 0 0 8px 0; color: var(--blue-elegant); font-size: 1.1rem; }
         .request-info p { margin: 0 0 4px 0; font-size: 0.9rem; color: #64748b; display: flex; align-items: center; gap: 6px; }
         
+        /* Botones Confirmar / Rechazar - Nuevos estilos corporativos */
+        .btn-confirm-action { background: var(--green-success); color: white; padding: 10px 15px; font-size: 0.9rem; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; transition: 0.2s;}
+        .btn-confirm-action:hover { background: #15803d; }
+        
+        .btn-reject-action { background: white; color: var(--red-urgency); border: 1px solid var(--red-urgency); padding: 10px 15px; font-size: 0.9rem; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; transition: 0.2s;}
+        .btn-reject-action:hover { background: #fef2f2; }
+        
+        .request-actions { display: flex; gap: 10px; }
+
         /* Citas Confirmadas (Agenda Rápida) */
         .appointments-section .section-header h2 { font-size: 1.2rem; }
         .appointment-card { background: white; border: 1px solid #e2e8f0; border-left: 6px solid var(--green-success); border-radius: 15px; padding: 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);}
@@ -112,6 +121,10 @@
             .active-offer-monitor { padding: 20px; }
             .monitor-header { flex-direction: column; align-items: flex-start; gap: 15px; }
             .btn-marketing-manage { width: 100%; text-align: center; }
+            /* Ajuste de tarjetas de solicitud en móvil */
+            .request-card { flex-direction: column; align-items: flex-start; gap: 15px;}
+            .request-actions { width: 100%; justify-content: space-between;}
+            .btn-confirm-action, .btn-reject-action { flex: 1; justify-content: center;}
         }
     </style>
 </head>
@@ -253,6 +266,9 @@
     <script src="js/app.js"></script>
     
     <script>
+        // Array global para guardar las solicitudes y tener acceso a los teléfonos rápido
+        let solicitudesPendientesMemoria = [];
+
         document.addEventListener('DOMContentLoaded', () => {
             cargarEstadoUrgencia();
             cargarOfertaActivaMonitor();
@@ -325,18 +341,22 @@
             }
         }
 
-        // 3. BANDEJA DE SOLICITUDES PENDIENTES
+        // ==========================================
+        // 3. BANDEJA DE SOLICITUDES PENDIENTES CON WHATSAPP AUTOMÁTICO
+        // ==========================================
         async function cargarSolicitudesPendientes() {
             const userId = localStorage.getItem('midental_user_id');
             const contenedor = document.getElementById('bandejaSolicitudes');
             if(!userId || !contenedor) return;
 
+            // Buscamos el estado 'pendiente'. Crucial: Pedimos el 'telefono' del paciente.
             const { data: citas } = await window.midental.from('citas_agenda')
-                .select('*, perfiles_pacientes(nombre_completo)')
+                .select('*, perfiles_pacientes(nombre_completo, telefono)')
                 .eq('dentista_id', userId)
                 .eq('estado', 'pendiente');
 
             if(citas && citas.length > 0) {
+                solicitudesPendientesMemoria = citas; // Guardamos en memoria global
                 contenedor.innerHTML = "";
                 citas.forEach(cita => {
                     const pctName = cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente Desconocido';
@@ -348,16 +368,22 @@
                                 <p><span class="material-symbols-outlined" style="font-size:1rem; color:var(--pixar-cyan);">calendar_today</span> <strong>Horario Solicitado:</strong> ${cita.fecha_hora_formato_slot || 'Por definir'}</p>
                             </div>
                             <div class="request-actions">
-                                <button class="btn-pixar btn-search btn-small" style="background: var(--green-success); padding: 12px 20px; font-size: 0.95rem; border-radius: 10px;" onclick="confirmarCitaReal(${cita.id})">
+                                <button class="btn-reject-action" onclick="rechazarCitaReal(${cita.id})">
+                                    <span class="material-symbols-outlined">close</span> Rechazar
+                                </button>
+                                <button class="btn-confirm-action" onclick="confirmarCitaReal(${cita.id})">
                                     <span class="material-symbols-outlined">check_circle</span> Confirmar
                                 </button>
                             </div>
                         </div>
                     `;
                 });
+            } else {
+                contenedor.innerHTML = '<p style="color: #94a3b8; padding: 30px 20px; background: white; border-radius: 15px; text-align: center; border: 1px dashed #cbd5e1; font-weight: bold;">No hay solicitudes nuevas en este momento.</p>';
             }
         }
 
+        // LÓGICA DE CONFIRMACIÓN Y ENVÍO DE WHATSAPP AL PACIENTE
         async function confirmarCitaReal(citaId) {
             const card = document.getElementById(`req-${citaId}`);
             if(card) card.style.opacity = '0.5';
@@ -365,28 +391,86 @@
             const { error } = await window.midental.from('citas_agenda').update({ estado: 'Confirmado' }).eq('id', citaId);
             
             if(error) {
-                alert("Error al confirmar la cita: " + error.message);
+                alert("Error técnico al confirmar la cita: " + error.message);
                 if(card) card.style.opacity = '1';
                 return;
             }
 
-            alert("✅ Cita confirmada exitosamente. Se ha movido a tu agenda y al paciente se le ha notificado.");
+            // BUSCAR DATOS DEL PACIENTE PARA EL WHATSAPP
+            const citaData = solicitudesPendientesMemoria.find(c => c.id === citaId);
             
+            if (citaData && citaData.perfiles_pacientes && citaData.perfiles_pacientes.telefono) {
+                const nombrePct = citaData.perfiles_pacientes.nombre_completo || 'Paciente';
+                const fonoRaw = citaData.perfiles_pacientes.telefono;
+                const fonoLimpio = fonoRaw.replace(/[^0-9]/g, ''); // Deja solo números para wa.me
+                const horaSolicitada = citaData.fecha_hora_formato_slot || '(Hora no especificada)';
+
+                // EL MENSAJE PREESCRITO DE CONFIRMACIÓN QUE SOLICITASTE
+                const msg = `Estimado paciente ${nombrePct}, su hora ${horaSolicitada}, queda confirmada, espero su asistencia y por cualquier motivo le solicito informar a la brevedad, para disponer el espacio para otro paciente que lo requiera. Muchas gracias.`;
+                
+                // Abrir WhatsApp en pestaña nueva
+                window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+            } else {
+                console.log("No se pudo enviar WhatsApp: Faltan datos del paciente o teléfono.");
+            }
+
+            alert("✅ Cita confirmada exitosamente. Se ha movido a tu agenda.");
+            
+            // Recargar listas
             cargarSolicitudesPendientes();
             cargarProximasCitas();
         }
 
-        // 4. PRÓXIMAS CITAS (Confirmadas)
+        // LÓGICA DE RECHAZO Y ENVÍO DE WHATSAPP AL PACIENTE
+        async function rechazarCitaReal(citaId) {
+            if(!confirm("¿Estás seguro que deseas rechazar y anular esta solicitud médica?")) return;
+
+            const card = document.getElementById(`req-${citaId}`);
+            if(card) card.style.opacity = '0.5';
+
+            // Actualizamos en base de datos a 'Rechazado' (así no aparece en agenda)
+            const { error } = await window.midental.from('citas_agenda').update({ estado: 'Rechazado' }).eq('id', citaId);
+            
+            if(error) {
+                alert("Error técnico al rechazar la cita: " + error.message);
+                if(card) card.style.opacity = '1';
+                return;
+            }
+
+            // BUSCAR DATOS DEL PACIENTE PARA EL WHATSAPP
+            const citaData = solicitudesPendientesMemoria.find(c => c.id === citaId);
+            
+            if (citaData && citaData.perfiles_pacientes && citaData.perfiles_pacientes.telefono) {
+                const nombrePct = citaData.perfiles_pacientes.nombre_completo || 'Paciente';
+                const fonoRaw = citaData.perfiles_pacientes.telefono;
+                const fonoLimpio = fonoRaw.replace(/[^0-9]/g, '');
+                const horaSolicitada = citaData.fecha_hora_formato_slot || '(Hora no especificada)';
+
+                // EL MENSAJE PREESCRITO DE RECHAZO QUE SOLICITASTE
+                const msg = `Estimado paciente ${nombrePct}, su hora del dia ${horaSolicitada}, quedá anulada por motivos de fuerza mayor. Espero pueda reagendar.`;
+                
+                // Abrir WhatsApp
+                window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+            }
+
+            // Recargar la bandeja (la cita desaparece)
+            cargarSolicitudesPendientes();
+        }
+
+        // ==========================================
+        // 4. PRÓXIMAS CITAS (Agenda Rápida - Solo Confirmadas)
+        // ==========================================
         async function cargarProximasCitas() {
             const userId = localStorage.getItem('midental_user_id');
             const contenedor = document.getElementById('dashAgendaHoy');
             const contador = document.getElementById('dashConfirmedCount');
             if(!userId || !contenedor) return;
 
+            // Mostramos solo 'Confirmado' en la agenda rápida
             const { data: citas } = await window.midental.from('citas_agenda')
                 .select('*, perfiles_pacientes(nombre_completo)')
                 .eq('dentista_id', userId)
-                .neq('estado', 'pendiente')
+                .eq('estado', 'Confirmado') // Crucial: Solo confirmadas
                 .order('fecha_hora_formato_slot', { ascending: true })
                 .limit(5);
 
@@ -396,21 +480,27 @@
 
                 citas.forEach(cita => {
                     const pctName = cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente';
+                    // Extraer solo la hora del formato 'Vie 25/10/2024 - 10:00'
+                    const horaSolo = cita.fecha_hora_formato_slot ? cita.fecha_hora_formato_slot.split('-')[1] || cita.fecha_hora_formato_slot : '--:--';
+
                     contenedor.innerHTML += `
                         <div class="appointment-card">
-                            <div class="appointment-time">${cita.fecha_hora_formato_slot ? cita.fecha_hora_formato_slot.split('-')[1] : '--:--'}</div>
+                            <div class="appointment-time">${horaSolo}</div>
                             <div class="appointment-info" style="flex:1; margin-left: 20px;">
                                 <h4 style="margin:0 0 5px 0; color: var(--blue-elegant); font-size: 1.1rem;">${pctName}</h4>
                                 <p style="margin:0; font-size:0.9rem; color:#64748b; font-weight: 500;">${cita.motivo || 'Consulta General'}</p>
                             </div>
                             <div class="appointment-status">
                                 <span class="badge-status-verificado" style="background: #f0fdf4; color: #16a34a; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #bbf7d0;">
-                                    ${cita.estado}
+                                    Confirmado
                                 </span>
                             </div>
                         </div>
                     `;
                 });
+            } else {
+                contenedor.innerHTML = '<p style="color: #94a3b8; padding: 30px 20px; background: white; border-radius: 15px; text-align: center; border: 1px dashed #cbd5e1; font-weight: bold;">No tienes citas confirmadas para los próximos días.</p>';
+                contador.innerText = "0";
             }
         }
 
