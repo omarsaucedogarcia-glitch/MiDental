@@ -77,8 +77,8 @@
                 
                 <div class="monitor-stats mt-20">
                     <div class="stat-box time-box">
-                        <span class="material-symbols-outlined">event_busy</span>
-                        <div><small>Finaliza el:</small><strong id="monitorCronometro">--/--/----</strong></div>
+                        <span class="material-symbols-outlined">timer</span>
+                        <div><small>Finaliza en:</small><strong id="monitorCronometro" style="color: var(--pixar-cyan);">--:--:--</strong></div>
                     </div>
                     <div class="stat-box conversion-box">
                         <span class="material-symbols-outlined">visibility</span>
@@ -186,6 +186,7 @@
         let costoTokensActual = 1;
         let diasDuracionActual = 1;
         let archivoPromoSeleccionado = null;
+        let cronometroFlashInterval; // Variable para el cronómetro en vivo
 
         document.addEventListener('DOMContentLoaded', () => {
             cargarOfertaActiva();
@@ -197,7 +198,6 @@
             const inputFecha = document.getElementById('inputFechaInicio');
             if (tipo === 'programado') {
                 inputFecha.style.display = 'block';
-                // Setear la fecha mínima para que no programen en el pasado
                 const now = new Date();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 inputFecha.min = now.toISOString().slice(0, 16);
@@ -270,7 +270,7 @@
         }
 
         // ==========================================
-        // COMUNICACIÓN CON SUPABASE
+        // COMUNICACIÓN CON SUPABASE BLINDADA
         // ==========================================
 
         async function publicarOfertaEnSupabase() {
@@ -297,31 +297,41 @@
                 if (fechaInicio < new Date()) return alert("La fecha programada no puede estar en el pasado.");
             }
             
-            // Verificar saldo
-            const saldoActualStr = document.getElementById('sidebarTokenBalance').innerText;
-            const saldoActual = parseInt(saldoActualStr) || 0;
-            if (saldoActual < costoTokensActual) {
-                return alert(`Saldo insuficiente. Necesitas ${costoTokensActual} tokens y tienes ${saldoActual}.`);
-            }
-
             btn.disabled = true;
-            btn.innerHTML = "Subiendo imagen y publicando...";
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Verificando saldo...';
 
             try {
-                // 1. Subir la Imagen Promocional
+                // 0. VERIFICACIÓN DE SEGURIDAD: Leer saldo directamente desde Base de Datos
+                const { data: perfilData, error: perfilError } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('tokens_disponibles')
+                    .eq('id', dentistaId)
+                    .single();
+                
+                if(perfilError) throw new Error("Error al verificar el monedero con el servidor.");
+                
+                const saldoRealDB = perfilData.tokens_disponibles || 0;
+                
+                if (saldoRealDB < costoTokensActual) {
+                    throw new Error(`Saldo insuficiente. La campaña cuesta ${costoTokensActual} tokens, pero tu monedero real tiene ${saldoRealDB}.`);
+                }
+
+                btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Subiendo imagen y publicando...';
+
+                // 1. Subir la Imagen Promocional (CORRECCIÓN: Bucket en Mayúsculas según Políticas RLS)
                 const fileExt = archivoPromoSeleccionado.name.split('.').pop();
                 const fileName = `promo_${dentistaId}_${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await window.midental.storage.from('ofertas').upload(fileName, archivoPromoSeleccionado);
+                const { error: uploadError } = await window.midental.storage.from('OFERTAS').upload(fileName, archivoPromoSeleccionado);
                 if (uploadError) throw new Error("Error al subir la imagen: " + uploadError.message);
                 
-                const { data: urlData } = window.midental.storage.from('ofertas').getPublicUrl(fileName);
+                const { data: urlData } = window.midental.storage.from('OFERTAS').getPublicUrl(fileName);
                 const imagenPublicUrl = urlData.publicUrl;
 
                 // 2. Calcular fecha de expiración desde la fecha de INICIO
                 const fechaExpiracion = new Date(fechaInicio.getTime());
                 fechaExpiracion.setDate(fechaExpiracion.getDate() + diasDuracionActual);
 
-                // 3. Guardar en BD (Asegúrate de agregar la columna inicio_at en Supabase)
+                // 3. Guardar en BD
                 const { error: insertError } = await window.midental.from('ofertas_flash').insert([{
                     dentista_id: dentistaId,
                     servicio_nombre: nombre,
@@ -336,19 +346,21 @@
 
                 if (insertError) throw new Error("Error al guardar la oferta: " + insertError.message);
 
-                // 4. Descontar Tokens
-                const nuevoSaldo = saldoActual - costoTokensActual;
+                // 4. Descontar Tokens con el saldo validado
+                const nuevoSaldo = saldoRealDB - costoTokensActual;
                 const { error: tokenError } = await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', dentistaId);
-                if (tokenError) throw new Error("Oferta publicada, pero hubo un error con el saldo.");
+                if (tokenError) throw new Error("Oferta publicada, pero hubo un error actualizando el monedero.");
 
                 // 5. Éxito
                 if (tipoInicio === 'programado') {
-                    alert(`✅ ¡Campaña programada con éxito! Iniciará el ${fechaInicio.toLocaleString('es-CL')}.`);
+                    alert(`✅ ¡Campaña programada con éxito! Iniciará automáticamente el ${fechaInicio.toLocaleString('es-CL')}.`);
                 } else {
-                    alert("🚀 ¡Campaña activa! Los pacientes ya pueden verla destacada.");
+                    alert("🚀 ¡Campaña activa! Los pacientes de tu sector ya pueden verla y agendar.");
                 }
                 
-                window.sincronizarDatosGlobales();
+                if (typeof window.sincronizarDatosGlobales === 'function') {
+                    window.sincronizarDatosGlobales();
+                }
                 cargarOfertaActiva();
 
                 // Limpiar formulario
@@ -383,8 +395,7 @@
             if (data) {
                 document.getElementById('monitorNombrePrestacion').innerText = data.servicio_nombre;
                 
-                const fechaExp = new Date(data.expira_at);
-                document.getElementById('monitorCronometro').innerText = fechaExp.toLocaleDateString('es-CL') + " " + fechaExp.toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'});
+                const fechaExp = new Date(data.expira_at).getTime();
                 
                 // Determinar si está activa o en espera
                 let estado = "Activa en el muro";
@@ -392,11 +403,37 @@
                     estado = "Programada (En Espera)";
                 }
                 document.getElementById('monitorEstadoPublicacion').innerText = estado;
-
                 document.getElementById('monitorOfertaActiva').style.display = 'block';
                 window.ofertaActivaId = data.id; 
+
+                // CORRECCIÓN: CRONÓMETRO EN VIVO
+                clearInterval(cronometroFlashInterval);
+                cronometroFlashInterval = setInterval(function() {
+                    const ahora = new Date().getTime();
+                    const distancia = fechaExp - ahora;
+
+                    if (distancia < 0) {
+                        clearInterval(cronometroFlashInterval);
+                        document.getElementById('monitorCronometro').innerText = "Finalizada";
+                        document.getElementById('monitorCronometro').style.color = "var(--red-urgency)";
+                        return;
+                    }
+
+                    const dias = Math.floor(distancia / (1000 * 60 * 60 * 24));
+                    const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
+                    const segundos = Math.floor((distancia % (1000 * 60)) / 1000);
+
+                    let textoTiempo = "";
+                    if (dias > 0) textoTiempo += `${dias}d `;
+                    textoTiempo += `${horas.toString().padStart(2,'0')}:${minutos.toString().padStart(2,'0')}:${segundos.toString().padStart(2,'0')}`;
+                    
+                    document.getElementById('monitorCronometro').innerText = textoTiempo;
+                }, 1000);
+
             } else {
                 document.getElementById('monitorOfertaActiva').style.display = 'none';
+                clearInterval(cronometroFlashInterval);
             }
         }
 

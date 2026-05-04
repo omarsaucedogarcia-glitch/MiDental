@@ -56,10 +56,24 @@
 
         .column-header { font-size: 1.2rem; color: var(--blue-elegant); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
         
+        /* Tarjetas de Doctores */
+        .doctor-card { background: white; border-radius: 16px; padding: 20px; display: flex; gap: 15px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); margin-bottom: 15px; cursor: pointer; transition: 0.2s; align-items: center; }
+        .doctor-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-color: var(--pixar-cyan); }
+        .doc-avatar { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid var(--pixar-cyan); flex-shrink: 0; }
+        .doc-info { flex: 1; overflow: hidden; }
+        .doc-info h4 { margin: 0 0 4px 0; color: var(--blue-elegant); font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .doc-info p { margin: 0 0 5px 0; color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; }
+        
+        .urgencia-card { border-left: 5px solid #ef4444; }
+        .urgencia-card .doc-avatar { border-color: #ef4444; }
+        .btn-llamar-urgencia { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 12px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-top: 10px;}
+
         /* Modal Premium */
         .modal-content { max-height: 90vh; overflow-y: auto; padding: 30px 25px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .day-col { border: 1px solid #e2e8f0; padding: 12px; border-radius: 15px; background: #f8fafc; text-align: center; }
-        
+        .day-col { border: 1px solid #e2e8f0; padding: 12px; border-radius: 15px; background: #f8fafc; text-align: center; min-width: 100px; flex-shrink: 0;}
+        .slot-btn { width: 100%; background: white; border: 1px solid var(--pixar-cyan); color: var(--blue-elegant); padding: 8px 0; margin-top: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; font-size: 0.85rem; }
+        .slot-btn:hover, .slot-btn.selected { background: var(--pixar-cyan); color: white; }
+
         /* Ajuste menú inferior */
         .bottom-nav { background: white; border-top: none; }
     </style>
@@ -79,20 +93,26 @@
         
         <div class="search-input-wrapper">
             <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">search</span>
-            <input type="text" id="filtroComuna" placeholder="Buscar por comuna o nombre del dentista...">
+            <input type="text" id="filtroComuna" placeholder="Buscar por comuna, especialidad o nombre...">
         </div>
         <p id="contadorResultados" style="font-size: 0.85rem; color: #64748b; margin-top: 15px; margin-bottom: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Buscando especialistas...</p>
     </div>
 
     <div class="directorio-container">
+        <div id="cargandoDirectorio" style="text-align:center; padding:40px; color:#94a3b8;">
+            <span class="material-symbols-outlined" style="font-size: 3rem; animation: spin 2s linear infinite;">sync</span>
+            <p>Cargando red de profesionales...</p>
+        </div>
+
         <div class="split-layout" id="panelColumnasBase" style="display: none;">
-            
             <div>
                 <h3 class="column-header">
                     <span class="material-symbols-outlined" style="color: #ef4444;">emergency</span> 
                     Atención Inmediata
                 </h3>
-                <div id="listaUrgencias"></div>
+                <div id="listaUrgencias">
+                    <div style="text-align: center; color: #94a3b8; padding: 20px; font-size: 0.9rem;">No hay dentistas recibiendo urgencias ahora mismo.</div>
+                </div>
             </div>
 
             <div>
@@ -102,16 +122,10 @@
                 </h3>
                 <div id="listaNormal"></div>
             </div>
-
-        </div>
-        
-        <div id="cargandoDirectorio" style="text-align:center; padding:40px; color:#94a3b8;">
-            <span class="material-symbols-outlined" style="font-size: 3rem; animation: spin 2s linear infinite;">sync</span>
-            <p>Cargando red de profesionales...</p>
         </div>
     </div>
 
-    <div id="modalFichaDoctor" class="modal-overlay" style="display:none;">
+    <div id="modalFichaDoctor" class="modal-overlay" style="display:none; z-index: 1000; background: rgba(15,23,42,0.6);">
         <div class="modal-content" style="max-width: 500px;">
             <button class="btn-close" onclick="document.getElementById('modalFichaDoctor').style.display='none'"><span class="material-symbols-outlined">close</span></button>
             
@@ -130,10 +144,12 @@
             </div>
             
             <h3 style="font-size: 1.1rem; color: var(--blue-elegant); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">Selecciona tu hora</h3>
-            <div id="modalCalendarioHoras" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px;">
-                </div>
             
-            <button id="btnConfirmarCita" class="btn-pixar btn-search btn-full" onclick="window.confirmarAgendamientoPaciente()" disabled style="opacity: 0.5; padding: 15px; font-size: 1.05rem; border-radius: 15px;">Selecciona un bloque arriba</button>
+            <div id="modalCalendarioHoras" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px;">
+                <div style="text-align: center; color: #94a3b8; width: 100%; padding: 20px; font-size: 0.9rem;">Buscando disponibilidad del profesional...</div>
+            </div>
+            
+            <button id="btnConfirmarCita" class="btn-pixar btn-search btn-full" onclick="ejecutarAgendamiento()" disabled style="opacity: 0.5; padding: 15px; font-size: 1.05rem; border-radius: 15px;">Selecciona un bloque arriba</button>
         </div>
     </div>
 
@@ -148,47 +164,315 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/mapa.js"></script>
+
     <script>
-        // 1. Filtro de búsqueda en tiempo real
+        // Variables globales para el proceso de agendamiento
+        let dentistaSeleccionado = null;
+        let slotSeleccionado = null;
+        
+        // El mapa mapea números (1-7) devueltos por DB a strings legibles
+        const mapaDiasNombres = { 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo' };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Protección de rutas privadas
+            const userId = localStorage.getItem('midental_user_id');
+            const tipoUser = localStorage.getItem('midental_user_tipo');
+
+            if (!userId || tipoUser !== 'paciente') {
+                document.querySelectorAll('.priv-link').forEach(enlace => {
+                    enlace.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        alert("🔒 Modo Invitado: Para acceder a tu panel, debes iniciar sesión o crear una cuenta gratuita.");
+                        window.location.href = 'index.html';
+                    });
+                });
+            }
+
+            // Procesar parámetro de URL si el paciente hizo clic en "Urgencia Dental" en el inicio
+            const urlParams = new URLSearchParams(window.location.search);
+            const isUrgenciaFiltro = urlParams.get('urgencia');
+            
+            await cargarDirectorioMedico();
+
+            if (isUrgenciaFiltro === 'true') {
+                // Pequeña animación/scroll hacia urgencias si viene con el filtro
+                setTimeout(() => {
+                    const colUrgencias = document.querySelector('.column-header .material-symbols-outlined.emergency')?.parentNode;
+                    if(colUrgencias) colUrgencias.scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            }
+        });
+
+        // 1. CARGA RELACIONAL DEL DIRECTORIO (MÉDICOS + SEDES)
+        async function cargarDirectorioMedico() {
+            try {
+                // Obtenemos dentistas y cruzamos (join) con sus sedes
+                const { data: doctores, error } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('*, sedes_dentistas(nombre_sede, direccion, comuna)');
+                    
+                if (error) throw error;
+
+                const contenedorUrgencias = document.getElementById('listaUrgencias');
+                const contenedorNormal = document.getElementById('listaNormal');
+                
+                let htmlUrgencias = "";
+                let htmlNormal = "";
+
+                doctores.forEach(doc => {
+                    const nombreCompleto = `${doc.prefijo || 'Dr.'} ${doc.nombre_completo}`;
+                    const especialidad = doc.especialidad || 'Odontología General';
+                    const avatar = doc.avatar_url || 'assets/avatar-default-doctor.png';
+                    const telefono = doc.telefono || '';
+                    
+                    // Priorizamos la primera sede que tenga registrada
+                    const sedePrincipal = (doc.sedes_dentistas && doc.sedes_dentistas.length > 0) ? doc.sedes_dentistas[0] : null;
+                    const ubicacionStr = sedePrincipal ? `${sedePrincipal.comuna}` : 'Consulta Privada';
+                    const direccionExacta = sedePrincipal ? `${sedePrincipal.direccion}, ${sedePrincipal.comuna}` : 'Consulta Privada';
+
+                    // Convertimos todo a un JSON para pasarlo al Modal fácilmente
+                    const docDataCodificado = encodeURIComponent(JSON.stringify({
+                        id: doc.id,
+                        nombre: nombreCompleto,
+                        especialidad: especialidad,
+                        avatar: avatar,
+                        direccion: direccionExacta,
+                        telefono: telefono
+                    }));
+
+                    const tarjetaHtml = `
+                        <div class="doctor-card" data-buscar="${nombreCompleto.toLowerCase()} ${especialidad.toLowerCase()} ${ubicacionStr.toLowerCase()}">
+                            <img src="${avatar}" class="doc-avatar">
+                            <div class="doc-info" onclick="abrirPerfilDoctor('${docDataCodificado}')">
+                                <h4>${nombreCompleto}</h4>
+                                <p><span class="material-symbols-outlined" style="font-size:1rem; color:var(--pixar-orange);">star</span> ${doc.reputacion || '5.0'}</p>
+                                <p><span class="material-symbols-outlined" style="font-size:1rem;">location_on</span> ${ubicacionStr}</p>
+                                <p style="color:var(--blue-elegant); font-weight:bold;"><span class="material-symbols-outlined" style="font-size:1rem;">medical_services</span> ${especialidad}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    const tarjetaUrgenciaHtml = `
+                        <div class="doctor-card urgencia-card" data-buscar="${nombreCompleto.toLowerCase()} ${especialidad.toLowerCase()} ${ubicacionStr.toLowerCase()}">
+                            <img src="${avatar}" class="doc-avatar">
+                            <div class="doc-info">
+                                <h4>${nombreCompleto}</h4>
+                                <p><span class="material-symbols-outlined" style="font-size:1rem;">location_on</span> ${ubicacionStr}</p>
+                                <button class="btn-llamar-urgencia" onclick="llamarUrgencia('${telefono}', '${nombreCompleto}')">
+                                    <span class="material-symbols-outlined" style="font-size: 1.2rem;">call</span>
+                                    LLAMAR AHORA
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Evaluamos la columna 'disponible_urgencia' (el switch del dashboard del doctor)
+                    if (doc.disponible_urgencia) {
+                        htmlUrgencias += tarjetaUrgenciaHtml;
+                    }
+                    htmlNormal += tarjetaHtml;
+                });
+
+                document.getElementById('cargandoDirectorio').style.display = 'none';
+                document.getElementById('panelColumnasBase').style.display = 'grid';
+
+                if (htmlUrgencias !== "") contenedorUrgencias.innerHTML = htmlUrgencias;
+                if (htmlNormal !== "") contenedorNormal.innerHTML = htmlNormal;
+                
+                document.getElementById('contadorResultados').innerText = `${doctores.length} especialistas encontrados`;
+
+            } catch (err) {
+                console.error("Error al cargar directorio:", err);
+                document.getElementById('cargandoDirectorio').innerHTML = `<p style="color:red;">Error de conexión. Reintenta más tarde.</p>`;
+            }
+        }
+
+        function llamarUrgencia(telefono, nombreDr) {
+            if(!telefono) return alert("Este especialista no tiene un teléfono público configurado.");
+            let fonoLimpio = telefono.replace(/[^0-9]/g, '');
+            let msg = `Hola ${nombreDr}, los encontré en MiDental. Tengo una URGENCIA DENTAL y necesito atención inmediata.`;
+            window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // 2. FILTRO DE BÚSQUEDA EN TIEMPO REAL
         document.getElementById('filtroComuna').addEventListener('input', function(e) {
-            const termino = e.target.value.toLowerCase();
+            const termino = e.target.value.toLowerCase().trim();
             const tarjetas = document.querySelectorAll('.doctor-card');
             let visibles = 0;
             
-            tarjetas.forEach(wrapper => {
-                const texto = wrapper.innerText.toLowerCase();
-                if(texto.includes(termino)) {
-                    wrapper.style.display = 'flex';
+            tarjetas.forEach(card => {
+                const textoBuscable = card.getAttribute('data-buscar');
+                if(textoBuscable.includes(termino)) {
+                    card.style.display = 'flex';
                     visibles++;
                 } else {
-                    wrapper.style.display = 'none';
+                    card.style.display = 'none';
                 }
             });
             document.getElementById('contadorResultados').innerText = `${visibles} especialistas encontrados`;
         });
 
         // ==========================================
-        // 2. GUARDIÁN DE MODO INVITADO (GUEST MODE GUARD)
+        // 3. FLUJO DE AGENDAMIENTO (MODAL Y CALENDARIO)
         // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
+        async function abrirPerfilDoctor(dataCodificada) {
+            dentistaSeleccionado = JSON.parse(decodeURIComponent(dataCodificada));
+            slotSeleccionado = null; // Reiniciar selección
+
+            document.getElementById('modalDocNombre').innerText = dentistaSeleccionado.nombre;
+            document.getElementById('modalDocAvatar').src = dentistaSeleccionado.avatar;
+            document.getElementById('modalDocEspecialidad').innerText = dentistaSeleccionado.especialidad;
+            document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.direccion;
+
+            const btnConfirmar = document.getElementById('btnConfirmarCita');
+            btnConfirmar.innerText = "Selecciona un bloque arriba";
+            btnConfirmar.disabled = true;
+            btnConfirmar.style.opacity = '0.5';
+
+            document.getElementById('modalCalendarioHoras').innerHTML = `<div style="text-align: center; color: #94a3b8; width: 100%; padding: 20px;">Cargando agenda...</div>`;
+            document.getElementById('modalFichaDoctor').style.display = 'flex';
+
+            // Cargar horarios del doctor desde la base de datos relacional
+            await cargarHorariosDeDoctor();
+        }
+
+        async function cargarHorariosDeDoctor() {
+            try {
+                // Buscamos las sedes de este dentista para obtener los horarios vinculados
+                const { data: sedesConHorarios, error } = await window.midental
+                    .from('sedes_dentistas')
+                    .select('id, horarios_disponibles(dia_semana, hora_inicio)')
+                    .eq('dentista_id', dentistaSeleccionado.id);
+
+                if (error) throw error;
+
+                const contenedorHoras = document.getElementById('modalCalendarioHoras');
+                contenedorHoras.innerHTML = "";
+
+                // Consolidamos todos los horarios en un solo array, por si tiene más de una sede
+                let bloquesDisponiblesCrudos = [];
+                if (sedesConHorarios) {
+                    sedesConHorarios.forEach(sede => {
+                        if(sede.horarios_disponibles) {
+                            bloquesDisponiblesCrudos.push(...sede.horarios_disponibles);
+                        }
+                    });
+                }
+
+                if (bloquesDisponiblesCrudos.length === 0) {
+                    contenedorHoras.innerHTML = `<div style="text-align: center; color: #ef4444; width: 100%; padding: 20px;">El especialista no tiene horarios disponibles configurados.</div>`;
+                    return;
+                }
+
+                // Generamos los próximos 7 días a partir de hoy para que el paciente elija
+                const fechaHoy = new Date();
+                let htmlColumnas = "";
+
+                for (let i = 0; i < 7; i++) {
+                    const fechaColumna = new Date(fechaHoy);
+                    fechaColumna.setDate(fechaHoy.getDate() + i);
+                    
+                    const numDiaJS = fechaColumna.getDay() === 0 ? 7 : fechaColumna.getDay(); // (1-Lunes, 7-Domingo)
+                    const diaNombreUI = i === 0 ? 'Hoy' : (i === 1 ? 'Mañana' : mapaDiasNombres[numDiaJS].substring(0,3));
+                    const fechaCortaStr = `${fechaColumna.getDate().toString().padStart(2,'0')}/${(fechaColumna.getMonth()+1).toString().padStart(2,'0')}`;
+                    
+                    // Filtrar los bloques de la DB que coincidan con el día de la semana de esta columna
+                    const bloquesDeEsteDia = bloquesDisponiblesCrudos.filter(b => b.dia_semana === numDiaJS);
+
+                    let htmlBotonesSlot = "";
+                    if (bloquesDeEsteDia.length > 0) {
+                        // Ordenar por hora
+                        bloquesDeEsteDia.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+                        
+                        bloquesDeEsteDia.forEach(bloque => {
+                            const horaLimpia = bloque.hora_inicio.substring(0, 5); // ej: "08:00"
+                            // El string final que se guardará en la tabla Citas, idéntico al formato del Dashboard-Dentista
+                            const slotExactoDb = `${mapaDiasNombres[numDiaJS].substring(0,3)} ${fechaCortaStr}/${fechaColumna.getFullYear()} - ${horaLimpia}`;
+                            
+                            htmlBotonesSlot += `<button class="slot-btn" onclick="seleccionarBloque(this, '${slotExactoDb}')">${horaLimpia}</button>`;
+                        });
+                    } else {
+                        htmlBotonesSlot = `<div style="color:#cbd5e1; font-size:0.75rem; margin-top:15px;">Sin atención</div>`;
+                    }
+
+                    htmlColumnas += `
+                        <div class="day-col">
+                            <strong style="color:var(--blue-elegant); font-size:0.95rem; display:block;">${diaNombreUI}</strong>
+                            <span style="color:#64748b; font-size:0.75rem; display:block; margin-bottom:10px;">${fechaCortaStr}</span>
+                            ${htmlBotonesSlot}
+                        </div>
+                    `;
+                }
+
+                contenedorHoras.innerHTML = htmlColumnas;
+
+            } catch (err) {
+                document.getElementById('modalCalendarioHoras').innerHTML = `<div style="color:red; width:100%; text-align:center;">Fallo al cargar agenda.</div>`;
+            }
+        }
+
+        function seleccionarBloque(btnElement, slotDbString) {
+            // Deseleccionar anteriores
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+            // Seleccionar actual
+            btnElement.classList.add('selected');
+            
+            slotSeleccionado = slotDbString;
+            
+            const btnConfirmar = document.getElementById('btnConfirmarCita');
+            btnConfirmar.innerHTML = `Agendar <span style="font-weight:normal;">${slotSeleccionado.split('-')[1]}</span>`;
+            btnConfirmar.disabled = false;
+            btnConfirmar.style.opacity = '1';
+        }
+
+        async function ejecutarAgendamiento() {
+            // Verificamos si es un paciente registrado o un invitado simulando
             const userId = localStorage.getItem('midental_user_id');
             const tipoUser = localStorage.getItem('midental_user_tipo');
 
-            // Si NO hay un usuario logueado legítimamente como paciente
             if (!userId || tipoUser !== 'paciente') {
-                const enlacesPrivados = document.querySelectorAll('.priv-link');
-                
-                enlacesPrivados.forEach(enlace => {
-                    enlace.addEventListener('click', function(e) {
-                        e.preventDefault(); // Detiene la redirección
-                        alert("🔒 Modo Invitado: Para acceder a tu panel, historial de citas o documentos, debes iniciar sesión o crear una cuenta gratuita.");
-                        window.location.href = 'index.html';
-                    });
-                });
+                alert("Debes iniciar sesión con tu cuenta de paciente para poder confirmar esta hora.");
+                window.location.href = 'index.html';
+                return;
             }
-        });
+
+            const btnConfirmar = document.getElementById('btnConfirmarCita');
+            btnConfirmar.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Confirmando...';
+            btnConfirmar.disabled = true;
+
+            try {
+                // Insertamos la cita en la tabla 'citas_agenda' en estado 'pendiente'
+                // El dashboard del dentista la recogerá y mostrará en su bandeja de "Solicitudes de Agendamiento"
+                const { error } = await window.midental.from('citas_agenda').insert([{
+                    paciente_id: userId,
+                    dentista_id: dentistaSeleccionado.id,
+                    fecha_hora_formato_slot: slotSeleccionado,
+                    estado: 'pendiente',
+                    motivo: 'Evaluación General (Desde Mapa de Paciente)'
+                }]);
+
+                if (error) throw error;
+
+                // Fricción Cero: Abrir WhatsApp para avisar al dentista
+                const nombrePcte = localStorage.getItem('midental_user_name') || 'Un paciente';
+                let fonoLimpio = dentistaSeleccionado.telefono ? dentistaSeleccionado.telefono.replace(/[^0-9]/g, '') : '';
+                
+                alert(`✅ ¡Solicitud enviada!\n\nTu hora quedó reservada como pendiente. Ahora serás redirigido al WhatsApp de ${dentistaSeleccionado.nombre} para confirmar directamente.`);
+                document.getElementById('modalFichaDoctor').style.display = 'none';
+                
+                if (fonoLimpio) {
+                    let msg = `Hola ${dentistaSeleccionado.nombre}, acabo de agendar una hora para el ${slotSeleccionado} a través de la plataforma MiDental. Quedo atento a la confirmación.`;
+                    window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+                } else {
+                    window.location.href = 'citas-paciente.html';
+                }
+
+            } catch (err) {
+                alert("Error técnico al agendar: " + err.message);
+                btnConfirmar.innerText = "Reintentar";
+                btnConfirmar.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>

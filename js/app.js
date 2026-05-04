@@ -67,7 +67,7 @@ async function registrarUsuarioMidental(tipo) {
     };
 
     for (const [campo, elemento] of Object.entries(elementos)) {
-        if (!elemento) return alert(`🛑 Error: Falta el campo "${campo}".`);
+        if (!elemento) return alert(`🛑 Error: Falta el campo de interfaz "${campo}".`);
     }
 
     const rutCrudo = elementos.rut.value;
@@ -89,7 +89,7 @@ async function registrarUsuarioMidental(tipo) {
     if (!tycAceptados) return alert("⚠️ Acepta los Términos y Condiciones.");
     if (!rutCrudo || !nombre || !telefonoCrudo || !pass) return alert("⚠️ Completa los campos obligatorios.");
     if (pass !== passConfirm) return alert("❌ Las contraseñas no coinciden.");
-    if (!/^(?=.*\d)(?=.*[A-Z]).{8,}$/.test(pass)) return alert("⚠️ Contraseña: Mínimo 8 caracteres, una mayúscula y un número.");
+    if (!/^(?=.*\d)(?=.*[a-zA-Z]).{6,}$/.test(pass)) return alert("⚠️ Contraseña: Mínimo 6 caracteres, incluyendo letras y números.");
 
     const rutLimpio = formatearRutEstricto(rutCrudo);
     const telefonoFormateado = formatearTelefonoParaWhatsApp(telefonoCrudo);
@@ -111,11 +111,11 @@ async function registrarUsuarioMidental(tipo) {
         const { error: dbError } = await window.midental.from(tabla).upsert([payload], { onConflict: 'id' });
         if (dbError) throw dbError;
         
-        alert("🎉 ¡Registro exitoso!");
+        alert("🎉 ¡Registro exitoso! Ya puedes iniciar sesión.");
         document.getElementById(`modalRegistro${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).style.display = 'none';
         document.getElementById(`modalLogin${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).style.display = 'flex';
     } catch (err) {
-        alert(`Error: ${err.message}`);
+        alert(`Error al registrar: ${err.message}`);
     }
 }
 
@@ -127,16 +127,18 @@ async function iniciarSesion(tipo) {
 
     if (!rutInput || !password) return alert("⚠️ Ingresa RUT y Contraseña.");
     const textoOriginal = btn.innerHTML; 
-    btn.innerHTML = "Verificando...";
+    btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Verificando...';
 
     try {
         const rutLimpio = formatearRutEstricto(rutInput);
         const tabla = tipo === 'dentista' ? 'perfiles_dentistas' : 'perfiles_pacientes';
 
         const { data: perfil } = await window.midental.from(tabla).select('email').eq('rut', rutLimpio).maybeSingle();
+        
         let emailParaLogin = perfil?.email;
+        // Respaldo de seguridad para pacientes registrados manualmente o sin correo
         if (!emailParaLogin && tipo === 'paciente') emailParaLogin = `${rutLimpio.replace(/[^0-9kK]/g, '')}@paciente.midental.cl`;
-        if (!emailParaLogin) throw new Error("RUT no registrado.");
+        if (!emailParaLogin) throw new Error("RUT no registrado en nuestra red.");
 
         const { data: session, error: authError } = await window.midental.auth.signInWithPassword({ email: emailParaLogin, password: password });
         if (authError) throw new Error("Contraseña incorrecta.");
@@ -144,7 +146,6 @@ async function iniciarSesion(tipo) {
         localStorage.setItem('midental_user_id', session.user.id);
         localStorage.setItem('midental_user_tipo', tipo);
         
-        // ¡LA REDIRECCIÓN CORREGIDA!
         window.location.href = (tipo === 'dentista') ? 'dashboard-dentista.html' : 'dashboard-paciente.html';
         
     } catch (err) {
@@ -153,16 +154,8 @@ async function iniciarSesion(tipo) {
     }
 }
 
-async function recuperarPassword() {
-    const email = prompt("Ingresa el correo electrónico asociado a tu cuenta:");
-    if (email) {
-        const { error } = await window.midental.auth.resetPasswordForEmail(email);
-        alert(error ? "Error: " + error.message : "Se ha enviado un enlace a tu correo.");
-    }
-}
-
 // ------------------------------------------
-// 3. SINCRONIZACIÓN GLOBAL
+// 3. SINCRONIZACIÓN GLOBAL MULTI-PERFIL
 // ------------------------------------------
 window.sincronizarDatosGlobales = async function() {
     const userId = localStorage.getItem('midental_user_id');
@@ -177,10 +170,13 @@ window.sincronizarDatosGlobales = async function() {
                 .forEach(id => { const el = document.getElementById(id); if (el) el.src = dr.avatar_url; });
             }
             const nombreCompleto = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}`;
+            
+            // Actualización de textos en el DOM del Dentista
             if (document.getElementById('sidebarNombreCompleto')) document.getElementById('sidebarNombreCompleto').innerText = nombreCompleto;
             if (document.getElementById('sidebarEspecialidad')) document.getElementById('sidebarEspecialidad').innerText = dr.especialidad || 'Especialista';
             if (document.getElementById('dashGreeting')) document.getElementById('dashGreeting').innerText = `Hola, ${nombreCompleto} 👋`;
             
+            // Relleno de inputs en la vista de perfil
             if (document.getElementById('dentistaNombre')) {
                 document.getElementById('dentistaPrefijo').value = dr.prefijo || 'Dr.';
                 document.getElementById('dentistaNombre').value = dr.nombre_completo || '';
@@ -190,50 +186,76 @@ window.sincronizarDatosGlobales = async function() {
                 document.getElementById('dentistaSIS').value = dr.registro_sis || '';
             }
 
+            // Sincronización del Monedero
             ['displayTokens', 'dashTokens', 'headerTokenBalance', 'sidebarTokenBalance', 'b2bTokenBalance']
             .forEach(id => { const el = document.getElementById(id); if (el) el.innerText = dr.tokens_disponibles || "0"; });
+        }
+    } else if (tipo === 'paciente') {
+        const { data: pcte } = await window.midental.from('perfiles_pacientes').select('*').eq('id', userId).single();
+        if (pcte) {
+            localStorage.setItem('midental_user_name', pcte.nombre_completo);
+            
+            // Si la vista tiene un avatar en la barra superior (como el mapa o el dashboard)
+            if (pcte.avatar_url && document.getElementById('topbarAvatar')) {
+                document.getElementById('topbarAvatar').src = pcte.avatar_url;
+            }
+            
+            if (document.getElementById('nombrePacienteUi')) {
+                const primerNombre = pcte.nombre_completo.split(' ')[0];
+                document.getElementById('nombrePacienteUi').innerText = primerNombre.charAt(0).toUpperCase() + primerNombre.slice(1).toLowerCase();
+            }
         }
     }
 }
 
 // ------------------------------------------
-// 4. LÓGICA DE AGENDA VISUAL Y WHATSAPP
+// 4. LÓGICA DE AGENDA VISUAL Y WHATSAPP (Sincronizada con DB)
 // ------------------------------------------
 window.cargarAgendaDesdeSedes = async function() {
     const userId = localStorage.getItem('midental_user_id');
     if (!userId) return;
 
     try {
-        const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, horarios_json').eq('dentista_id', userId);
-        if (sedes) {
-            sedes.forEach(sede => {
-                if (sede.horarios_json && Array.isArray(sede.horarios_json)) {
-                    sede.horarios_json.forEach(slot => {
-                        const celdaHTML = document.querySelector(`[data-slot="${slot}"]`);
-                        if (celdaHTML) celdaHTML.innerHTML = `<div class="slot-workplace" onclick="clicOpcionesSede(event, '${slot}')"><div class="watermark-text">${sede.nombre_sede}</div></div>`;
-                    });
-                }
+        // 1. Extraemos los horarios disponibles (Cruce con sedes)
+        const { data: horarios } = await window.midental
+            .from('horarios_disponibles')
+            .select('dia_semana, hora_inicio, hora_fin, sedes_dentistas!inner(nombre_sede)')
+            .eq('sedes_dentistas.dentista_id', userId);
+
+        if (horarios && horarios.length > 0) {
+            horarios.forEach(bloque => {
+                let hInicio = bloque.hora_inicio.substring(0, 5); // ej: 08:00
+                // Asumimos que los bloques HTML tienen data-dia-semana (1-7) y data-hora
+                document.querySelectorAll(`[data-dia-semana="${bloque.dia_semana}"]`).forEach(celda => {
+                    let horaCelda = celda.getAttribute('data-hora');
+                    if (horaCelda === hInicio) {
+                        celda.innerHTML = `<div class="slot-workplace"><div class="watermark-text">${bloque.sedes_dentistas.nombre_sede}</div></div>`;
+                    }
+                });
             });
         }
 
+        // 2. Extraemos las Citas Agendadas y las sobreescribimos visualmente
         const { data: citas } = await window.midental.from('citas_agenda').select('*, perfiles_pacientes(nombre_completo, telefono)').eq('dentista_id', userId);
         if (citas) {
             citas.forEach(cita => {
-                const slot = cita.fecha_hora_formato_slot; 
-                const celdaHTML = document.querySelector(`[data-slot="${slot}"]`);
+                const slotIdBusqueda = cita.fecha_hora_formato_slot; 
+                const celdaHTML = document.querySelector(`[data-slot-real="${slotIdBusqueda}"]`);
+                
                 if (celdaHTML) {
-                    const pctName = cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente';
-                    const pctTel = cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '';
-                    const estado = cita.estado || 'Confirmado';
-                    let cls = 'event-confirmed';
-                    if(estado.toLowerCase() === 'en curso') cls = 'event-inprogress';
-                    if(estado.toLowerCase() === 'finalizado') cls = 'event-completed';
+                    const pctName = cita.paciente_nombre_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente');
+                    const pctTel = cita.paciente_telefono_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '');
                     
-                    celdaHTML.innerHTML = `<div class="${cls}" onclick="abrirDetallePaciente('${pctName}', '${cita.motivo || 'Consulta'}', '${pctTel}', '${estado}', '${slot}', this.parentElement, '')"><strong>${pctName}</strong></div>`;
+                    const estadoBase = cita.estado || 'pendiente';
+                    const estadoLimpio = estadoBase.toLowerCase().replace(' ', '_');
+                    
+                    let cls = `event-${estadoLimpio}`;
+                    
+                    celdaHTML.innerHTML = `<div class="event-base ${cls}" onclick="abrirDetallePaciente('${pctName}', '${cita.motivo || 'Consulta'}', '${pctTel}', '${estadoBase}', '${slotIdBusqueda}')" title="${pctName}"><strong>${pctName}</strong></div>`;
                 }
             });
         }
-    } catch (err) { console.error("Error agenda:", err); }
+    } catch (err) { console.error("Error al cargar la agenda visual en app.js:", err); }
 }
 
 window.confirmarPorWhatsApp = function(pNombre, diaHora, pTelefono) {
@@ -243,7 +265,9 @@ window.confirmarPorWhatsApp = function(pNombre, diaHora, pTelefono) {
     window.open(`https://wa.me/${telLimpio}?text=${mensaje}`, '_blank');
 }
 
-// Cierre de sesión blindado
+// ------------------------------------------
+// 5. CIERRE DE SESIÓN BLINDADO
+// ------------------------------------------
 window.cerrarSesionLocal = async function() {
     try {
         if (window.midental && window.midental.auth) {

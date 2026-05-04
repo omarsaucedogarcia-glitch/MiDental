@@ -88,6 +88,8 @@
     <script src="js/app.js"></script>
     
     <script>
+        let cronometroGlobalInterval;
+
         document.addEventListener('DOMContentLoaded', () => {
             cargarOfertas();
             cargarReels();
@@ -124,26 +126,15 @@
                 contenedor.innerHTML = "";
                 ofertas.forEach(oferta => {
                     const dr = oferta.perfiles_dentistas || {};
-                    const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || 'Especialista'}`;
+                    const nombreBase = dr.nombre_completo || '';
+                    if (!nombreBase) return; // Evita mostrar ofertas de doctores eliminados
+
+                    const drName = `${dr.prefijo || 'Dr.'} ${nombreBase}`;
                     const imgUrl = oferta.imagen_url || 'https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial';
                     
                     let porcentajeDesc = 0;
                     if(oferta.precio_real > 0) {
                         porcentajeDesc = Math.round(((oferta.precio_real - oferta.precio_oferta) / oferta.precio_real) * 100);
-                    }
-
-                    const expiraDate = new Date(oferta.expira_at);
-                    const ahora = new Date();
-                    const diffMs = expiraDate - ahora;
-                    
-                    let textoTiempo = "";
-                    if (diffMs > 0) {
-                        const horasTotales = Math.floor(diffMs / (1000 * 60 * 60));
-                        const dias = Math.floor(horasTotales / 24);
-                        const horasSueltas = horasTotales % 24;
-                        
-                        if (dias > 0) textoTiempo = `Termina en ${dias} d y ${horasSueltas} h`;
-                        else textoTiempo = `¡Termina en ${horasTotales} horas!`;
                     }
 
                     contenedor.innerHTML += `
@@ -159,9 +150,9 @@
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <span style="background:var(--pixar-orange); color:white; padding:3px 8px; border-radius:10px; font-size:0.7rem; font-weight:bold;">DESTACADO</span>
                                     
-                                    <div style="display:flex; align-items:center; gap:5px; color:var(--pixar-orange); font-size:0.85rem; font-weight:bold; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px;">
+                                    <div class="timer-container" data-expira="${oferta.expira_at}" style="display:flex; align-items:center; gap:5px; color:var(--pixar-orange); font-size:0.85rem; font-weight:bold; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px;">
                                         <span class="material-symbols-outlined reloj-urgencia" style="font-size:1.1rem;">timer</span>
-                                        ${textoTiempo}
+                                        <span class="tiempo-restante">Calculando...</span>
                                     </div>
                                 </div>
                                 
@@ -179,20 +170,54 @@
                                     </div>
                                 </div>
                                 
-                                <button class="btn-pixar btn-outline mt-15" style="width:100%; border-radius:12px; padding: 12px; font-size: 1rem; border-width: 2px;" onclick="window.location.href='mapa-paciente.html'">
+                                <button class="btn-pixar btn-outline mt-15" style="width:100%; border-radius:12px; padding: 12px; font-size: 1rem; border-width: 2px;" onclick="window.location.href='mapa-paciente.html?doctor=${encodeURIComponent(nombreBase)}'">
                                     Agendar con este precio
                                 </button>
                             </div>
                         </div>
                     `;
                 });
+
+                // Iniciar el motor de tiempo real para todas las ofertas renderizadas
+                iniciarCronometrosEnVivo();
+
             } catch (err) {
                 console.error("Error al cargar ofertas:", err);
                 contenedor.innerHTML = `<p style="color:red; text-align:center;">Ocurrió un error al cargar las promociones.</p>`;
             }
         }
 
-        // 3. CARGAR REELS (SHORTS) - VERSIÓN INTELIGENTE (NUEVO)
+        // MOTOR DE CRONÓMETROS EN TIEMPO REAL
+        function iniciarCronometrosEnVivo() {
+            clearInterval(cronometroGlobalInterval);
+            cronometroGlobalInterval = setInterval(() => {
+                document.querySelectorAll('.timer-container').forEach(el => {
+                    const expiraDate = new Date(el.dataset.expira).getTime();
+                    const ahora = new Date().getTime();
+                    const diffMs = expiraDate - ahora;
+
+                    if (diffMs <= 0) {
+                        el.querySelector('.tiempo-restante').innerText = "¡Finalizada!";
+                        el.style.color = "#ef4444";
+                        return;
+                    }
+                    
+                    const horasTotales = Math.floor(diffMs / (1000 * 60 * 60));
+                    const dias = Math.floor(horasTotales / 24);
+                    const horasSueltas = horasTotales % 24;
+                    const minutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const segundos = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+                    if (dias > 0) {
+                        el.querySelector('.tiempo-restante').innerText = `Termina en ${dias}d y ${horasSueltas}h`;
+                    } else {
+                        el.querySelector('.tiempo-restante').innerText = `¡${horasTotales.toString().padStart(2,'0')}:${minutos.toString().padStart(2,'0')}:${segundos.toString().padStart(2,'0')}!`;
+                    }
+                });
+            }, 1000);
+        }
+
+        // 3. CARGAR REELS (SHORTS) - VERSIÓN INTELIGENTE
         async function cargarReels() {
             const contenedor = document.getElementById('reelsContenedor');
             try {
@@ -211,15 +236,16 @@
                 contenedor.innerHTML = "";
                 videos.forEach(vid => {
                     const dr = vid.perfiles_dentistas || {};
-                    const drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || 'Especialista'}`;
+                    const nombreBase = dr.nombre_completo || '';
+                    if (!nombreBase) return; // Validación de integridad
+
+                    const drName = `${dr.prefijo || 'Dr.'} ${nombreBase}`;
                     const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
                     
-                    // --- LÓGICA ROBUSTA PARA DETECTAR VIDEOS (EL "TRADUCTOR") ---
                     let embedUrl = "";
                     let urlOriginal = vid.video_url || "";
                     let videoId = "";
 
-                    // Extraer ID según el tipo de link que haya pegado el dentista
                     if (urlOriginal.includes('youtube.com/shorts/')) {
                         videoId = urlOriginal.split('shorts/')[1].split('?')[0];
                     } else if (urlOriginal.includes('youtu.be/')) {
@@ -228,7 +254,6 @@
                         try { videoId = new URLSearchParams(urlOriginal.split('?')[1]).get('v'); } catch(e){}
                     }
 
-                    // Si logramos sacar el ID de YouTube, armamos el iframe seguro
                     if (videoId) {
                         embedUrl = `https://www.youtube.com/embed/${videoId}`;
                     }
@@ -259,8 +284,8 @@
                                 </div>
                                 <p style="margin: 0 0 15px 0; color: #cbd5e1; font-size: 0.9rem; line-height: 1.4;">${vid.descripcion || 'Sin descripción.'}</p>
                                 
-                                <button class="btn-pixar" style="width: 100%; border-radius: 12px; padding: 12px; font-weight: bold;" onclick="window.location.href='mapa-paciente.html'">
-                                    Agendar con ${dr.prefijo || 'Dr.'} ${dr.nombre_completo ? dr.nombre_completo.split(' ')[0] : 'este especialista'}
+                                <button class="btn-pixar" style="width: 100%; border-radius: 12px; padding: 12px; font-weight: bold;" onclick="window.location.href='mapa-paciente.html?doctor=${encodeURIComponent(nombreBase)}'">
+                                    Agendar con ${dr.prefijo || 'Dr.'} ${nombreBase.split(' ')[0]}
                                 </button>
                             </div>
                         </div>

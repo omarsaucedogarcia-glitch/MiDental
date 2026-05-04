@@ -259,8 +259,19 @@
 
                 if (errorHistorial) throw new Error("Fallo al guardar el registro de la transacción.");
 
-                // PASO 3: Actualizar el saldo en el perfil del dentista
-                const nuevoSaldo = saldoTokensActual + cantidadComprar;
+                // PASO 3: Obtener el saldo MÁS RECIENTE directo de la base de datos para evitar pisar datos si usó otra pestaña
+                const { data: perfilData, error: errorLectura } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('tokens_disponibles')
+                    .eq('id', dentistaId)
+                    .single();
+
+                if (errorLectura) throw new Error("No se pudo verificar tu billetera para la recarga.");
+
+                const saldoRealDB = perfilData.tokens_disponibles || 0;
+                const nuevoSaldo = saldoRealDB + cantidadComprar;
+
+                // PASO 4: Actualizar el saldo en el perfil del dentista
                 const { error: errorPerfil } = await window.midental
                     .from('perfiles_dentistas')
                     .update({ tokens_disponibles: nuevoSaldo })
@@ -268,7 +279,7 @@
 
                 if (errorPerfil) throw new Error("Pago exitoso, pero fallo al recargar los tokens. Contacta soporte.");
 
-                // PASO 4: Éxito
+                // PASO 5: Éxito
                 alert(`✅ ¡Pago Aprobado!\nSe han cargado ${cantidadComprar} tokens a tu monedero.`);
                 
                 // Actualizar la interfaz

@@ -93,7 +93,7 @@
                 <span class="material-symbols-outlined icon-cyan">location_on</span>
                 <input type="text" placeholder="Comuna o ubicación..." class="apple-input" id="searchUbicacion">
             </div>
-            <button class="btn-pixar btn-search-round" onclick="window.location.href='mapa-paciente.html'">Buscar</button>
+            <button class="btn-pixar btn-search-round" onclick="ejecutarBusquedaInicial()">Buscar</button>
         </div>
     </main>
 
@@ -155,15 +155,15 @@
         <div class="modal-content">
             <button class="btn-close" onclick="cerrarModal('modalLoginPaciente')"><span class="material-symbols-outlined">close</span></button>
             <h2 class="modal-title">Hola Paciente 👋</h2>
-            <form class="form-registro">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="loginPacienteRUT" placeholder="Ingresa tu RUT" class="apple-input-modal" oninput="formatearRutInput(this)" required></div>
+            <form class="form-registro" id="formLoginPaciente">
+                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="loginPacienteRUT" placeholder="Ingresa tu RUT" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
                 <div class="input-group-modal mb-10"><span class="material-symbols-outlined">lock</span><input type="password" id="loginPacientePassword" placeholder="Tu contraseña" class="apple-input-modal" required></div>
                 
                 <div style="text-align: right; margin-bottom: 15px;">
                     <a href="javascript:void(0)" onclick="abrirRecuperarPassword()" style="color: var(--pixar-cyan); font-size: 0.85rem; text-decoration: underline;">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <button type="button" class="btn-pixar btn-full" onclick="iniciarSesion('paciente')">Ingresar</button>
+                <button type="submit" class="btn-pixar btn-full" onclick="event.preventDefault(); if(document.getElementById('formLoginPaciente').checkValidity()) iniciarSesion('paciente'); else document.getElementById('formLoginPaciente').reportValidity();">Ingresar</button>
             </form>
             <div class="modal-footer-text" style="margin-top: 15px; text-align: center;">
                 <p style="font-size: 0.9rem; margin-bottom: 5px;">¿Aún no tienes cuenta?</p>
@@ -177,13 +177,13 @@
             <button class="btn-close" onclick="cerrarModal('modalRegistroPaciente')"><span class="material-symbols-outlined">close</span></button>
             <h2 class="modal-title">Registro Paciente</h2>
             <form class="form-registro" id="formRegistroPaciente">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="formatearRutInput(this)" required></div>
+                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regPacienteNombre" placeholder="Nombre Completo" class="apple-input-modal" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="formatearTelefonoInput(this)" required></div>
+                <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regPacienteEmail" placeholder="correo@ejemplo.com (Vital para recuperar clave)" class="apple-input-modal" required></div>
                 
                 <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
-                    <input type="password" id="regPacientePassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[A-Z]).{8,}" title="Debe contener al menos 8 caracteres, un número y una letra mayúscula" required>
+                    <input type="password" id="regPacientePassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
                 </div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
                     <input type="password" id="regPacientePasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
@@ -196,7 +196,7 @@
                     </label>
                 </div>
                 
-                <button type="submit" class="btn-pixar btn-full" onclick="event.preventDefault(); if(document.getElementById('formRegistroPaciente').checkValidity()) registrarUsuarioMidental('paciente'); else document.getElementById('formRegistroPaciente').reportValidity();">Crear mi cuenta</button>
+                <button type="submit" class="btn-pixar btn-full" onclick="procesarRegistroPaciente(event)">Crear mi cuenta</button>
             </form>
         </div>
     </div>
@@ -205,15 +205,15 @@
         <div class="modal-content">
             <button class="btn-close" onclick="cerrarModal('modalLoginDentista')"><span class="material-symbols-outlined">close</span></button>
             <h2 class="modal-title">Acceso Profesional 🦷</h2>
-            <form class="form-registro">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="loginDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="formatearRutInput(this)" required></div>
+            <form class="form-registro" id="formLoginDentista">
+                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="loginDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
                 <div class="input-group-modal mb-10"><span class="material-symbols-outlined">lock</span><input type="password" id="loginDentistaPassword" placeholder="Tu contraseña" class="apple-input-modal" required></div>
                 
                 <div style="text-align: right; margin-bottom: 15px;">
                     <a href="javascript:void(0)" onclick="abrirRecuperarPassword()" style="color: var(--dentista-color, #4ade80); font-size: 0.85rem; text-decoration: underline;">¿Olvidaste tu contraseña?</a>
                 </div>
 
-                <button type="button" class="btn-pixar btn-dentista btn-full" onclick="iniciarSesion('dentista')">Ingresar al Portal</button>
+                <button type="submit" class="btn-pixar btn-dentista btn-full" onclick="event.preventDefault(); if(document.getElementById('formLoginDentista').checkValidity()) iniciarSesion('dentista'); else document.getElementById('formLoginDentista').reportValidity();">Ingresar al Portal</button>
             </form>
             <div class="modal-footer-text" style="margin-top: 15px; text-align: center;">
                 <p style="font-size: 0.9rem; margin-bottom: 5px;">¿Eres un nuevo profesional en la red?</p>
@@ -227,14 +227,14 @@
             <button class="btn-close" onclick="cerrarModal('modalRegistroDentista')"><span class="material-symbols-outlined">close</span></button>
             <h2 class="modal-title">Únete a la Red 🦷</h2>
             <form class="form-registro" id="formRegistroDentista">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="formatearRutInput(this)" required></div>
+                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regDentistaNombre" placeholder="Nombre y Apellidos" class="apple-input-modal" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regDentistaTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="formatearTelefonoInput(this)" required></div>
+                <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regDentistaTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">badge</span><input type="text" id="regDentistaSIS" placeholder="N° Registro Superintendencia (SIS)" class="apple-input-modal" required></div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regDentistaEmail" placeholder="correo.profesional@ejemplo.com" class="apple-input-modal" required></div>
                 
                 <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
-                    <input type="password" id="regDentistaPassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[A-Z]).{8,}" title="Debe contener al menos 8 caracteres, un número y una letra mayúscula" required>
+                    <input type="password" id="regDentistaPassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
                 </div>
                 <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
                     <input type="password" id="regDentistaPasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
@@ -247,7 +247,7 @@
                     </label>
                 </div>
             
-                <button type="submit" class="btn-pixar btn-dentista btn-full" onclick="event.preventDefault(); if(document.getElementById('formRegistroDentista').checkValidity()) registrarUsuarioMidental('dentista'); else document.getElementById('formRegistroDentista').reportValidity();">Validar y Crear Cuenta</button>
+                <button type="submit" class="btn-pixar btn-dentista btn-full" onclick="procesarRegistroDentista(event)">Validar y Crear Cuenta</button>
             </form>
             <p class="modal-footer-text" style="text-align: center; margin-top: 15px;">¿Ya eres parte de la red? <a href="javascript:void(0)" onclick="cambiarModal('modalRegistroDentista', 'modalLoginDentista')">Inicia sesión</a></p>
         </div>
@@ -338,8 +338,96 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
+
     <script>
-        // Funciones de Modales
+        // ==========================================
+        // 1. REDIRECCIÓN AUTOMÁTICA (AUTO-LOGIN)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = localStorage.getItem('midental_user_id');
+            const userTipo = localStorage.getItem('midental_user_tipo');
+            
+            // Si el dispositivo ya tiene una sesión válida, te saltas la pantalla de inicio
+            if (userId && userTipo) {
+                if (userTipo === 'dentista') {
+                    window.location.href = 'dashboard-dentista.html';
+                } else if (userTipo === 'paciente') {
+                    window.location.href = 'dashboard-paciente.html';
+                }
+            }
+        });
+
+        // ==========================================
+        // 2. BUSCADOR INTELIGENTE EN EL HERO
+        // ==========================================
+        function ejecutarBusquedaInicial() {
+            const especialidad = document.getElementById('searchEspecialidad').value.trim();
+            const ubicacion = document.getElementById('searchUbicacion').value.trim();
+            
+            // Unimos los términos para enviarlos al mapa
+            const query = `${especialidad} ${ubicacion}`.trim();
+            
+            if (query !== "") {
+                window.location.href = `mapa-paciente.html?filtro=${encodeURIComponent(query)}`;
+            } else {
+                window.location.href = 'mapa-paciente.html';
+            }
+        }
+
+        // ==========================================
+        // 3. VALIDACIÓN DE CONTRASEÑAS (ANTI-BLOQUEO)
+        // ==========================================
+        function procesarRegistroPaciente(e) {
+            e.preventDefault();
+            const form = document.getElementById('formRegistroPaciente');
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const pwd1 = document.getElementById('regPacientePassword').value;
+            const pwd2 = document.getElementById('regPacientePasswordConfirm').value;
+
+            if (pwd1 !== pwd2) {
+                alert("Las contraseñas no coinciden. Por favor, verifícalas.");
+                return;
+            }
+
+            // Llama a la función de tu app.js
+            if(typeof registrarUsuarioMidental === 'function') {
+                registrarUsuarioMidental('paciente');
+            } else {
+                console.error("Falta enlazar la función registrarUsuarioMidental en app.js");
+            }
+        }
+
+        function procesarRegistroDentista(e) {
+            e.preventDefault();
+            const form = document.getElementById('formRegistroDentista');
+            if(!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const pwd1 = document.getElementById('regDentistaPassword').value;
+            const pwd2 = document.getElementById('regDentistaPasswordConfirm').value;
+
+            if (pwd1 !== pwd2) {
+                alert("Las contraseñas no coinciden. Por favor, verifícalas.");
+                return;
+            }
+
+            // Llama a la función de tu app.js
+            if(typeof registrarUsuarioMidental === 'function') {
+                registrarUsuarioMidental('dentista');
+            } else {
+                console.error("Falta enlazar la función registrarUsuarioMidental en app.js");
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES DE MODALES Y UI
+        // ==========================================
         function abrirModal(idModal) {
             document.getElementById(idModal).style.display = 'flex';
         }
@@ -351,7 +439,6 @@
             document.getElementById(idAbrir).style.display = 'flex';
         }
         
-        // Función específica para abrir modal de recuperación
         function abrirRecuperarPassword() {
             cerrarModal('modalLoginPaciente');
             cerrarModal('modalLoginDentista');
@@ -359,16 +446,16 @@
             abrirModal('modalRecuperarPassword');
         }
 
-        // Lógica de Supabase para enviar correo de recuperación
         async function enviarCorreoRecuperacion() {
             const email = document.getElementById('recuperarEmail').value.trim();
             if (!email) return alert("Por favor, ingresa el correo electrónico asociado a tu cuenta.");
 
             const btn = document.getElementById('btnEnviarRecuperacion');
-            btn.innerText = "Enviando..."; 
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Enviando...'; 
             btn.disabled = true;
 
             try {
+                // Validación contra Supabase
                 const { data, error } = await window.midental.auth.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + '/index.html' 
                 });
@@ -379,19 +466,21 @@
                 cerrarModal('modalRecuperarPassword');
 
             } catch (error) {
-                alert("Error al enviar: Verifica que el correo esté bien escrito y asociado a una cuenta.");
+                alert("Error al enviar: Verifica que el correo esté bien escrito y asociado a una cuenta activa.");
             } finally {
                 btn.innerText = "Enviar Enlace Seguro"; 
                 btn.disabled = false;
             }
         }
         
+        // Cierra los modales al hacer clic fuera del cuadro
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal-overlay')) {
                 e.target.style.display = 'none';
             }
         });
 
+        // FAQ Toggle
         function toggleFAQ(element) {
             const allItems = document.querySelectorAll('.faq-item');
             allItems.forEach(item => {

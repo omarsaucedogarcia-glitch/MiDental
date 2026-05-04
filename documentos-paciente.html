@@ -36,6 +36,8 @@
         .doc-action { color: var(--pixar-cyan); background: #f0fdfa; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0;}
 
         .empty-state { text-align: center; padding: 30px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px solid #e2e8f0; }
+        
+        .bottom-nav { background: white; border-top: none; }
     </style>
 </head>
 <body>
@@ -90,15 +92,20 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const userId = localStorage.getItem('midental_user_id');
-            if (!userId) {
+            const tipoUser = localStorage.getItem('midental_user_tipo');
+
+            // Guardián de Sesión
+            if (!userId || tipoUser !== 'paciente') {
+                alert("Debes iniciar sesión como paciente para ver tus documentos médicos.");
                 window.location.href = 'index.html';
                 return;
             }
+            
             cargarUltimaAtencion(userId);
             cargarDocumentos(userId);
         });
 
-        // 1. OBTENER LA ÚLTIMA ATENCIÓN FINALIZADA (AHORA DESDE LA FICHA CLÍNICA REAL)
+        // 1. OBTENER LA ÚLTIMA ATENCIÓN FINALIZADA
         async function cargarUltimaAtencion(userId) {
             const contenedor = document.getElementById('contenedorUltimaAtencion');
             try {
@@ -140,7 +147,7 @@
             }
         }
 
-        // 2. OBTENER LISTA DE DOCUMENTOS (Exámenes y Presupuestos)
+        // 2. OBTENER LISTA DE DOCUMENTOS (Exámenes y Presupuestos) - SEGURO CON SIGNED URLS
         async function cargarDocumentos(userId) {
             const contenedor = document.getElementById('listaDocumentos');
             try {
@@ -158,17 +165,30 @@
                     return;
                 }
 
-                data.forEach(doc => {
+                // Generar URLs Firmadas en tiempo real para privacidad
+                for (const doc of data) {
+                    let urlSegura = '';
+                    const archivoRef = doc.archivo_url || doc.file_url;
+                    
+                    if (!archivoRef) continue;
+
+                    // Si es una URL pública antigua la usamos, si es nombre de archivo generamos Signed URL
+                    if (archivoRef.startsWith('http')) {
+                        urlSegura = archivoRef;
+                    } else {
+                        const { data: signedData } = await window.midental.storage
+                            .from('DOCUMENTOS_CLINICOS')
+                            .createSignedUrl(archivoRef, 3600); // 1 hora
+                        urlSegura = signedData?.signedUrl || '#';
+                    }
+
                     const nombreDoc = doc.nombre_archivo || doc.titulo || 'Documento sin nombre';
                     const esPDF = nombreDoc.toLowerCase().includes('.pdf');
-                    
-                    // Si el documento se llama "Presupuesto...", le damos un color especial para destacarlo
                     const esPresupuesto = nombreDoc.toLowerCase().includes('presupuesto');
                     
                     const iconClass = esPDF ? 'pdf' : 'img';
                     const iconSymbol = esPresupuesto ? 'request_quote' : (esPDF ? 'picture_as_pdf' : 'image');
                     const fecha = new Date(doc.created_at).toLocaleDateString('es-CL');
-                    const urlSegura = doc.archivo_url || doc.file_url;
 
                     contenedor.innerHTML += `
                         <div class="doc-item" style="${esPresupuesto ? 'border-color: var(--pixar-cyan); background: #f0fdfa;' : ''}">
@@ -179,12 +199,12 @@
                                 <h4>${nombreDoc}</h4>
                                 <p>${esPresupuesto ? 'Generado por tu Dentista el ' : 'Subido el '}${fecha}</p>
                             </div>
-                            <a href="${urlSegura}" target="_blank" class="doc-action">
+                            <a href="${urlSegura}" target="_blank" class="doc-action" title="Abrir Documento">
                                 <span class="material-symbols-outlined">download</span>
                             </a>
                         </div>
                     `;
-                });
+                }
 
             } catch (err) {
                 console.error(err);
@@ -192,7 +212,7 @@
             }
         }
 
-        // 3. LOGICA PARA SUBIR DOCUMENTO POR PARTE DEL PACIENTE
+        // 3. LOGICA PARA SUBIR DOCUMENTO (CORRECCIÓN RLS BUCKET PRIVADO)
         async function procesarSubidaDocumento(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -213,32 +233,28 @@
 
             try {
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${userId}_${Date.now()}.${fileExt}`;
-                const filePath = `${fileName}`;
+                const fileName = `Pct_${userId}_${Date.now()}.${fileExt}`;
 
+                // Subida segura al bucket en mayúsculas
                 const { error: uploadError } = await window.midental.storage
-                    .from('documentos_clinicos')
-                    .upload(filePath, file);
+                    .from('DOCUMENTOS_CLINICOS')
+                    .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = window.midental.storage
-                    .from('documentos_clinicos')
-                    .getPublicUrl(filePath);
-
-                // CORRECCIÓN: Guardamos bajo 'nombre_archivo' para estandarizar con el dentista
+                // Guardamos solo el nombre interno en la BD (la URL segura se genera al leer)
                 const { error: dbError } = await window.midental
                     .from('documentos_pacientes')
                     .insert([{
                         paciente_id: userId,
                         nombre_archivo: file.name,
                         tipo: file.type.includes('pdf') ? 'pdf' : 'imagen',
-                        archivo_url: publicUrlData.publicUrl
+                        archivo_url: fileName 
                     }]);
 
                 if (dbError) throw dbError;
 
-                alert("✅ ¡Documento guardado con éxito!");
+                alert("✅ ¡Documento guardado de forma privada y segura!");
                 cargarDocumentos(userId); 
 
             } catch (err) {

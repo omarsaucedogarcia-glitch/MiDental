@@ -326,7 +326,7 @@
         }
 
         // ==========================================
-        // SISTEMA DE DOCUMENTOS Y CARGA DENTISTA
+        // SISTEMA DE DOCUMENTOS CON URLS FIRMADAS (PRIVACIDAD LEY 20.584)
         // ==========================================
         async function cargarDocumentosPaciente() {
             const contenedor = document.getElementById('contenedorDocumentosPaciente');
@@ -347,11 +347,24 @@
                     return;
                 }
 
-                docs.forEach(doc => {
-                    const urlSegura = doc.archivo_url || doc.file_url || doc.url || '';
-                    if (!urlSegura) return;
+                for (const doc of docs) {
+                    let urlSegura = '';
+                    const archivoRef = doc.archivo_url || doc.file_url || doc.url || '';
+                    
+                    if (!archivoRef) continue;
 
-                    const esImagen = urlSegura.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                    // Si es una URL antigua pública, la usamos. Si es un nombre de archivo, generamos URL Firmada (Privada)
+                    if (archivoRef.startsWith('http')) {
+                        urlSegura = archivoRef;
+                    } else {
+                        // Genera una URL que expira en 1 hora (3600 segundos) para protección de datos
+                        const { data: signedData } = await window.midental.storage
+                            .from('DOCUMENTOS_CLINICOS')
+                            .createSignedUrl(archivoRef, 3600);
+                        urlSegura = signedData?.signedUrl || '#';
+                    }
+
+                    const esImagen = archivoRef.match(/\.(jpeg|jpg|gif|png)$/i) != null;
                     const esPresupuesto = doc.nombre_archivo && doc.nombre_archivo.toLowerCase().includes('presupuesto');
                     
                     const iconSymbol = esPresupuesto ? 'request_quote' : (esImagen ? 'image' : 'description');
@@ -366,7 +379,7 @@
                             <a href="${urlSegura}" target="_blank" style="font-size: 0.75rem; color: white; background: var(--pixar-orange); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box; display: block;">Ver Archivo</a>
                         </div>
                     `;
-                });
+                }
             } catch (err) {
                 contenedor.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; grid-column: 1/-1; text-align: center;">Error al cargar archivos.</p>';
             }
@@ -391,25 +404,25 @@
                 const fileExt = file.name.split('.').pop();
                 const fileName = `Dr_${dentistaId}_${Date.now()}.${fileExt}`;
 
+                // CORRECCIÓN: Bucket en mayúsculas y NO extraer URL Pública
                 const { error: uploadError } = await window.midental.storage
-                    .from('documentos_clinicos')
+                    .from('DOCUMENTOS_CLINICOS')
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = window.midental.storage.from('documentos_clinicos').getPublicUrl(fileName);
-
+                // CORRECCIÓN: Guardar solo el nombre del archivo, la seguridad se maneja al leer
                 const { error: dbError } = await window.midental.from('documentos_pacientes').insert([{
                     paciente_id: pacienteIdURL,
                     dentista_id: dentistaId,
                     nombre_archivo: file.name,
                     tipo: file.type.includes('pdf') ? 'pdf' : 'imagen',
-                    archivo_url: publicUrlData.publicUrl
+                    archivo_url: fileName 
                 }]);
 
                 if (dbError) throw dbError;
 
-                alert("✅ Documento subido y vinculado a la ficha del paciente.");
+                alert("✅ Documento subido de forma privada a la ficha del paciente.");
                 cargarDocumentosPaciente();
 
             } catch (err) {
@@ -600,7 +613,6 @@
 
             try {
                 const doc = await generarDocumentoJSPDF(dentistaId, motivo, accion);
-                // Abre el PDF generado en una nueva pestaña del navegador para verlo/imprimirlo
                 window.open(doc.output('bloburl'), '_blank');
             } catch (err) {
                 alert("Error al generar la vista previa: " + err.message);
@@ -608,7 +620,7 @@
         }
 
         // ==========================================
-        // BOTÓN 2: FIRMAR Y GUARDAR (NUBE PDF REAL)
+        // BOTÓN 2: FIRMAR Y GUARDAR (NUBE PDF PRIVADA)
         // ==========================================
         async function guardarFichaYPresupuestoOficial() {
             const dentistaId = localStorage.getItem('midental_user_id');
@@ -629,7 +641,7 @@
                     if (ref > 0) hayPresupuesto = true;
                 });
 
-                // Si hay presupuesto, generamos el PDF Nativo y lo subimos
+                // Si hay presupuesto, generamos el PDF Nativo y lo subimos de forma privada
                 if (hayPresupuesto) {
                     const docPDF = await generarDocumentoJSPDF(dentistaId, motivo, accion);
                     
@@ -638,19 +650,19 @@
                     
                     const pdfBlob = docPDF.output('blob');
 
+                    // CORRECCIÓN: Bucket en mayúsculas y NO se extrae la Public URL
                     const { error: uploadError } = await window.midental.storage
-                        .from('documentos_clinicos')
+                        .from('DOCUMENTOS_CLINICOS')
                         .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
 
                     if (uploadError) throw new Error("Fallo la subida del PDF a Supabase.");
-
-                    const { data: publicUrlData } = window.midental.storage.from('documentos_clinicos').getPublicUrl(nombreArchivo);
                     
                     await window.midental.from('documentos_pacientes').insert([{
                         paciente_id: pacienteIdURL,
+                        dentista_id: dentistaId,
                         nombre_archivo: `Presupuesto Oficial ${new Date().toLocaleDateString('es-CL')}.pdf`,
                         tipo: 'pdf',
-                        archivo_url: publicUrlData.publicUrl
+                        archivo_url: nombreArchivo // Guardamos solo la ruta por seguridad
                     }]);
 
                     // Descargar copia local al dentista para sus archivos
@@ -687,7 +699,7 @@
                 `;
                 document.getElementById('granTotalPagar').innerText = '0';
                 
-                alert("✅ Ficha Oficial guardada y presupuesto sincronizado.");
+                alert("✅ Ficha Oficial guardada y presupuesto asegurado.");
                 cargarHistorialPaciente(); 
                 cargarDocumentosPaciente(); 
 

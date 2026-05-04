@@ -49,7 +49,7 @@
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
                 <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
                 <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
-                <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
+                <a href="shorts-dentista.html" class="nav-item active"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
             <div class="sidebar-footer">
@@ -140,10 +140,8 @@
     <script>
         let archivoVideoSeleccionado = null;
         let videosSemanaActual = 0;
-        let saldoTokensActual = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // app.js ya maneja los tokens del header con sincronizarDatosGlobales()
             verificarCuotaSemanal();
             cargarMisShorts();
         });
@@ -175,10 +173,6 @@
             if(!userId) return;
 
             try {
-                // Leer el saldo de tokens real (app.js lo carga visualmente, pero aquí lo necesitamos para la lógica)
-                const { data: perfil } = await window.midental.from('perfiles_dentistas').select('tokens_disponibles').eq('id', userId).single();
-                if(perfil) saldoTokensActual = perfil.tokens_disponibles || 0;
-
                 // Calcular hace 7 días
                 const haceUnaSemana = new Date();
                 haceUnaSemana.setDate(haceUnaSemana.getDate() - 7);
@@ -210,7 +204,7 @@
             }
         }
 
-        // 3. Lógica de Subida a Supabase
+        // 3. Lógica de Subida a Supabase con protección de saldo
         async function lanzarShortReal() {
             const userId = localStorage.getItem('midental_user_id');
             if(!userId) return alert("Sesión inválida.");
@@ -220,25 +214,40 @@
             if(!desc) return alert("⚠️ Escribe una descripción atractiva para tu video.");
             const cta = document.getElementById('shortCTA').value;
 
-            // Bloqueo si requiere pago pero no hay saldo
             const requierePago = videosSemanaActual >= 2;
-            if (requierePago && saldoTokensActual < 1) {
-                return alert("No te quedan Tokens para publicar videos extra esta semana. Recarga en el Monedero.");
-            }
+            let saldoRealDB = 0;
 
             const btn = document.getElementById('btnPublicarShort');
             btn.disabled = true;
-            btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Subiendo video... (No cierres la ventana)`;
+            btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Verificando...`;
 
             try {
-                // A. Subir el MP4 al Storage
+                // Si requiere pago, verificar saldo real en la DB antes de subir 50MB
+                if (requierePago) {
+                    const { data: perfilData, error: perfilError } = await window.midental
+                        .from('perfiles_dentistas')
+                        .select('tokens_disponibles')
+                        .eq('id', userId)
+                        .single();
+                    
+                    if (perfilError) throw new Error("Error al verificar el monedero.");
+                    saldoRealDB = perfilData.tokens_disponibles || 0;
+
+                    if (saldoRealDB < 1) {
+                        throw new Error("No te quedan Tokens para publicar videos extra esta semana. Recarga en el Monedero.");
+                    }
+                }
+
+                btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Subiendo video... (No cierres la ventana)`;
+
+                // A. Subir el MP4 al Storage (CORRECCIÓN: Bucket en mayúsculas)
                 const fileExt = archivoVideoSeleccionado.name.split('.').pop();
                 const fileName = `short_${userId}_${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await window.midental.storage.from('reels').upload(fileName, archivoVideoSeleccionado);
+                const { error: uploadError } = await window.midental.storage.from('REELS').upload(fileName, archivoVideoSeleccionado);
                 
                 if (uploadError) throw new Error("Error en Storage: " + uploadError.message);
                 
-                const { data: urlData } = window.midental.storage.from('reels').getPublicUrl(fileName);
+                const { data: urlData } = window.midental.storage.from('REELS').getPublicUrl(fileName);
                 const videoPublicUrl = urlData.publicUrl;
 
                 // B. Guardar el registro en la base de datos
@@ -252,11 +261,11 @@
 
                 if (insertError) throw new Error("Error en DB: " + insertError.message);
 
-                // C. Cobrar el Token (Si aplica)
+                // C. Cobrar el Token asegurado
                 if (requierePago) {
-                    const nuevoSaldo = saldoTokensActual - 1;
+                    const nuevoSaldo = saldoRealDB - 1;
                     await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', userId);
-                    sincronizarDatosGlobales(); // Refresca el header
+                    if (typeof window.sincronizarDatosGlobales === 'function') window.sincronizarDatosGlobales(); 
                 }
 
                 // D. Éxito
@@ -278,7 +287,7 @@
                 alert("Fallo al publicar: " + err.message);
             } finally {
                 btn.disabled = false;
-                verificarCuotaSemanal(); // Restaura el texto del botón
+                verificarCuotaSemanal(); 
             }
         }
 
@@ -307,6 +316,10 @@
                 if(video.cta_tipo === 'agenda') ctaTexto = "Botón: Agendar Cita";
                 if(video.cta_tipo === 'oferta') ctaTexto = "Botón: Ver Oferta Flash";
 
+                // Extraemos el nombre del archivo de la URL pública para poder borrarlo después
+                const fileNameArray = video.video_url.split('/');
+                const fileName = fileNameArray[fileNameArray.length - 1];
+
                 contenedor.innerHTML += `
                     <div class="my-shorts-card">
                         <div class="short-thumb-placeholder">
@@ -320,7 +333,7 @@
                             <p style="margin: 5px 0; font-size: 0.85rem; color: var(--blue-elegant); font-weight: bold; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${video.descripcion}</p>
                             <p style="margin: 0; font-size: 0.75rem; color: var(--pixar-cyan);">${ctaTexto}</p>
                         </div>
-                        <button onclick="eliminarShort('${video.id}')" style="background:transparent; border:none; color:var(--red-urgency); cursor:pointer;" title="Eliminar Video">
+                        <button onclick="eliminarShort('${video.id}', '${fileName}')" style="background:transparent; border:none; color:var(--red-urgency); cursor:pointer;" title="Eliminar Video">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
                     </div>
@@ -328,16 +341,25 @@
             });
         }
 
-        async function eliminarShort(idVideo) {
-            if(!confirm("¿Estás seguro de eliminar este Short? Los pacientes ya no podrán verlo y no se devuelven tokens gastados.")) return;
+        // CORRECCIÓN: Borrado completo (DB + Storage)
+        async function eliminarShort(idVideo, fileName) {
+            if(!confirm("¿Estás seguro de eliminar este Short? Se borrará permanentemente de los servidores de MiDental.")) return;
             
-            // En un ecosistema completo, aquí deberías también usar "supabase.storage.from('reels').remove([filepath])" para borrar el mp4 del servidor y ahorrar espacio.
-            const { error } = await window.midental.from('shorts_videos').delete().eq('id', idVideo);
-            if(error) {
-                alert("Error al borrar: " + error.message);
-            } else {
+            try {
+                // 1. Borrar el archivo físico del Storage para liberar espacio
+                if(fileName) {
+                    await window.midental.storage.from('REELS').remove([fileName]);
+                }
+
+                // 2. Borrar el registro de la Base de Datos
+                const { error } = await window.midental.from('shorts_videos').delete().eq('id', idVideo);
+                if(error) throw error;
+                
                 cargarMisShorts();
-                verificarCuotaSemanal(); // Recalcula la cuota por si borró un video reciente
+                verificarCuotaSemanal(); // Recalcula la cuota por si borró un video de esta semana
+
+            } catch (err) {
+                alert("Error al borrar el video: " + err.message);
             }
         }
         

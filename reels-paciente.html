@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiDental Shorts - Casos Clínicos</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
     
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
@@ -17,22 +18,22 @@
 
         /* Video Item Dinámico */
         .reel-item { width: 100%; height: 100vh; position: relative; scroll-snap-align: start; display: flex; align-items: center; justify-content: center; background: #222; }
-        .reel-video-element { width: 100%; height: 100%; object-fit: cover; }
+        .reel-video-element { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
         
-        .reel-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 40%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); pointer-events: none; }
+        .reel-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%); pointer-events: none; z-index: 5; }
 
-        .reel-info { position: absolute; bottom: 30px; left: 15px; width: 75%; color: white; z-index: 10; }
+        .reel-info { position: absolute; bottom: 85px; left: 15px; width: 75%; color: white; z-index: 10; }
         .reel-author { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; cursor: pointer; }
         .reel-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid white; object-fit: cover; background: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .reel-author-name { font-weight: bold; font-size: 1.1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
         .reel-desc { font-size: 0.95rem; line-height: 1.4; margin-bottom: 15px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); opacity: 0.9; }
 
         /* Botón de Acción Dinámico */
-        .btn-reel-cta { background: linear-gradient(45deg, #00F2FE, #4FACFE); color: white; border: none; padding: 12px 20px; border-radius: 20px; font-weight: bold; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4); transition: 0.2s; }
+        .btn-reel-cta { background: linear-gradient(45deg, #00F2FE, #4FACFE); color: white; border: none; padding: 12px 20px; border-radius: 20px; font-weight: bold; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4); transition: 0.2s; pointer-events: auto; }
         .btn-reel-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6); }
         .btn-reel-cta.oferta-btn { background: linear-gradient(45deg, #f39c12, #d35400); box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4); }
 
-        .reel-actions { position: absolute; bottom: 40px; right: 15px; display: flex; flex-direction: column; gap: 25px; align-items: center; z-index: 10; }
+        .reel-actions { position: absolute; bottom: 95px; right: 15px; display: flex; flex-direction: column; gap: 25px; align-items: center; z-index: 10; }
         .action-btn { background: transparent; border: none; color: white; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; transition: 0.2s; }
         .action-btn:hover { transform: scale(1.1); }
         .action-btn .material-symbols-outlined { font-size: 2.2rem; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5)); }
@@ -40,11 +41,20 @@
         .loading-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; background: #111; z-index: 50; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .loader-icon { animation: spin 1s linear infinite; font-size: 3rem; margin-bottom: 10px; color: #00F2FE; }
+
+        /* Botón de control de volumen flotante */
+        .btn-volume { position: absolute; top: 20px; right: 20px; z-index: 10; background: rgba(0,0,0,0.4); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); }
+
+        /* Bottom Nav Modo Oscuro/Transparente para Reels */
+        .bottom-nav-reels { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .nav-item-bottom { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #94a3b8; font-size: 0.75rem; gap: 4px; transition: 0.2s; }
+        .nav-item-bottom.active { color: var(--pixar-cyan); }
+        .nav-item-bottom:hover { color: white; }
     </style>
 </head>
 <body>
 
-    <button class="btn-back" onclick="window.location.href='mapa-paciente.html'">
+    <button class="btn-back" onclick="window.location.href='ofertas-paciente.html'">
         <span class="material-symbols-outlined">arrow_back</span>
     </button>
 
@@ -53,12 +63,23 @@
             <span class="material-symbols-outlined loader-icon">refresh</span>
             <p>Cargando contenido clínico...</p>
         </div>
-        </div>
+    </div>
+
+    <nav class="bottom-nav-reels">
+        <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
+        <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
+        <a href="ofertas-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">play_circle</span>Ofertas/Reels</a>
+        <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
+        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
+        <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
 
     <script>
+        let isGlobalMuted = true;
+
         document.addEventListener('DOMContentLoaded', () => {
             cargarShortsDentistas();
         });
@@ -68,7 +89,6 @@
             const loader = document.getElementById('pantallaCarga');
 
             try {
-                // Traer todos los videos en orden aleatorio o los más recientes
                 const { data: videos, error } = await window.midental.from('shorts_videos')
                     .select('*, perfiles_dentistas(id, nombre_completo, prefijo, avatar_url)')
                     .order('created_at', { ascending: false });
@@ -87,18 +107,16 @@
                     return;
                 }
 
-                // Limpiar y poblar
                 wrapper.innerHTML = "";
-                videos.forEach((video, index) => {
+                videos.forEach((video) => {
                     const drInfo = video.perfiles_dentistas || {};
                     const drName = `${drInfo.prefijo || 'Dr.'} ${drInfo.nombre_completo || 'Especialista'}`;
                     const avatar = drInfo.avatar_url || 'assets/avatar-default-doctor.png';
                     
-                    // Configurar el botón dinámico según lo que eligió el dentista
                     let ctaIcon = "calendar_month";
                     let ctaText = "Agendar Cita";
                     let ctaClass = "";
-                    let ctaAction = `ejecutarAccionShort('${video.cta_tipo}', '${drInfo.id}')`;
+                    let ctaAction = `ejecutarAccionShort('${video.cta_tipo}', '${drInfo.nombre_completo}')`;
 
                     if (video.cta_tipo === 'perfil') {
                         ctaIcon = "person";
@@ -109,17 +127,19 @@
                         ctaClass = "oferta-btn";
                     }
 
-                    // Construir el slide del video
                     const slide = document.createElement('div');
                     slide.className = 'reel-item';
                     
-                    // Nota: 'autoplay playsinline muted loop' es vital para navegadores móviles
                     slide.innerHTML = `
-                        <video class="reel-video-element" loop muted playsinline autoplay src="${video.video_url}"></video>
+                        <button class="btn-volume" onclick="toggleGlobalMute()">
+                            <span class="material-symbols-outlined volume-icon">volume_off</span>
+                        </button>
+                        
+                        <video class="reel-video-element" loop muted playsinline src="${video.video_url}" onclick="toggleGlobalMute()"></video>
                         <div class="reel-overlay"></div>
                         
                         <div class="reel-info">
-                            <div class="reel-author" onclick="irAlMapaYFiltrar('${drInfo.id}')">
+                            <div class="reel-author" onclick="irAlMapaYFiltrar('${drInfo.nombre_completo}')">
                                 <img src="${avatar}" class="reel-avatar">
                                 <span class="reel-author-name">${drName}</span>
                             </div>
@@ -141,44 +161,72 @@
                     wrapper.appendChild(slide);
                 });
 
-                // Implementar Intersection Observer para reproducir solo el video visible
                 gestionarReproduccionAutomatica();
 
             } catch (err) {
                 console.error("Error cargando shorts:", err);
-                loader.innerHTML = `<span class="material-symbols-outlined" style="font-size:3rem; color:#ef4444;">error</span><p>Fallo al cargar los videos.</p>`;
+                loader.innerHTML = `<div style="text-align:center; margin-top:50vh; transform:translateY(-50%);"><span class="material-symbols-outlined" style="font-size:3rem; color:#ef4444;">error</span><p>Fallo al cargar los videos.</p></div>`;
             }
+        }
+
+        // ==========================================
+        // CONTROL DE REPRODUCCIÓN Y VOLUMEN
+        // ==========================================
+        function toggleGlobalMute() {
+            isGlobalMuted = !isGlobalMuted;
+            const videos = document.querySelectorAll('.reel-video-element');
+            const icons = document.querySelectorAll('.volume-icon');
+            
+            videos.forEach(v => { v.muted = isGlobalMuted; });
+            icons.forEach(i => { i.innerText = isGlobalMuted ? 'volume_off' : 'volume_up'; });
+        }
+
+        function gestionarReproduccionAutomatica() {
+            const videos = document.querySelectorAll('.reel-video-element');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target;
+                    if (entry.isIntersecting) {
+                        // Respetar el estado global de mute al reproducir el nuevo video
+                        video.muted = isGlobalMuted; 
+                        video.play().catch(e => console.log("Autoplay bloqueado temporalmente por el navegador:", e));
+                    } else {
+                        video.pause();
+                        video.currentTime = 0; // Reiniciar video al salir de pantalla
+                    }
+                });
+            }, { threshold: 0.6 }); 
+
+            videos.forEach(video => {
+                observer.observe(video);
+            });
         }
 
         // ==========================================
         // FUNCIONES DE INTERACCIÓN
         // ==========================================
-
-        function ejecutarAccionShort(tipoAccion, dentistaId) {
-            // Bloqueo de Autenticación
+        function ejecutarAccionShort(tipoAccion, nombreDoctor) {
             const userId = localStorage.getItem('midental_user_id');
             const userTipo = localStorage.getItem('midental_user_tipo');
 
             if (!userId || userTipo !== 'paciente') {
                 if (confirm("👋 ¡Hola! Para agendar una cita o ver ofertas personalizadas, necesitas ingresar a tu cuenta de paciente. ¿Deseas iniciar sesión ahora?")) {
-                    window.location.href = 'index.html'; // Redirige al login
+                    window.location.href = 'index.html'; 
                 }
                 return;
             }
 
-            // Si está logueado, simular redirección
             if (tipoAccion === 'oferta') {
-                alert("Redirigiendo al mapa para mostrarte la Oferta Flash activa de este especialista...");
-                window.location.href = 'mapa-paciente.html';
+                window.location.href = 'ofertas-paciente.html';
             } else {
-                alert("Redirigiendo al perfil del especialista para ver sus horarios disponibles...");
-                window.location.href = 'mapa-paciente.html';
+                irAlMapaYFiltrar(nombreDoctor);
             }
         }
 
-        function irAlMapaYFiltrar(dentistaId) {
-            // Un acceso rápido para ver dónde trabaja el autor del video
-            window.location.href = 'mapa-paciente.html';
+        function irAlMapaYFiltrar(nombreDoctor) {
+            if(!nombreDoctor) window.location.href = 'mapa-paciente.html';
+            else window.location.href = `mapa-paciente.html?doctor=${encodeURIComponent(nombreDoctor)}`;
         }
 
         function animarLike(btn) {
@@ -188,7 +236,7 @@
                 icon.style.color = 'white';
             } else {
                 icon.innerText = 'favorite';
-                icon.style.color = '#FF0050'; // Color de Like tipo TikTok
+                icon.style.color = '#FF0050'; 
             }
         }
 
@@ -197,37 +245,12 @@
                 navigator.share({
                     title: 'Caso Clínico en MiDental',
                     text: 'Mira este procedimiento dental increíble de un especialista en MiDental.',
-                    url: window.location.href // En producción, aquí iría un link único al video
+                    url: window.location.href 
                 });
             } else {
                 alert("Enlace del video copiado al portapapeles.");
             }
         }
-
-        // Optimización de memoria y batería: Solo reproduce el video que está en pantalla
-        function gestionarReproduccionAutomatica() {
-            const videos = document.querySelectorAll('.reel-video-element');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.play();
-                    } else {
-                        entry.target.pause();
-                    }
-                });
-            }, { threshold: 0.6 }); // Se activa cuando el 60% del video es visible
-
-            videos.forEach(video => {
-                observer.observe(video);
-            });
-        }
     </script>
-    <nav class="bottom-nav">
-        <a href="dashboard-paciente.html" class="nav-item-bottom active"><span class="material-symbols-outlined">home</span>Inicio</a>
-        <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
-        <a href="citas-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">calendar_month</span>Citas</a>
-        <a href="documentos-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">description</span>Documentos</a>
-        <a href="perfil-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">person</span>Perfil</a>
-    </nav>
 </body>
 </html>

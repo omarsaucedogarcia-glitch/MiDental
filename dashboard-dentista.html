@@ -268,6 +268,7 @@
     <script>
         // Array global para guardar las solicitudes y tener acceso a los teléfonos rápido
         let solicitudesPendientesMemoria = [];
+        let cronometroIntervalo; // Declaración global para el monitor de ofertas
 
         document.addEventListener('DOMContentLoaded', () => {
             cargarEstadoUrgencia();
@@ -276,20 +277,22 @@
             cargarProximasCitas();
         });
 
+        // ==========================================
         // 1. SWITCH DE URGENCIAS
+        // ==========================================
         async function cargarEstadoUrgencia() {
             const userId = localStorage.getItem('midental_user_id');
             if(!userId) return;
 
             const { data, error } = await window.midental
                 .from('perfiles_dentistas')
-                .select('acepta_urgencias')
+                .select('disponible_urgencia') // Actualizado a la columna correcta
                 .eq('id', userId)
                 .single();
                 
             if(data) {
                 const checkbox = document.getElementById('toggleDisponible');
-                checkbox.checked = data.acepta_urgencias;
+                checkbox.checked = data.disponible_urgencia;
                 actualizarTextoUrgencia(checkbox.checked);
             }
         }
@@ -301,10 +304,15 @@
             if(userId) {
                 const { error } = await window.midental
                     .from('perfiles_dentistas')
-                    .update({ acepta_urgencias: checkbox.checked })
+                    .update({ disponible_urgencia: checkbox.checked }) // Actualizado
                     .eq('id', userId);
                     
-                if(error) console.error("Error al actualizar urgencia:", error);
+                if(error) {
+                    console.error("Error al actualizar urgencia:", error);
+                    alert("No se pudo conectar con el mapa. Intenta de nuevo.");
+                    checkbox.checked = !checkbox.checked; // Revertir visualmente si falla
+                    actualizarTextoUrgencia(checkbox.checked);
+                }
             }
         }
 
@@ -321,7 +329,9 @@
             }
         }
 
-        // 2. MONITOR DE OFERTAS
+        // ==========================================
+        // 2. MONITOR DE OFERTAS (CON CRONÓMETRO REAL)
+        // ==========================================
         async function cargarOfertaActivaMonitor() {
             const userId = localStorage.getItem('midental_user_id');
             if(!userId) return;
@@ -335,9 +345,30 @@
 
             if(data) {
                 document.getElementById('dashCampaignName').innerText = data.servicio_nombre;
-                const fechaExp = new Date(data.expira_at);
-                document.getElementById('dashCronometroFlash').innerText = fechaExp.toLocaleDateString('es-CL');
                 document.getElementById('monitorOfertaDashboard').style.display = 'block';
+                
+                const fechaExp = new Date(data.expira_at).getTime();
+
+                // Iniciar el cronómetro
+                clearInterval(cronometroIntervalo);
+                cronometroIntervalo = setInterval(function() {
+                    const ahora = new Date().getTime();
+                    const distancia = fechaExp - ahora;
+
+                    if (distancia < 0) {
+                        clearInterval(cronometroIntervalo);
+                        document.getElementById('dashCronometroFlash').innerText = "Campaña Finalizada";
+                        document.getElementById('dashCronometroFlash').style.color = "var(--red-urgency)";
+                        return;
+                    }
+
+                    const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
+                    const segundos = Math.floor((distancia % (1000 * 60)) / 1000);
+
+                    document.getElementById('dashCronometroFlash').innerText = 
+                        `${horas}h ${minutos}m ${segundos}s restantes`;
+                }, 1000);
             }
         }
 
@@ -388,7 +419,8 @@
             const card = document.getElementById(`req-${citaId}`);
             if(card) card.style.opacity = '0.5';
 
-            const { error } = await window.midental.from('citas_agenda').update({ estado: 'Confirmado' }).eq('id', citaId);
+            // CORRECCIÓN: Estado debe ser exactamente 'confirmada'
+            const { error } = await window.midental.from('citas_agenda').update({ estado: 'confirmada' }).eq('id', citaId);
             
             if(error) {
                 alert("Error técnico al confirmar la cita: " + error.message);
@@ -398,17 +430,13 @@
 
             // BUSCAR DATOS DEL PACIENTE PARA EL WHATSAPP
             const citaData = solicitudesPendientesMemoria.find(c => c.id === citaId);
-            
             if (citaData && citaData.perfiles_pacientes && citaData.perfiles_pacientes.telefono) {
                 const nombrePct = citaData.perfiles_pacientes.nombre_completo || 'Paciente';
-                const fonoRaw = citaData.perfiles_pacientes.telefono;
-                const fonoLimpio = fonoRaw.replace(/[^0-9]/g, ''); // Deja solo números para wa.me
+                const fonoLimpio = citaData.perfiles_pacientes.telefono.replace(/[^0-9]/g, ''); 
                 const horaSolicitada = citaData.fecha_hora_formato_slot || '(Hora no especificada)';
 
-                // EL MENSAJE PREESCRITO DE CONFIRMACIÓN QUE SOLICITASTE
                 const msg = `Estimado paciente ${nombrePct}, su hora ${horaSolicitada}, queda confirmada, espero su asistencia y por cualquier motivo le solicito informar a la brevedad, para disponer el espacio para otro paciente que lo requiera. Muchas gracias.`;
                 
-                // Abrir WhatsApp en pestaña nueva
                 window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
             } else {
                 console.log("No se pudo enviar WhatsApp: Faltan datos del paciente o teléfono.");
@@ -428,8 +456,8 @@
             const card = document.getElementById(`req-${citaId}`);
             if(card) card.style.opacity = '0.5';
 
-            // Actualizamos en base de datos a 'Rechazado' (así no aparece en agenda)
-            const { error } = await window.midental.from('citas_agenda').update({ estado: 'Rechazado' }).eq('id', citaId);
+            // CORRECCIÓN: Estado debe ser exactamente 'cancelada'
+            const { error } = await window.midental.from('citas_agenda').update({ estado: 'cancelada' }).eq('id', citaId);
             
             if(error) {
                 alert("Error técnico al rechazar la cita: " + error.message);
@@ -439,17 +467,13 @@
 
             // BUSCAR DATOS DEL PACIENTE PARA EL WHATSAPP
             const citaData = solicitudesPendientesMemoria.find(c => c.id === citaId);
-            
             if (citaData && citaData.perfiles_pacientes && citaData.perfiles_pacientes.telefono) {
                 const nombrePct = citaData.perfiles_pacientes.nombre_completo || 'Paciente';
-                const fonoRaw = citaData.perfiles_pacientes.telefono;
-                const fonoLimpio = fonoRaw.replace(/[^0-9]/g, '');
+                const fonoLimpio = citaData.perfiles_pacientes.telefono.replace(/[^0-9]/g, '');
                 const horaSolicitada = citaData.fecha_hora_formato_slot || '(Hora no especificada)';
 
-                // EL MENSAJE PREESCRITO DE RECHAZO QUE SOLICITASTE
-                const msg = `Estimado paciente ${nombrePct}, su hora del dia ${horaSolicitada}, quedá anulada por motivos de fuerza mayor. Espero pueda reagendar.`;
+                const msg = `Estimado paciente ${nombrePct}, su hora del dia ${horaSolicitada}, queda anulada por motivos de fuerza mayor. Espero pueda reagendar.`;
                 
-                // Abrir WhatsApp
                 window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
             }
 
@@ -466,11 +490,11 @@
             const contador = document.getElementById('dashConfirmedCount');
             if(!userId || !contenedor) return;
 
-            // Mostramos solo 'Confirmado' en la agenda rápida
+            // CORRECCIÓN: Filtrar por 'confirmada' en minúsculas
             const { data: citas } = await window.midental.from('citas_agenda')
                 .select('*, perfiles_pacientes(nombre_completo)')
                 .eq('dentista_id', userId)
-                .eq('estado', 'Confirmado') // Crucial: Solo confirmadas
+                .eq('estado', 'confirmada') 
                 .order('fecha_hora_formato_slot', { ascending: true })
                 .limit(5);
 
@@ -504,7 +528,9 @@
             }
         }
 
+        // ==========================================
         // 5. VALIDAR PIN DE INTERCONSULTA
+        // ==========================================
         async function validarPinInterconsulta() {
             const pin = document.getElementById('pinInterconsulta').value.trim().toUpperCase();
             if(pin.length < 5) return alert("Por favor ingresa el PIN completo de seguridad.");

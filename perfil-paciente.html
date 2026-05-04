@@ -227,16 +227,19 @@
             // Datos Personales
             const nombre = document.getElementById('pInputNombre').value.trim();
             const email = document.getElementById('pInputEmail').value.trim();
-            const tel = document.getElementById('pInputTel').value.trim();
+            const telBruto = document.getElementById('pInputTel').value.trim();
 
             // Datos Médicos
             const enfermedades = document.getElementById('pInputEnfermedades').value.trim();
             const medicamentos = document.getElementById('pInputMedicamentos').value.trim();
             const alergias = document.getElementById('pInputAlergias').value.trim();
 
-            if (!nombre || !tel) {
+            if (!nombre || !telBruto) {
                 return alert("El nombre y teléfono son obligatorios para mantener tu perfil activo.");
             }
+
+            // CORRECCIÓN: Limpiar el teléfono para la Base de Datos
+            const telLimpio = telBruto.replace(/[^0-9]/g, '');
 
             btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Guardando...`;
             btn.disabled = true;
@@ -248,7 +251,7 @@
                     .update({
                         nombre_completo: nombre,
                         email: email,
-                        telefono: tel,
+                        telefono: telLimpio, // Se envía limpio
                         enfermedades_cronicas: enfermedades,
                         medicamentos: medicamentos,
                         alergias: alergias
@@ -296,13 +299,14 @@
                 txtEl.style.display = 'flex';
                 txtEl.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>`;
 
+                // CORRECCIÓN: Subida al bucket correcto de pacientes 'AVATARS'
                 const { error: uploadError } = await window.midental.storage
-                    .from('avatars')
+                    .from('AVATARS')
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                const { data: urlData } = window.midental.storage.from('avatars').getPublicUrl(fileName);
+                const { data: urlData } = window.midental.storage.from('AVATARS').getPublicUrl(fileName);
                 const publicUrl = urlData.publicUrl;
 
                 const { error: dbError } = await window.midental.from('perfiles_pacientes')
@@ -324,6 +328,7 @@
         function cerrarSesionLocal() {
             localStorage.removeItem('midental_user_id');
             localStorage.removeItem('midental_user_tipo');
+            localStorage.removeItem('midental_user_name');
             window.location.href = 'index.html';
         }
     </script>

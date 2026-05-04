@@ -34,9 +34,9 @@
         .box-listing-price { color: var(--blue-elegant); font-weight: 900; font-size: 1.3rem; margin-top: 5px; }
         .hour-badge { background: #f1f5f9; color: var(--blue-elegant); font-weight: bold; border: 1px solid #cbd5e1; font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
         
-        /* Grillas Embebidas Reparadas (Adiós doble scroll) */
+        /* Grillas Embebidas Reparadas */
         .embedded-cal-container { 
-            overflow-x: auto; /* Solo scroll horizontal permitido */
+            overflow-x: auto;
             border: 2px solid var(--blue-elegant); 
             border-top: none;
             border-radius: 0 0 12px 12px; 
@@ -180,7 +180,7 @@
                 <div style="background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 25px; display: flex; justify-content: space-around;">
                     <div><span style="display:block; font-size:0.85rem; color:#64748b; font-weight: bold; text-transform: uppercase;">Tarifa por Hora</span><strong style="color:var(--blue-elegant); font-size:1.6rem; font-weight: 900;" id="detallePrecioHr">$0</strong></div>
                     <div style="border-left: 2px solid #e2e8f0; margin: 0 15px;"></div>
-                    <div><span style="display:block; font-size:0.85rem; color:#64748b; font-weight: bold; text-transform: uppercase;">Media Jornada (4 hrs)</span><strong style="color:var(--blue-elegant); font-size:1.6rem; font-weight: 900;" id="detallePrecioJornada">$0</strong></div>
+                    <div><span style="display:block; font-size:0.85rem; color:#64748b; font-weight: bold; text-transform: uppercase;">Media Jornada (5 hrs)</span><strong style="color:var(--blue-elegant); font-size:1.6rem; font-weight: 900;" id="detallePrecioJornada">$0</strong></div>
                 </div>
 
                 <div style="text-align: left; margin-bottom: 10px;">
@@ -318,11 +318,9 @@
         let telefonoContactoColega = "";
         let direccionMapsActual = "";
         
-        // Controladores de Tiempo
         let offsetSemanasCreacion = 0;
         let offsetSemanasArriendo = 0;
 
-        // Memoria de Sets para recordar selecciones al cambiar de semana
         let slotsSeleccionadosParaCrear = new Set();
         let slotsSeleccionadosParaArrendar = [];
         let boxSeleccionadoGlobal = null;
@@ -354,7 +352,7 @@
 
         function abrirRutaMapa() {
             if (!direccionMapsActual) return alert("Dirección no disponible.");
-            const url = `https://www.google.com/maps/search/?api=1&query=$${encodeURIComponent(direccionMapsActual)}`;
+            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionMapsActual)}`;
             window.open(url, '_blank');
         }
 
@@ -389,7 +387,6 @@
             const diasAbrev = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
             const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-            // Lógica de Fechas Exactas
             const lunes = new Date();
             const diaSemana = lunes.getDay() === 0 ? 7 : lunes.getDay();
             lunes.setDate(lunes.getDate() - diaSemana + 1 + (offsetSemanasCreacion * 7));
@@ -420,7 +417,6 @@
                     let dd = fCol.getDate().toString().padStart(2, '0');
                     let mm = (fCol.getMonth()+1).toString().padStart(2, '0');
                     let yyyy = fCol.getFullYear();
-                    // Este es el ID Único e Irrepetible que guardaremos en la Base de Datos
                     let exactId = `${dd}/${mm}/${yyyy}-${horaStr}`; 
                     
                     const inner = document.createElement('div');
@@ -511,7 +507,6 @@
             const domingo = fechasSemana[6];
             document.getElementById('lblSemanaArriendo').innerText = `Semana del ${lunes.getDate()} ${mesesCortos[lunes.getMonth()]} al ${domingo.getDate()} ${mesesCortos[domingo.getMonth()]}`;
 
-            // Array de fechas exactas disponibles del propietario en DB
             const arrHorariosExactosDB = boxSeleccionadoGlobal.disponibilidad_json || [];
 
             for (let h = 8; h <= 20; h++) {
@@ -535,7 +530,6 @@
                         inner.title = `Seleccionar ${fechaLegibleParaUI} a las ${horaStr}`;
                         inner.onclick = () => procesarClicArriendo(inner, exactId, fechaLegibleParaUI, horaStr);
 
-                        // Revisar si lo tenemos en el carrito actualmente
                         const estaSeleccionado = slotsSeleccionadosParaArrendar.find(s => s.exactId === exactId);
                         if (estaSeleccionado) {
                             inner.className = 'slot-disponible-rent slot-seleccionado-rent';
@@ -590,14 +584,14 @@
                 listaUI.innerHTML += `<li>${s.fecha} a las <strong>${s.hora}</strong></li>`;
             });
             
-            // LÓGICA DE PRECIOS: Cada 4 horas se cobra como Media Jornada
+            // CORRECCIÓN: LÓGICA DE PRECIOS AJUSTADA A 5 HORAS CONTINUAS
             const cantidadHoras = slotsSeleccionadosParaArrendar.length;
-            const cantidadMediasJornadas = Math.floor(cantidadHoras / 4);
-            const horasSueltasRestantes = cantidadHoras % 4;
+            const cantidadMediasJornadas = Math.floor(cantidadHoras / 5);
+            const horasSueltasRestantes = cantidadHoras % 5;
             
             const subtotal = (cantidadMediasJornadas * boxSeleccionadoGlobal.precio_jornada) + (horasSueltasRestantes * boxSeleccionadoGlobal.precio_hora);
             
-            // Comisión MiDental 8% + 19% IVA (del 8%)
+            // Comisión MiDental 8% + 19% IVA (aplicado de forma legal a la comisión)
             const comisionMidental = Math.round(subtotal * 0.08 * 1.19);
             
             document.getElementById('calcSubtotal').innerText = '$' + subtotal.toLocaleString('es-CL');
@@ -606,7 +600,7 @@
         }
 
         // ==========================================
-        // 4. FLUJO DE PAGO MERCADO PAGO (PROTOTIPO)
+        // 4. FLUJO DE PAGO MERCADO PAGO Y ACTUALIZACIÓN DB
         // ==========================================
         function iniciarPagoMercadoPago() {
             if (slotsSeleccionadosParaArrendar.length === 0) {
@@ -622,13 +616,53 @@
             btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Conectando con Mercado Pago...';
             btn.disabled = true;
 
-            // Simulación de la Pasarela de Pago
-            setTimeout(() => {
-                alert("🔒 REDIRECCIÓN A MERCADO PAGO\n\nAquí el usuario ingresa su tarjeta para pagar la comisión ($" + document.getElementById('calcPagarAhora').innerText + ").\n\nUna vez aprobado el pago, el sistema de MiDental automáticamente:\n1. Bloquea la hora en la agenda del propietario.\n2. Envía un WhatsApp con los datos de contacto a ambas partes para que coordinen la entrega de llaves.");
-                
-                cerrarModal('modalDetalleBox');
-                btn.innerHTML = '<span class="material-symbols-outlined">payments</span> Pagar Reserva con MercadoPago';
-                btn.disabled = false;
+            // CORRECCIÓN: Simulamos la pasarela, pero ACTUALIZAMOS SUPABASE REALMENTE
+            setTimeout(async () => {
+                try {
+                    // 1. Extraemos los IDs exactos que el dentista acaba de arrendar
+                    const slotsArrendadosExactos = slotsSeleccionadosParaArrendar.map(s => s.exactId);
+                    
+                    // 2. Traemos la disponibilidad más reciente desde Supabase (para evitar colisiones)
+                    const { data: boxData, error: fetchError } = await window.midental
+                        .from('arriendo_boxes')
+                        .select('disponibilidad_json')
+                        .eq('id', boxSeleccionadoGlobal.id)
+                        .single();
+
+                    if (fetchError) throw fetchError;
+
+                    // 3. Eliminamos de la base de datos las horas que acabamos de arrendar
+                    const nuevaDisponibilidad = boxData.disponibilidad_json.filter(
+                        slot => !slotsArrendadosExactos.includes(slot)
+                    );
+
+                    // 4. Guardamos los cambios en Supabase para bloquear el horario a otros colegas
+                    const { error: updateError } = await window.midental
+                        .from('arriendo_boxes')
+                        .update({ disponibilidad_json: nuevaDisponibilidad })
+                        .eq('id', boxSeleccionadoGlobal.id);
+
+                    if (updateError) throw updateError;
+
+                    alert("✅ PAGO EXITOSO Y RESERVA CONFIRMADA\n\nEl pago de la comisión ($" + document.getElementById('calcPagarAhora').innerText + ") se ha procesado.\n\nLos bloques han sido removidos del mercado. Se abrirá WhatsApp para coordinar la entrega de llaves.");
+                    
+                    cerrarModal('modalDetalleBox');
+                    cargarMercadoGlobal(); 
+                    cargarMisPublicaciones();
+
+                    // Abrimos WhatsApp con el propietario del Box
+                    if (telefonoContactoColega) {
+                        let telWA = telefonoContactoColega.replace(/[^0-9]/g, '');
+                        let msg = `Hola colega, acabo de pagar y reservar tu box ubicado en ${direccionMapsActual} a través de MiDental. Te escribo para coordinar la entrega.`;
+                        window.open(`https://wa.me/${telWA}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }
+
+                } catch (err) {
+                    alert("Hubo un error al procesar la reserva en la base de datos: " + err.message);
+                } finally {
+                    btn.innerHTML = '<span class="material-symbols-outlined">payments</span> Pagar Reserva con MercadoPago';
+                    btn.disabled = false;
+                }
             }, 1500);
         }
 
@@ -643,7 +677,6 @@
             const pJornada = document.getElementById('newBoxPrecioJornada').value;
             const aceptaLegal = document.getElementById('chkAceptoComision').checked;
             
-            // Transformamos el Set en un Array para Supabase
             const slotsExactos = Array.from(slotsSeleccionadosParaCrear);
             
             if (!aceptaLegal) return alert("Debes aceptar los términos (8% + IVA) y declarar que cumples las normas sanitarias para publicar tu box.");
@@ -660,7 +693,7 @@
                     precio_hora: parseInt(pHora),
                     precio_jornada: parseInt(pJornada),
                     insumos_incluidos: insumos,
-                    disponibilidad_json: slotsExactos, // Ahora guarda las fechas reales
+                    disponibilidad_json: slotsExactos,
                     esta_activo: true
                 }]);
 

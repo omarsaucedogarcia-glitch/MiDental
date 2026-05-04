@@ -22,6 +22,8 @@
         
         .btn-abrir-ficha { background: #f8fafc; color: var(--pixar-cyan); border: 1px solid #e2e8f0; padding: 8px 15px; border-radius: 10px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
         .patient-card:hover .btn-abrir-ficha { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); }
+        
+        .badge-manual { background: #fff7ed; color: #d97706; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; border: 1px solid #fde68a; margin-left: 10px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -48,7 +50,6 @@
         </aside>
 
         <main class="dashboard-content">
-            <!-- CABECERA LIMPIA Y UNIFICADA -->
             <header class="topbar" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
                 <div class="welcome-text">
                     <h1 style="margin:0; font-size:1.6rem; color:var(--blue-elegant); font-weight: 900;">Mis Pacientes 👥</h1>
@@ -81,13 +82,11 @@
         </main>
     </div>
 
-    <!-- LIBRERÍAS DE FUNCIONAMIENTO -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script> <!-- LIBRERÍA EXCEL -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
 
-    <!-- LÓGICA DE LA PÁGINA (AQUÍ ADENTRO DEBE IR TODO EL CÓDIGO JS) -->
     <script>
         let basePacientes = {}; 
 
@@ -95,7 +94,7 @@
             cargarFicheroCompleto();
         });
 
-        // Extraer TODAS las atenciones y agruparlas
+        // Extraer TODAS las atenciones y agruparlas (CORRECCIÓN: Incluyendo pacientes manuales sin UUID)
         async function cargarFicheroCompleto() {
             const userId = localStorage.getItem('midental_user_id');
             const contenedor = document.getElementById('contenedorListaPacientes');
@@ -104,7 +103,7 @@
             try {
                 // Buscamos todas las fichas donde este doctor haya escrito
                 const { data: fichas, error } = await window.midental.from('fichas_clinicas')
-                    .select('paciente_id, paciente_nombre, created_at, ultima_atencion')
+                    .select('paciente_id, paciente_nombre, paciente_rut, created_at, ultima_atencion')
                     .eq('dentista_id', userId)
                     .order('created_at', { ascending: false });
 
@@ -112,15 +111,16 @@
 
                 basePacientes = {};
 
-                // Agrupamos por el UUID del paciente para no repetir tarjetas si vino varias veces
+                // Agrupamos por el UUID del paciente o por su RUT/Nombre si fue ingresado manualmente
                 fichas.forEach(ficha => {
-                    const clave = ficha.paciente_id;
-                    if(!clave) return; // Saltamos registros antiguos sin ID seguro
-
+                    // La clave prioriza el UUID. Si es null, usa "manual-" seguido del RUT o nombre para no perderlo.
+                    const clave = ficha.paciente_id || `manual-${ficha.paciente_rut || ficha.paciente_nombre}`;
+                    
                     if(!basePacientes[clave]) {
                         basePacientes[clave] = {
-                            id: clave,
-                            nombre: ficha.paciente_nombre || 'Paciente',
+                            id: ficha.paciente_id, // Si es null, lo sabemos
+                            claveUnica: clave,
+                            nombre: ficha.paciente_nombre || 'Paciente Sin Nombre',
                             ultima_visita: ficha.ultima_atencion || ficha.created_at,
                             num_atenciones: 0
                         };
@@ -152,20 +152,29 @@
                     mostrados++;
                     
                     const fechaAtencion = new Date(paciente.ultima_visita).toLocaleDateString('es-CL');
-                    const idCorto = paciente.id.split('-')[0].toUpperCase();
+                    const isManual = !paciente.id;
+                    const idCorto = isManual ? "SIN REGISTRO" : paciente.id.split('-')[0].toUpperCase();
+                    const badgeHtml = isManual ? `<span class="badge-manual">Paciente Manual</span>` : '';
 
                     const card = document.createElement('div');
                     card.className = 'patient-card';
-                    // Al hacer clic, viajamos directamente a la Ficha Maestra llevando el ID
-                    card.onclick = () => window.location.href = `ficha-paciente.html?paciente=${paciente.id}`;
+                    
+                    // Lógica de Redirección Inteligente
+                    card.onclick = () => {
+                        if (isManual) {
+                            alert(`Este paciente (${paciente.nombre}) fue agendado manualmente y no ha creado una cuenta en MiDental.\n\nPídele que se registre en www.midental.cl con su RUT para activar su Ficha Clínica Segura.`);
+                        } else {
+                            window.location.href = `ficha-paciente.html?paciente=${paciente.id}`;
+                        }
+                    };
                     
                     card.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="background: #e6f5ff; color: var(--pixar-cyan); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;">
+                            <div style="background: ${isManual ? '#fff7ed' : '#e6f5ff'}; color: ${isManual ? '#d97706' : 'var(--pixar-cyan)'}; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;">
                                 ${paciente.nombre.charAt(0).toUpperCase()}
                             </div>
                             <div class="patient-basic-info">
-                                <h3>${paciente.nombre}</h3>
+                                <h3>${paciente.nombre} ${badgeHtml}</h3>
                                 <p><span class="material-symbols-outlined" style="font-size:1rem;">vpn_key</span> ID Seguro: ${idCorto}</p>
                             </div>
                         </div>
@@ -177,7 +186,7 @@
                                 </span>
                             </div>
                             <button class="btn-abrir-ficha">
-                                Abrir Ficha <span class="material-symbols-outlined" style="font-size: 1.1rem;">arrow_forward</span>
+                                ${isManual ? 'Ver Estado' : 'Abrir Ficha'} <span class="material-symbols-outlined" style="font-size: 1.1rem;">arrow_forward</span>
                             </button>
                         </div>
                     `;
@@ -195,7 +204,7 @@
         }
 
         // ==========================================
-        // EXPORTACIÓN A EXCEL REPARADA (Dentro del <script>)
+        // EXPORTACIÓN A EXCEL (BLINDADA LEGALMENTE)
         // ==========================================
         async function exportarPacientesExcel() {
             const userId = localStorage.getItem('midental_user_id');
@@ -207,7 +216,6 @@
             btn.disabled = true;
 
             try {
-                // 1. Pedimos explícitamente el 'rut' dentro de perfiles_pacientes
                 const { data: fichas, error } = await window.midental
                     .from('fichas_clinicas')
                     .select('paciente_id, paciente_nombre, paciente_rut, motivo_consulta, ultima_atencion, perfiles_pacientes(rut, telefono, email)')
@@ -227,15 +235,13 @@
                 const idsVistos = new Set();
 
                 fichas.forEach(ficha => {
-                    const idUnico = ficha.paciente_id;
+                    // Usamos la misma lógica de agrupación para no perder a los manuales en el Excel
+                    const idUnico = ficha.paciente_id || `manual-${ficha.paciente_rut || ficha.paciente_nombre}`;
                     
                     if (idUnico && !idsVistos.has(idUnico)) {
                         idsVistos.add(idUnico);
                         
-                        // Protección en caso de que Supabase devuelva un arreglo o un objeto nulo
                         const contacto = Array.isArray(ficha.perfiles_pacientes) ? ficha.perfiles_pacientes[0] : (ficha.perfiles_pacientes || {});
-                        
-                        // Priorizamos el RUT del perfil oficial. Si no existe, buscamos en la ficha, y si no, ponemos 'Sin RUT'.
                         const rutMostrado = contacto.rut || ficha.paciente_rut || 'Sin RUT';
                         
                         pacientesUnicos.push({
@@ -249,8 +255,18 @@
                     }
                 });
 
-                const hojaDeTrabajo = XLSX.utils.json_to_sheet(pacientesUnicos);
                 const libroDeTrabajo = XLSX.utils.book_new();
+                const hojaDeTrabajo = XLSX.utils.json_to_sheet(pacientesUnicos);
+
+                // Inyección de Disclaimer Legal (Ley 20.584)
+                XLSX.utils.sheet_add_aoa(hojaDeTrabajo, [
+                    ["CONFIDENCIAL: Documento protegido bajo Ley 20.584 de Derechos y Deberes del Paciente. Uso exclusivo clínico."],
+                    [] // Fila vacía para separar
+                ], { origin: "A1" });
+                
+                // Mover los datos hacia abajo para dejar espacio al disclaimer
+                XLSX.utils.sheet_add_json(hojaDeTrabajo, pacientesUnicos, { origin: "A3", skipHeader: false });
+
                 XLSX.utils.book_append_sheet(libroDeTrabajo, hojaDeTrabajo, "Mis Pacientes");
 
                 const wbout = XLSX.write(libroDeTrabajo, { bookType: 'xlsx', type: 'binary' });
@@ -265,7 +281,6 @@
                 const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
                 const nombreArchivo = `Base_Pacientes_MiDental_${new Date().toLocaleDateString('es-CL').replace(/\//g, '-')}.xlsx`;
 
-                // Método seguro de descarga compatible con todos los navegadores
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
                 link.download = nombreArchivo;

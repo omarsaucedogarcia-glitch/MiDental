@@ -155,7 +155,7 @@
                                     <label class="input-label">WhatsApp de Contacto (Público para pacientes)</label>
                                     <div class="input-group-modal">
                                         <span class="material-symbols-outlined">call</span>
-                                        <input type="tel" id="dentistaTelefono" class="apple-input-modal" placeholder="Ej: 56912345678" oninput="formatearTelefonoInput(this)">
+                                        <input type="tel" id="dentistaTelefono" class="apple-input-modal" placeholder="Ej: 56912345678" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)">
                                     </div>
                                 </div>
                                 <div style="grid-column: 1 / -1;">
@@ -212,13 +212,12 @@
                     </div>
                 </div>
 
-                <h4 class="form-section-title mt-20 mb-10" style="color: var(--blue-elegant);">Fotos de la Clínica (Máx. 3)</h4>
+                <h4 class="form-section-title mt-20 mb-10" style="color: var(--blue-elegant);">Fotos de la Clínica (Próximamente)</h4>
                 <div class="clinic-photos-area" id="contenedorFotosClinica">
-                    <div class="photo-upload-box" onclick="document.getElementById('inputFotoClinica').click()">
+                    <div class="photo-upload-box" onclick="alert('La carga múltiple de fotos de clínica se habilitará en la próxima actualización.')">
                         <span class="material-symbols-outlined" style="font-size: 2rem;">add_photo_alternate</span>
                         <span style="font-size: 0.75rem; margin-top: 5px;">Añadir Foto</span>
                     </div>
-                    <input type="file" id="inputFotoClinica" accept="image/*" style="display: none;" onchange="previsualizarFotoClinica(this)">
                 </div>
 
                 <h4 class="form-section-title mt-20 mb-10" style="color: var(--blue-elegant);">Desliza para seleccionar tus bloques horarios:</h4>
@@ -241,16 +240,17 @@
     <script>
         let isDragging = false;
         let selectionMode = true; 
-        let sedesUsuarioLocal = []; // Guardamos las sedes en memoria para editar rápido
+        let sedesUsuarioLocal = []; 
 
         document.addEventListener('DOMContentLoaded', () => { 
             generarGrillaSieteDias(); 
             window.addEventListener('mouseup', () => { isDragging = false; });
-            // app.js ya llama a la carga del perfil, solo cargamos sedes
             cargarSedesDentistaActual();
         });
 
-        // 1. SUBIR FOTO DE PERFIL A SUPABASE
+        // ==========================================
+        // 1. SUBIR FOTO DE PERFIL (CORRECCIÓN RLS BUCKET)
+        // ==========================================
         async function subirFotoPerfilDentista(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -265,10 +265,11 @@
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${userId}_${Date.now()}.${fileExt}`;
 
-                const { error: uploadError } = await window.midental.storage.from('avatares').upload(fileName, file);
+                // SE CORRIGE BUCKET A MAYÚSCULAS PARA EVITAR ERROR 403
+                const { error: uploadError } = await window.midental.storage.from('AVATARES').upload(fileName, file);
                 if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = window.midental.storage.from('avatares').getPublicUrl(fileName);
+                const { data: publicUrlData } = window.midental.storage.from('AVATARES').getPublicUrl(fileName);
                 const avatarUrl = publicUrlData.publicUrl;
 
                 const { error: updateError } = await window.midental.from('perfiles_dentistas').update({ avatar_url: avatarUrl }).eq('id', userId);
@@ -285,7 +286,9 @@
             }
         }
 
+        // ==========================================
         // 2. ACTUALIZAR DATOS DE PERFIL
+        // ==========================================
         async function guardarPerfilCompletoReal() {
             const userId = localStorage.getItem('midental_user_id');
             const btn = document.getElementById('btnGuardarPerfil');
@@ -302,14 +305,17 @@
                     .update({
                         prefijo: prefijo,
                         especialidad: especialidad,
-                        telefono: window.formatearTelefonoParaWhatsApp ? window.formatearTelefonoParaWhatsApp(telefono) : telefono.replace(/[^0-9]/g, ''),
+                        telefono: telefono.replace(/[^0-9]/g, ''),
                         valor_consulta: parseInt(valorConsulta) || 0
                     })
                     .eq('id', userId);
 
                 if (error) throw error;
                 alert("✅ Perfil actualizado correctamente.");
-                window.sincronizarDatosGlobales();
+                
+                if (typeof window.sincronizarDatosGlobales === 'function') {
+                    window.sincronizarDatosGlobales();
+                }
             } catch (err) {
                 alert("Error al guardar: " + err.message);
             } finally {
@@ -317,16 +323,26 @@
             }
         }
 
-        // 3. CARGAR SEDES DE TRABAJO
+        // ==========================================
+        // 3. CARGAR SEDES DE TRABAJO (ARQUITECTURA RELACIONAL)
+        // ==========================================
+        const mapaDiasLetras = { 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb', 7: 'Dom' };
+        const mapaDiasNumeros = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
+
         async function cargarSedesDentistaActual() {
             const userId = localStorage.getItem('midental_user_id');
             const contenedor = document.getElementById('listaLugaresTrabajo');
 
             try {
-                const { data: sedes, error } = await window.midental.from('sedes_dentistas').select('*').eq('dentista_id', userId);
+                // CORRECCIÓN: Extracción cruzada (JOIN) para obtener la sede y sus bloques horarios
+                const { data: sedes, error } = await window.midental
+                    .from('sedes_dentistas')
+                    .select('*, horarios_disponibles(dia_semana, hora_inicio, hora_fin)')
+                    .eq('dentista_id', userId);
+                    
                 if (error) throw error;
 
-                sedesUsuarioLocal = sedes || []; // Guardamos en memoria
+                sedesUsuarioLocal = sedes || []; 
                 contenedor.innerHTML = "";
 
                 if (sedesUsuarioLocal.length === 0) {
@@ -335,8 +351,7 @@
                 }
 
                 sedesUsuarioLocal.forEach(sede => {
-                    const cantHoras = sede.horarios_json ? sede.horarios_json.length : 0;
-                    // Al hacer click en la tarjeta, abrimos el modal en modo Edición
+                    const cantHoras = sede.horarios_disponibles ? sede.horarios_disponibles.length : 0;
                     const cardDataStr = encodeURIComponent(JSON.stringify(sede));
                     
                     contenedor.innerHTML += `
@@ -357,7 +372,9 @@
             } catch (err) { console.error(err); }
         }
 
-        // 4. LÓGICA DEL MODAL DE SEDES (NUEVO O EDICIÓN)
+        // ==========================================
+        // 4. LÓGICA DEL MODAL DE SEDES (TRANSACCIÓN DUAL)
+        // ==========================================
         function abrirModalLugarNuevo() { 
             document.getElementById('tituloModalSede').innerText = "Vincular Nueva Sede";
             document.getElementById('btnGuardarSede').innerText = "Activar en el Mapa";
@@ -366,7 +383,6 @@
             document.getElementById('inputDireccionClinica').value = '';
             document.getElementById('inputComunaClinica').value = '';
             
-            // Limpiar tabla de horarios
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
                 el.className = 'slot-vacio'; el.innerText = '+';
             });
@@ -379,19 +395,23 @@
             
             document.getElementById('tituloModalSede').innerText = "Editar Sede Actual";
             document.getElementById('btnGuardarSede').innerText = "Actualizar Cambios";
-            document.getElementById('idSedeEdicion').value = sede.id; // Clave para saber que es edición
+            document.getElementById('idSedeEdicion').value = sede.id;
             document.getElementById('inputNombreClinica').value = sede.nombre_sede;
             document.getElementById('inputDireccionClinica').value = sede.direccion;
             document.getElementById('inputComunaClinica').value = sede.comuna;
 
-            // Limpiar y luego pintar los horarios que ya tenía la sede
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
                 el.className = 'slot-vacio'; el.innerText = '+';
             });
 
-            if(sede.horarios_json) {
-                sede.horarios_json.forEach(slot => {
-                    const celda = document.querySelector(`[data-slot="${slot}"]`);
+            // Reconstruir grilla visual desde los datos relacionales
+            if(sede.horarios_disponibles) {
+                sede.horarios_disponibles.forEach(bloque => {
+                    const diaLetra = mapaDiasLetras[bloque.dia_semana];
+                    const horaAbrev = bloque.hora_inicio.substring(0, 5); // Ej: 08:00
+                    const slotId = `${diaLetra}-${horaAbrev}`;
+                    
+                    const celda = document.querySelector(`[data-slot="${slotId}"]`);
                     if(celda) { celda.className = 'slot-trabajando'; celda.innerText = 'OK'; }
                 });
             }
@@ -404,7 +424,7 @@
         async function guardarLugarTrabajoReal() {
             const userId = localStorage.getItem('midental_user_id');
             const btn = document.getElementById('btnGuardarSede');
-            const idSede = document.getElementById('idSedeEdicion').value; // Si tiene ID, es Update. Si no, es Insert.
+            const idSede = document.getElementById('idSedeEdicion').value; 
             
             const nombre = document.getElementById('inputNombreClinica').value;
             const direccion = document.getElementById('inputDireccionClinica').value;
@@ -412,31 +432,72 @@
 
             if (!nombre || !direccion || !comuna) return alert("Completa Nombre, Dirección y Comuna.");
 
-            let horarios = [];
+            // Parsear la grilla visual a un formato de base de datos relacional
+            let bloquesParaInsertar = [];
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
-                if (el.dataset.slot) horarios.push(el.dataset.slot);
+                if (el.dataset.slot) {
+                    const partes = el.dataset.slot.split('-');
+                    const diaNum = mapaDiasNumeros[partes[0]];
+                    const horaInicio = partes[1] + ':00'; // "08:00:00"
+                    
+                    // Calculamos la hora de fin sumando 1 hora
+                    const horaSolo = parseInt(partes[1].split(':')[0]);
+                    const horaFin = (horaSolo + 1).toString().padStart(2, '0') + ':00:00';
+
+                    bloquesParaInsertar.push({
+                        dia_semana: diaNum,
+                        hora_inicio: horaInicio,
+                        hora_fin: horaFin
+                    });
+                }
             });
-            if (horarios.length === 0) return alert("Selecciona al menos un bloque de horario.");
+
+            if (bloquesParaInsertar.length === 0) return alert("Selecciona al menos un bloque de horario.");
 
             btn.innerText = "Guardando..."; btn.disabled = true;
 
             try {
-                let respuesta;
+                let sedeIdFinal = idSede;
+
                 if (idSede) {
-                    // EDICIÓN
-                    respuesta = await window.midental.from('sedes_dentistas').update({
-                        nombre_sede: nombre, direccion: direccion, comuna: comuna, horarios_json: horarios
-                    }).eq('id', idSede);
+                    // MODO EDICIÓN
+                    const { error: errorUpdate } = await window.midental.from('sedes_dentistas')
+                        .update({ nombre_sede: nombre, direccion: direccion, comuna: comuna })
+                        .eq('id', idSede);
+                    
+                    if (errorUpdate) throw errorUpdate;
+
+                    // Limpiamos los horarios viejos para no duplicar
+                    await window.midental.from('horarios_disponibles').delete().eq('id_sede', idSede);
                 } else {
-                    // NUEVO
-                    respuesta = await window.midental.from('sedes_dentistas').insert([{
-                        dentista_id: userId, nombre_sede: nombre, direccion: direccion, comuna: comuna, horarios_json: horarios
-                    }]);
+                    // MODO NUEVA SEDE
+                    // Simulamos coordenadas base cerca de Santiago para asegurar compatibilidad con el Mapa
+                    const baseLat = -33.4489 + (Math.random() * 0.05 - 0.025);
+                    const baseLng = -70.6693 + (Math.random() * 0.05 - 0.025);
+
+                    const { data: nuevaSede, error: errorInsert } = await window.midental.from('sedes_dentistas')
+                        .insert([{ 
+                            dentista_id: userId, nombre_sede: nombre, direccion: direccion, 
+                            comuna: comuna, latitud: baseLat, longitud: baseLng 
+                        }])
+                        .select().single();
+                    
+                    if (errorInsert) throw errorInsert;
+                    sedeIdFinal = nuevaSede.id;
                 }
 
-                if (respuesta.error) throw respuesta.error;
+                // Insertamos los bloques relacionales atados a la Sede final
+                const dataHorarios = bloquesParaInsertar.map(b => ({
+                    id_sede: sedeIdFinal,
+                    dia_semana: b.dia_semana,
+                    hora_inicio: b.hora_inicio,
+                    hora_fin: b.hora_fin
+                }));
 
-                alert(idSede ? "✅ Sede actualizada exitosamente." : "🏥 ¡Nueva Sede vinculada exitosamente!");
+                const { error: errHorarios } = await window.midental.from('horarios_disponibles').insert(dataHorarios);
+                if (errHorarios) throw errHorarios;
+
+                alert(idSede ? "✅ Sede actualizada exitosamente." : "🏥 ¡Nueva Sede vinculada exitosamente! Ya eres visible en el mapa.");
                 cerrarModalLugar();
                 cargarSedesDentistaActual(); 
 
@@ -451,13 +512,16 @@
         async function eliminarSede(sedeId) {
             if(!confirm("¿Estás seguro de eliminar esta sede? Perderás visibilidad en el mapa en esta ubicación y se borrarán de tu agenda los bloques de esta clínica.")) return;
             try {
+                // Al tener la llave foránea con ON DELETE CASCADE, esto borrará la sede y sus horarios automáticamente
                 const { error } = await window.midental.from('sedes_dentistas').delete().eq('id', sedeId);
                 if (error) throw error;
                 cargarSedesDentistaActual();
             } catch (err) { alert("Error al eliminar."); }
         }
 
+        // ==========================================
         // 5. GENERADOR DE GRILLA INTERACTIVA
+        // ==========================================
         function generarGrillaSieteDias() {
             const grid = document.getElementById('gridHorarioTrabajo');
             if(!grid) return;
@@ -468,7 +532,7 @@
             dias.forEach(d => grid.appendChild(createCell(d, 'embedded-cell embedded-header')));
 
             for (let h = 8; h <= 20; h++) {
-                let horaStr = `${h}:00`;
+                let horaStr = `${h.toString().padStart(2,'0')}:00`;
                 grid.appendChild(createCell(horaStr, 'embedded-cell embedded-time'));
                 for (let d = 0; d < 7; d++) {
                     const cell = document.createElement('div');
