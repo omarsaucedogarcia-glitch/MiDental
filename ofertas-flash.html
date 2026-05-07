@@ -34,7 +34,7 @@
                 <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
                 <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
                 <a href="ofertas-flash.html" class="nav-item active"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
@@ -186,13 +186,12 @@
         let costoTokensActual = 1;
         let diasDuracionActual = 1;
         let archivoPromoSeleccionado = null;
-        let cronometroFlashInterval; // Variable para el cronómetro en vivo
+        let cronometroFlashInterval; 
 
         document.addEventListener('DOMContentLoaded', () => {
             cargarOfertaActiva();
         });
 
-        // Toggle para mostrar/ocultar el calendario de programación
         function toggleProgramacion() {
             const tipo = document.getElementById('tipoInicio').value;
             const inputFecha = document.getElementById('inputFechaInicio');
@@ -207,7 +206,6 @@
             }
         }
 
-        // Lógica de Interfaz Local
         function usarPlantilla(n, pr, po, el) {
             document.querySelectorAll('.chip-template').forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'inherit'; });
             el.classList.add('active');
@@ -258,6 +256,15 @@
         function mostrarPreviewPromocion(input) {
             if (input.files && input.files[0]) {
                 archivoPromoSeleccionado = input.files[0];
+                
+                // Verificar que no sea excesivamente pesado (limitar a 3MB por salud de tu servidor)
+                if (archivoPromoSeleccionado.size > 3 * 1024 * 1024) {
+                    alert("La imagen es muy pesada. Por favor, sube una de menos de 3MB.");
+                    input.value = "";
+                    archivoPromoSeleccionado = null;
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('uploadPlaceholder').style.display = 'none';
@@ -270,7 +277,7 @@
         }
 
         // ==========================================
-        // COMUNICACIÓN CON SUPABASE BLINDADA
+        // COMUNICACIÓN CON SUPABASE BLINDADA (BUCKET EN MINÚSCULAS)
         // ==========================================
 
         async function publicarOfertaEnSupabase() {
@@ -282,11 +289,9 @@
             const pOferta = document.getElementById('inputPrecioOferta').value;
             const btn = document.getElementById('btnPublicarOferta');
 
-            // Validaciones
             if (!nombre || !pReal || !pOferta) return alert("Completa todos los datos de la oferta.");
             if (!archivoPromoSeleccionado) return alert("⚠️ Debes subir una imagen promocional obligatoriamente.");
             
-            // Validar Programación
             const tipoInicio = document.getElementById('tipoInicio').value;
             const inputFecha = document.getElementById('inputFechaInicio').value;
             
@@ -301,7 +306,7 @@
             btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Verificando saldo...';
 
             try {
-                // 0. VERIFICACIÓN DE SEGURIDAD: Leer saldo directamente desde Base de Datos
+                // 1. Verificación segura de saldo en DB
                 const { data: perfilData, error: perfilError } = await window.midental
                     .from('perfiles_dentistas')
                     .select('tokens_disponibles')
@@ -318,20 +323,27 @@
 
                 btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Subiendo imagen y publicando...';
 
-                // 1. Subir la Imagen Promocional (CORRECCIÓN: Bucket en Mayúsculas según Políticas RLS)
+                // 2. SUBIR IMAGEN A BUCKET "ofertas" EN MINÚSCULAS
                 const fileExt = archivoPromoSeleccionado.name.split('.').pop();
                 const fileName = `promo_${dentistaId}_${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await window.midental.storage.from('OFERTAS').upload(fileName, archivoPromoSeleccionado);
-                if (uploadError) throw new Error("Error al subir la imagen: " + uploadError.message);
                 
-                const { data: urlData } = window.midental.storage.from('OFERTAS').getPublicUrl(fileName);
+                const { error: uploadError } = await window.midental.storage
+                    .from('ofertas')
+                    .upload(fileName, archivoPromoSeleccionado);
+                    
+                if (uploadError) throw new Error("Error al subir la imagen a Storage: " + uploadError.message);
+                
+                const { data: urlData } = window.midental.storage
+                    .from('ofertas')
+                    .getPublicUrl(fileName);
+                    
                 const imagenPublicUrl = urlData.publicUrl;
 
-                // 2. Calcular fecha de expiración desde la fecha de INICIO
+                // 3. Calcular fechas
                 const fechaExpiracion = new Date(fechaInicio.getTime());
                 fechaExpiracion.setDate(fechaExpiracion.getDate() + diasDuracionActual);
 
-                // 3. Guardar en BD
+                // 4. Guardar en BD Ofertas
                 const { error: insertError } = await window.midental.from('ofertas_flash').insert([{
                     dentista_id: dentistaId,
                     servicio_nombre: nombre,
@@ -346,12 +358,12 @@
 
                 if (insertError) throw new Error("Error al guardar la oferta: " + insertError.message);
 
-                // 4. Descontar Tokens con el saldo validado
+                // 5. Descontar Tokens
                 const nuevoSaldo = saldoRealDB - costoTokensActual;
                 const { error: tokenError } = await window.midental.from('perfiles_dentistas').update({ tokens_disponibles: nuevoSaldo }).eq('id', dentistaId);
                 if (tokenError) throw new Error("Oferta publicada, pero hubo un error actualizando el monedero.");
 
-                // 5. Éxito
+                // Éxito
                 if (tipoInicio === 'programado') {
                     alert(`✅ ¡Campaña programada con éxito! Iniciará automáticamente el ${fechaInicio.toLocaleString('es-CL')}.`);
                 } else {
@@ -363,7 +375,7 @@
                 }
                 cargarOfertaActiva();
 
-                // Limpiar formulario
+                // Limpiar formulario UI
                 archivoPromoSeleccionado = null;
                 document.getElementById('uploadPlaceholder').style.display = 'block';
                 document.getElementById('promoPreview').style.display = 'none';
@@ -394,10 +406,8 @@
 
             if (data) {
                 document.getElementById('monitorNombrePrestacion').innerText = data.servicio_nombre;
-                
                 const fechaExp = new Date(data.expira_at).getTime();
                 
-                // Determinar si está activa o en espera
                 let estado = "Activa en el muro";
                 if(data.inicio_at && new Date(data.inicio_at) > new Date()) {
                     estado = "Programada (En Espera)";
@@ -406,7 +416,6 @@
                 document.getElementById('monitorOfertaActiva').style.display = 'block';
                 window.ofertaActivaId = data.id; 
 
-                // CORRECCIÓN: CRONÓMETRO EN VIVO
                 clearInterval(cronometroFlashInterval);
                 cronometroFlashInterval = setInterval(function() {
                     const ahora = new Date().getTime();

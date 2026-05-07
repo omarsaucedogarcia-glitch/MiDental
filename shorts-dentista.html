@@ -47,7 +47,7 @@
                 <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
                 <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
                 <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
                 <a href="shorts-dentista.html" class="nav-item active"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
@@ -151,7 +151,7 @@
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 
-                // Validación básica de tamaño (ej: Max 50MB)
+                // Validación básica de tamaño (Max 50MB)
                 if (file.size > 50 * 1024 * 1024) {
                     alert("El video es muy pesado. El tamaño máximo es 50MB.");
                     input.value = "";
@@ -204,7 +204,7 @@
             }
         }
 
-        // 3. Lógica de Subida a Supabase con protección de saldo
+        // 3. Lógica de Subida a Supabase (CORREGIDA A MINÚSCULAS)
         async function lanzarShortReal() {
             const userId = localStorage.getItem('midental_user_id');
             if(!userId) return alert("Sesión inválida.");
@@ -222,7 +222,7 @@
             btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Verificando...`;
 
             try {
-                // Si requiere pago, verificar saldo real en la DB antes de subir 50MB
+                // Si requiere pago, verificar saldo real
                 if (requierePago) {
                     const { data: perfilData, error: perfilError } = await window.midental
                         .from('perfiles_dentistas')
@@ -240,14 +240,21 @@
 
                 btn.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Subiendo video... (No cierres la ventana)`;
 
-                // A. Subir el MP4 al Storage (CORRECCIÓN: Bucket en mayúsculas)
+                // A. Subir el MP4 al Storage en minúsculas: 'reels'
                 const fileExt = archivoVideoSeleccionado.name.split('.').pop();
                 const fileName = `short_${userId}_${Date.now()}.${fileExt}`;
-                const { error: uploadError } = await window.midental.storage.from('REELS').upload(fileName, archivoVideoSeleccionado);
                 
-                if (uploadError) throw new Error("Error en Storage: " + uploadError.message);
+                const { error: uploadError } = await window.midental.storage
+                    .from('reels')
+                    .upload(fileName, archivoVideoSeleccionado);
                 
-                const { data: urlData } = window.midental.storage.from('REELS').getPublicUrl(fileName);
+                if (uploadError) throw new Error("Error al subir el video al servidor (Storage): " + uploadError.message);
+                
+                // Obtener URL Pública desde el bucket en minúsculas
+                const { data: urlData } = window.midental.storage
+                    .from('reels')
+                    .getPublicUrl(fileName);
+                    
                 const videoPublicUrl = urlData.publicUrl;
 
                 // B. Guardar el registro en la base de datos
@@ -256,10 +263,10 @@
                     video_url: videoPublicUrl,
                     descripcion: desc,
                     cta_tipo: cta,
-                    costo_token: requierePago // Guardamos true si costó un token, false si fue gratis
+                    costo_token: requierePago // true si costó un token, false si fue gratis
                 }]);
 
-                if (insertError) throw new Error("Error en DB: " + insertError.message);
+                if (insertError) throw new Error("Error al registrar en la Base de Datos: " + insertError.message);
 
                 // C. Cobrar el Token asegurado
                 if (requierePago) {
@@ -341,14 +348,14 @@
             });
         }
 
-        // CORRECCIÓN: Borrado completo (DB + Storage)
+        // CORRECCIÓN: Borrado completo (DB + Storage apuntando a bucket 'reels' en minúsculas)
         async function eliminarShort(idVideo, fileName) {
             if(!confirm("¿Estás seguro de eliminar este Short? Se borrará permanentemente de los servidores de MiDental.")) return;
             
             try {
-                // 1. Borrar el archivo físico del Storage para liberar espacio
+                // 1. Borrar el archivo físico del Storage ('reels') para liberar espacio
                 if(fileName) {
-                    await window.midental.storage.from('REELS').remove([fileName]);
+                    await window.midental.storage.from('reels').remove([fileName]);
                 }
 
                 // 2. Borrar el registro de la Base de Datos

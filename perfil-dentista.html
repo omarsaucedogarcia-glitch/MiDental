@@ -58,7 +58,7 @@
                 <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
                 <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
                 <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item active"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
@@ -254,7 +254,7 @@
         });
 
         // ==========================================
-        // 1. SUBIR FOTO DE PERFIL 
+        // 1. SUBIR FOTO DE PERFIL (CORREGIDO)
         // ==========================================
         async function subirFotoPerfilDentista(event) {
             const file = event.target.files[0];
@@ -267,18 +267,38 @@
             btnSube.style.background = '#e2e8f0';
 
             try {
+                // Verificar que el tamaño de la imagen no sea excesivo (ej. máximo 3MB)
+                if (file.size > 3 * 1024 * 1024) {
+                    throw new Error("La imagen es muy pesada. El tamaño máximo permitido es 3MB.");
+                }
+
                 const fileExt = file.name.split('.').pop();
+                // Agregar un timestamp asegura que el nombre de archivo sea único y evite problemas de caché
                 const fileName = `${userId}_${Date.now()}.${fileExt}`;
 
-                const { error: uploadError } = await window.midental.storage.from('AVATARES').upload(fileName, file);
+                // SE USAN MINÚSCULAS PARA EL BUCKET: 'avatares'
+                const { error: uploadError } = await window.midental.storage
+                    .from('avatares')
+                    .upload(fileName, file, { upsert: true }); // upsert permite reemplazar si subes varias
+
                 if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = window.midental.storage.from('AVATARES').getPublicUrl(fileName);
+                // Extraemos la URL pública (si el bucket 'avatares' está configurado como público)
+                const { data: publicUrlData } = window.midental.storage
+                    .from('avatares')
+                    .getPublicUrl(fileName);
+                    
                 const avatarUrl = publicUrlData.publicUrl;
 
-                const { error: updateError } = await window.midental.from('perfiles_dentistas').update({ avatar_url: avatarUrl }).eq('id', userId);
+                // Actualizamos la base de datos del perfil
+                const { error: updateError } = await window.midental
+                    .from('perfiles_dentistas')
+                    .update({ avatar_url: avatarUrl })
+                    .eq('id', userId);
+                    
                 if (updateError) throw updateError;
 
+                // Actualizamos las imágenes en la interfaz de inmediato
                 document.getElementById('profileLargeAvatar').src = avatarUrl;
                 if(document.getElementById('topbarAvatar')) document.getElementById('topbarAvatar').src = avatarUrl;
 
@@ -328,7 +348,7 @@
         }
 
         // ==========================================
-        // 3. CARGAR SEDES DE TRABAJO (VERSIÓN JSON DIRECTA)
+        // 3. CARGAR SEDES DE TRABAJO
         // ==========================================
         async function cargarSedesDentistaActual() {
             const userId = localStorage.getItem('midental_user_id');
