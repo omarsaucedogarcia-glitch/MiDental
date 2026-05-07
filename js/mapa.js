@@ -357,3 +357,71 @@ window.confirmarAgendamientoPaciente = async function() {
 
 function configurarFiltrosChips() {}
 window.cargarOfertasFlashLaterales = async function() {}
+// En la función cargarDirectorioDoctores, cambiamos la consulta para que NO busque horarios_disponibles
+window.cargarDirectorioDoctores = async function() {
+    try {
+        const { data: sedes, error } = await window.midental
+            .from('sedes_dentistas')
+            .select('*, perfiles_dentistas(id, nombre_completo, prefijo, especialidad, avatar_url, telefono, valor_consulta, acepta_urgencias)');
+
+        if (error) throw error;
+        todasLasSedes = sedes || [];
+        window.renderizarDirectorio(todasLasSedes, filtroDesdeURL);
+
+    } catch (err) {
+        document.getElementById('cargandoDirectorio').innerHTML = `<div style="color: red;">Error al cargar la red de dentistas.</div>`;
+    }
+}
+
+// En la función renderizarDirectorio, leemos el JSON
+const qtyHoras = sede.horarios_json ? sede.horarios_json.length : 0;
+
+// En la función renderizarCalendarioReal, leemos el array directo (ej: "Lun-08:00")
+function renderizarCalendarioReal(horariosArray) {
+    const track = document.getElementById('modalCalendarioHoras');
+    if(!track) return;
+    track.innerHTML = "";
+
+    if (!horariosArray || horariosArray.length === 0) {
+        track.innerHTML = '<p style="color:#ef4444; width:100%; text-align:center;">El doctor no tiene horas configuradas en esta sede.</p>';
+        return;
+    }
+
+    const agendaAgrupada = {};
+    horariosArray.forEach(slot => {
+        const partes = slot.split('-'); // ["Lun", "08:00"]
+        if(partes.length === 2) {
+            if(!agendaAgrupada[partes[0]]) agendaAgrupada[partes[0]] = [];
+            agendaAgrupada[partes[0]].push(partes[1]);
+        }
+    });
+
+    const ordenDias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const fechasSemanales = obtenerFechasSemana(); 
+    
+    ordenDias.forEach(dia => {
+        if (agendaAgrupada[dia]) {
+            const fechaInfo = fechasSemanales[dia] || { corta: '', bd: '' };
+            
+            const col = document.createElement('div');
+            col.className = 'day-col';
+            col.innerHTML = `
+                <div style="font-weight:900; color:var(--blue-elegant); font-size:1.1rem;">${dia}</div>
+                <div style="font-size:0.8rem; color:#64748b; margin-bottom:12px; font-weight:bold;">${fechaInfo.corta}</div>
+            `;
+
+            agendaAgrupada[dia].sort().forEach(hora => {
+                const btn = document.createElement('button');
+                btn.className = 'time-slot-btn slot-btn';
+                btn.innerText = hora;
+                
+                const slotBD = `${dia} ${fechaInfo.corta} a las ${hora}`; 
+                const textoVisual = slotBD;
+                
+                btn.onclick = () => window.seleccionarSlotReserva(btn, slotBD, textoVisual);
+                col.appendChild(btn);
+            });
+            track.appendChild(col);
+        }
+    });
+}

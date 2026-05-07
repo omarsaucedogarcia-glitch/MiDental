@@ -40,7 +40,7 @@
         /* Panel Derecho */
         .nueva-evo-panel { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.03); overflow: hidden; }
         .form-section-title { color: var(--blue-elegant); border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 1.2rem; }
-        .textarea-clinico { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 120px; margin-bottom: 25px; background: #f8fafc; box-sizing: border-box;}
+        .textarea-clinico { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; font-family: inherit; font-size: 0.95rem; resize: vertical; min-height: 80px; margin-bottom: 25px; background: #f8fafc; box-sizing: border-box;}
         .textarea-clinico:focus { outline: none; border-color: var(--pixar-cyan); box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.1); background: white;}
         
         /* Tabla Presupuesto */
@@ -78,8 +78,8 @@
         <main class="dashboard-content">
             <header class="topbar" style="margin-bottom: 25px; padding: 15px 25px;">
                 <div class="welcome-text">
-                    <button class="btn-login-outline" style="padding: 6px 12px; margin-bottom: 15px; font-size: 0.85rem; border-radius: 10px;" onclick="window.location.href='agenda-dentista.html'">
-                        <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">arrow_back</span> Volver a Agenda
+                    <button class="btn-login-outline" style="padding: 6px 12px; margin-bottom: 15px; font-size: 0.85rem; border-radius: 10px;" onclick="window.history.back()">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">arrow_back</span> Volver
                     </button>
                     <h1 style="font-size: 1.6rem;">Ficha Clínica: <span id="headerNombrePaciente" style="color: var(--pixar-cyan);">Cargando...</span></h1>
                 </div>
@@ -114,7 +114,7 @@
                     <div style="padding: 20px; border-top: 1px solid #e2e8f0; background: white; border-radius: 0 0 20px 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h3 style="margin: 0; font-size: 1.05rem; color: var(--blue-elegant); display: flex; align-items: center; gap: 8px;">
-                                <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">folder_open</span> Exámenes Adjuntos
+                                <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">folder_open</span> Archivos y Exámenes
                             </h3>
                             
                             <label class="btn-upload-doc" id="labelBtnSubidaDoc">
@@ -132,11 +132,14 @@
                 <div class="nueva-evo-panel">
                     <h3 class="form-section-title"><span class="material-symbols-outlined">edit_document</span> Registrar Evolución Médica</h3>
                     
-                    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Motivo de Consulta y Diagnóstico</label>
-                    <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude a control. Se observa caries profunda..."></textarea>
+                    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Motivo de Consulta</label>
+                    <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude por dolor agudo al masticar..."></textarea>
+
+                    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Diagnóstico</label>
+                    <textarea id="fichaDiagnostico" class="textarea-clinico" placeholder="Ej: Pulpitis irreversible asintomática en pieza 1.4..."></textarea>
 
                     <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Procedimiento Realizado</label>
-                    <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación de urgencia..."></textarea>
+                    <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación, extirpación pulpar e irrigación..."></textarea>
 
                     <h3 class="form-section-title mt-20"><span class="material-symbols-outlined">request_quote</span> Presupuesto Inteligente</h3>
                     <div class="presupuesto-table-wrapper">
@@ -183,16 +186,22 @@
     </div>
 
     <div id="modalVerRegistroPasado" class="modal-overlay" style="display:none; z-index: 1000;">
-        <div class="modal-content modal-xl" style="border-radius: 20px; padding: 30px;">
+        <div class="modal-content modal-xl" style="border-radius: 20px; padding: 30px; max-width: 600px; margin: auto; background: white;">
             <button class="btn-close" onclick="document.getElementById('modalVerRegistroPasado').style.display='none'"><span class="material-symbols-outlined">close</span></button>
             <div style="border-bottom: 3px solid var(--pixar-cyan); padding-bottom: 15px; margin-bottom: 25px;">
                 <h2 style="margin:0; color: var(--blue-elegant); font-size: 1.6rem;">Ficha Clínica Histórica</h2>
                 <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Fecha de Registro: <strong id="modalPasadoFecha">--/--/----</strong></p>
             </div>
-            <h4 style="margin-bottom: 8px; color: var(--blue-elegant); font-size: 1.1rem;">Diagnóstico / Evolución:</h4>
-            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 1rem; color: #334155; line-height: 1.5;" id="modalPasadoEvo"></div>
-            <h4 style="margin-bottom: 8px; color: var(--blue-elegant); font-size: 1.1rem;">Procedimiento:</h4>
-            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 1rem; color: #334155; line-height: 1.5;" id="modalPasadoProcedimiento"></div>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 0.95rem; color: #334155; line-height: 1.5;">
+                <strong style="color: var(--blue-elegant);">Motivo de Consulta:</strong><br>
+                <span id="modalPasadoMotivo">--</span><br><br>
+                <strong style="color: var(--blue-elegant);">Diagnóstico:</strong><br>
+                <span id="modalPasadoDiagnostico">--</span><br><br>
+                <strong style="color: var(--blue-elegant);">Procedimiento:</strong><br>
+                <span id="modalPasadoProcedimiento">--</span>
+            </div>
+            
             <div style="background: #f0fdfa; border: 2px dashed var(--green-success); padding: 20px; border-radius: 15px; text-align: right; margin-bottom: 25px;">
                 <span style="font-size: 1rem; color: #64748b; font-weight: bold;">Presupuesto Emitido:</span><br>
                 <strong style="font-size: 2rem; color: var(--green-success);">$ <span id="modalPasadoTotal">0</span></strong>
@@ -206,7 +215,7 @@
     </div>
 
     <div id="modalInterconsulta" class="modal-overlay" style="display:none; z-index: 1000;">
-        <div class="modal-content" style="max-width: 500px; text-align: center; padding: 35px 25px; border-radius: 20px;">
+        <div class="modal-content" style="max-width: 500px; text-align: center; padding: 35px 25px; border-radius: 20px; margin: auto; background: white;">
             <button class="btn-close" onclick="document.getElementById('modalInterconsulta').style.display='none'"><span class="material-symbols-outlined">close</span></button>
             <span class="material-symbols-outlined" style="font-size: 4.5rem; color: var(--pixar-cyan); margin-bottom: 15px;">move_up</span>
             <h2 style="color: var(--blue-elegant); margin-top: 0; font-size: 1.8rem;">Generar Interconsulta</h2>
@@ -218,7 +227,7 @@
             <button class="btn-pixar btn-full mt-20" id="btnCrearPase" onclick="generarPINSeguro()" style="padding: 15px; font-size: 1.1rem; border-radius: 12px;">Crear Pase Seguro</button>
             <div id="zonaResultadosPIN" style="display: none;">
                 <p style="margin-top: 25px; font-size: 0.95rem; color: #475569; line-height: 1.5;">Dicta o envía este código de 6 dígitos al paciente. El nuevo especialista se lo solicitará para desbloquear su ficha.</p>
-                <div class="pin-display" id="pinMostrado">------</div>
+                <div class="pin-display" id="pinMostrado" style="font-size: 2rem; font-weight: bold; letter-spacing: 5px; color: var(--blue-elegant); margin: 15px 0;">------</div>
                 <button class="btn-login-outline btn-full" onclick="enviarPinAlPaciente()" style="padding: 15px; border-radius: 12px; font-weight: bold;">
                     <span class="material-symbols-outlined">chat</span> Enviar Instrucciones al Paciente
                 </button>
@@ -238,7 +247,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (!pacienteIdURL) {
                 alert("Error: No se especificó un paciente válido.");
-                window.location.href = 'agenda-dentista.html';
+                window.history.back();
                 return;
             }
             cargarDatosPaciente();
@@ -307,17 +316,21 @@
 
                 historial.forEach(ficha => {
                     const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
-                    const motivoStr = ficha.historial_json?.diagnostico || ficha.motivo_consulta || 'Sin especificar';
-                    const accionStr = ficha.historial_json?.tratamiento || ficha.accion_realizada || 'Sin registro';
+                    
+                    // Extraemos los datos separados desde el JSON inteligente
+                    const histoJson = ficha.historial_json || {};
+                    const motivoStr = histoJson.motivo || ficha.motivo_consulta || 'Sin especificar';
+                    const diagStr = histoJson.diagnostico || 'Revisar detalle clínico';
+                    const accionStr = histoJson.tratamiento || ficha.accion_realizada || 'Sin registro';
                     const presupuestoNum = ficha.presupuesto_total || 0;
 
-                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, accion: accionStr, presupuesto: presupuestoNum }));
+                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, diagnostico: diagStr, accion: accionStr, presupuesto: presupuestoNum }));
 
                     contenedor.innerHTML += `
                         <div class="evolucion-card" onclick="abrirBovedaPasada('${dataFichaStr}')" title="Clic para ver detalle completo">
                             <div class="evo-date"><span>Atención Médica</span><span>${fechaAtencion}</span></div>
-                            <div class="evo-title">Motivo Principal:</div>
-                            <div class="evo-text">${motivoStr.length > 60 ? motivoStr.substring(0, 60) + '...' : motivoStr}</div>
+                            <div class="evo-title" style="color: var(--blue-elegant); font-size: 0.8rem; font-weight: bold;">Motivo Principal:</div>
+                            <div class="evo-text" style="font-size: 0.8rem;">${motivoStr.length > 50 ? motivoStr.substring(0, 50) + '...' : motivoStr}</div>
                             ${presupuestoNum > 0 ? `<div class="evo-price">Costo Presupuestado: $${presupuestoNum.toLocaleString('es-CL')}</div>` : ''}
                         </div>
                     `;
@@ -326,7 +339,7 @@
         }
 
         // ==========================================
-        // SISTEMA DE DOCUMENTOS CON URLS FIRMADAS (PRIVACIDAD LEY 20.584)
+        // SISTEMA DE DOCUMENTOS CON URLS FIRMADAS (BUCKET EN MINÚSCULAS CORRECTO)
         // ==========================================
         async function cargarDocumentosPaciente() {
             const contenedor = document.getElementById('contenedorDocumentosPaciente');
@@ -353,13 +366,12 @@
                     
                     if (!archivoRef) continue;
 
-                    // Si es una URL antigua pública, la usamos. Si es un nombre de archivo, generamos URL Firmada (Privada)
                     if (archivoRef.startsWith('http')) {
                         urlSegura = archivoRef;
                     } else {
-                        // Genera una URL que expira en 1 hora (3600 segundos) para protección de datos
+                        // AQUÍ: BUCKET EN MINÚSCULAS EXACTO PARA QUE COINCIDA
                         const { data: signedData } = await window.midental.storage
-                            .from('DOCUMENTOS_CLINICOS')
+                            .from('documentos_clinicos')
                             .createSignedUrl(archivoRef, 3600);
                         urlSegura = signedData?.signedUrl || '#';
                     }
@@ -404,14 +416,13 @@
                 const fileExt = file.name.split('.').pop();
                 const fileName = `Dr_${dentistaId}_${Date.now()}.${fileExt}`;
 
-                // CORRECCIÓN: Bucket en mayúsculas y NO extraer URL Pública
+                // AQUÍ TAMBIÉN: BUCKET EN MINÚSCULAS EXACTO
                 const { error: uploadError } = await window.midental.storage
-                    .from('DOCUMENTOS_CLINICOS')
+                    .from('documentos_clinicos')
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                // CORRECCIÓN: Guardar solo el nombre del archivo, la seguridad se maneja al leer
                 const { error: dbError } = await window.midental.from('documentos_pacientes').insert([{
                     paciente_id: pacienteIdURL,
                     dentista_id: dentistaId,
@@ -433,7 +444,7 @@
         }
 
         // ==========================================
-        // LÓGICA DE TABLA DE PRESUPUESTO
+        // LÓGICA DE TABLA DE PRESUPUESTO Y NUEVOS CAMPOS
         // ==========================================
         function agregarFila() { 
             const tbody = document.getElementById('tbodyPresupuesto');
@@ -477,13 +488,12 @@
         }
 
         // ==========================================
-        // MOTOR NATIVO PDF (JSPDF + AUTOTABLE)
+        // MOTOR NATIVO PDF (JSPDF + AUTOTABLE) ACTUALIZADO
         // ==========================================
-        async function generarDocumentoJSPDF(dentistaId, motivoTxt, accionTxt) {
+        async function generarDocumentoJSPDF(dentistaId, motivoTxt, diagTxt, accionTxt) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // 1. Obtener Datos
             const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
             const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna').eq('dentista_id', dentistaId).limit(1);
 
@@ -492,7 +502,7 @@
             const drSis = dr ? dr.registro_sis : '--';
             const drSede = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
 
-            // 2. Cabecera (Branding)
+            // Cabecera (Branding)
             doc.setFontSize(22);
             doc.setTextColor(0, 180, 216); // Pixar Cyan
             doc.text("MiDental", 14, 20);
@@ -513,7 +523,7 @@
             doc.setDrawColor(200, 200, 200);
             doc.line(14, 30, 200, 30);
 
-            // 3. Info de Paciente y Doctor
+            // Info de Paciente y Doctor
             doc.setFontSize(12);
             doc.setTextColor(30, 58, 138);
             doc.text("Datos del Paciente", 14, 40);
@@ -531,23 +541,27 @@
             doc.text(`RUT: ${drRut} | Registro SIS: ${drSis}`, 110, 53);
             doc.text(`Sede: ${drSede}`, 110, 59);
 
-            // 4. Evolución Clínica
+            // Evolución Clínica Estructurada
             doc.setFontSize(12);
             doc.setTextColor(30, 58, 138);
             doc.text("Evolución Clínica", 14, 70);
             
             doc.setFontSize(10);
             doc.setTextColor(50, 50, 50);
-            const splitDiag = doc.splitTextToSize(`Diagnóstico: ${motivoTxt}`, 180);
-            doc.text(splitDiag, 14, 77);
+            const splitMotivo = doc.splitTextToSize(`Motivo de Consulta: ${motivoTxt}`, 180);
+            doc.text(splitMotivo, 14, 77);
             
-            let startYTrat = 77 + (splitDiag.length * 5) + 2;
+            let startYDiag = 77 + (splitMotivo.length * 5) + 2;
+            const splitDiag = doc.splitTextToSize(`Diagnóstico: ${diagTxt}`, 180);
+            doc.text(splitDiag, 14, startYDiag);
+
+            let startYTrat = startYDiag + (splitDiag.length * 5) + 2;
             const splitTrat = doc.splitTextToSize(`Procedimiento: ${accionTxt}`, 180);
             doc.text(splitTrat, 14, startYTrat);
 
             let tableStartY = startYTrat + (splitTrat.length * 5) + 10;
 
-            // 5. Generar Tabla con AutoTable
+            // Generar Tabla con AutoTable
             const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
             const tableRows = [];
             let hayPresupuesto = false;
@@ -578,7 +592,7 @@
                     head: [tableColumn],
                     body: tableRows,
                     theme: 'grid',
-                    headStyles: { fillColor: [30, 58, 138] }, // Blue Elegant
+                    headStyles: { fillColor: [30, 58, 138] },
                     styles: { fontSize: 9 }
                 });
 
@@ -588,7 +602,7 @@
                 doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
             }
 
-            // 6. Firmas
+            // Firmas
             const finalPageY = doc.internal.pageSize.height;
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
@@ -601,58 +615,50 @@
             return doc;
         }
 
-        // ==========================================
-        // BOTÓN 1: SOLO PREVISUALIZAR PDF EN NUEVA PESTAÑA
-        // ==========================================
         async function soloPrevisualizarPDF() {
             const dentistaId = localStorage.getItem('midental_user_id');
             if(!dentistaId) return alert("Error de sesión.");
 
             const motivo = document.getElementById('fichaMotivo').value.trim() || 'Evaluación';
+            const diag = document.getElementById('fichaDiagnostico').value.trim() || 'No especificado';
             const accion = document.getElementById('fichaAccion').value.trim() || 'Presupuesto';
 
             try {
-                const doc = await generarDocumentoJSPDF(dentistaId, motivo, accion);
+                const doc = await generarDocumentoJSPDF(dentistaId, motivo, diag, accion);
                 window.open(doc.output('bloburl'), '_blank');
             } catch (err) {
                 alert("Error al generar la vista previa: " + err.message);
             }
         }
 
-        // ==========================================
-        // BOTÓN 2: FIRMAR Y GUARDAR (NUBE PDF PRIVADA)
-        // ==========================================
         async function guardarFichaYPresupuestoOficial() {
             const dentistaId = localStorage.getItem('midental_user_id');
             const motivo = document.getElementById('fichaMotivo').value.trim();
+            const diagnostico = document.getElementById('fichaDiagnostico').value.trim();
             const accion = document.getElementById('fichaAccion').value.trim();
             
-            if (!motivo || !accion) return alert("⚠️ Debes ingresar el motivo de consulta y el procedimiento realizado.");
+            if (!motivo || !diagnostico || !accion) return alert("⚠️ Debes ingresar Motivo, Diagnóstico y Procedimiento para guardar la ficha.");
 
             const btn = document.getElementById('btnGuardarFicha');
             btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Guardando en la nube...';
             btn.disabled = true;
 
             try {
-                // 1. Revisar si hay presupuesto
                 let hayPresupuesto = false;
                 document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
                     const ref = parseFloat(tr.querySelector('.input-ref').value) || 0;
                     if (ref > 0) hayPresupuesto = true;
                 });
 
-                // Si hay presupuesto, generamos el PDF Nativo y lo subimos de forma privada
                 if (hayPresupuesto) {
-                    const docPDF = await generarDocumentoJSPDF(dentistaId, motivo, accion);
-                    
+                    const docPDF = await generarDocumentoJSPDF(dentistaId, motivo, diagnostico, accion);
                     const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
                     const nombreArchivo = `Presupuesto_Oficial_${nombrePuro}_${Date.now()}.pdf`;
-                    
                     const pdfBlob = docPDF.output('blob');
 
-                    // CORRECCIÓN: Bucket en mayúsculas y NO se extrae la Public URL
+                    // BUCKET EN MINÚSCULAS EXACTO
                     const { error: uploadError } = await window.midental.storage
-                        .from('DOCUMENTOS_CLINICOS')
+                        .from('documentos_clinicos')
                         .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
 
                     if (uploadError) throw new Error("Fallo la subida del PDF a Supabase.");
@@ -662,30 +668,29 @@
                         dentista_id: dentistaId,
                         nombre_archivo: `Presupuesto Oficial ${new Date().toLocaleDateString('es-CL')}.pdf`,
                         tipo: 'pdf',
-                        archivo_url: nombreArchivo // Guardamos solo la ruta por seguridad
+                        archivo_url: nombreArchivo 
                     }]);
 
-                    // Descargar copia local al dentista para sus archivos
                     docPDF.save(nombreArchivo);
                 }
 
-                // 2. Guardar el registro en Fichas Clínicas
                 const totalPresupuestoCalculado = calcularGranTotal();
+                // Combinamos motivo y diagnóstico visualmente para la tabla general, pero los guardamos separados en JSON
                 const { error: fichaError } = await window.midental.from('fichas_clinicas').insert([{
                     dentista_id: dentistaId, 
                     paciente_id: pacienteIdURL, 
                     paciente_nombre: pacienteActual.nombre,
-                    motivo_consulta: motivo, 
+                    motivo_consulta: `${motivo} | ${diagnostico}`, 
                     accion_realizada: accion, 
                     presupuesto_total: totalPresupuestoCalculado,
                     ultima_atencion: new Date().toISOString(),
-                    historial_json: { diagnostico: motivo, tratamiento: accion, fecha: new Date().toLocaleDateString('es-CL') }
+                    historial_json: { motivo: motivo, diagnostico: diagnostico, tratamiento: accion, fecha: new Date().toLocaleDateString('es-CL') }
                 }]);
 
                 if (fichaError) throw fichaError;
 
-                // 3. Limpiar Pantalla
                 document.getElementById('fichaMotivo').value = ''; 
+                document.getElementById('fichaDiagnostico').value = '';
                 document.getElementById('fichaAccion').value = '';
                 document.getElementById('tbodyPresupuesto').innerHTML = `
                     <tr>
@@ -712,13 +717,16 @@
             }
         }
 
-        // Funciones de Bóveda e Interconsulta
+        // ==========================================
+        // FUNCIONES DE BÓVEDA HISTÓRICA E INTERCONSULTA
+        // ==========================================
         let presupuestoEnPantallaActual = 0; 
         function abrirBovedaPasada(dataCodificada) {
             const data = JSON.parse(decodeURIComponent(dataCodificada));
             presupuestoEnPantallaActual = data.presupuesto;
             document.getElementById('modalPasadoFecha').innerText = data.fecha;
-            document.getElementById('modalPasadoEvo').innerText = data.motivo;
+            document.getElementById('modalPasadoMotivo').innerText = data.motivo;
+            document.getElementById('modalPasadoDiagnostico').innerText = data.diagnostico;
             document.getElementById('modalPasadoProcedimiento').innerText = data.accion;
             document.getElementById('modalPasadoTotal').innerText = data.presupuesto.toLocaleString('es-CL');
             document.getElementById('modalVerRegistroPasado').style.display = 'flex';

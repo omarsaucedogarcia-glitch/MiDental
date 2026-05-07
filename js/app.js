@@ -216,22 +216,20 @@ window.cargarAgendaDesdeSedes = async function() {
     if (!userId) return;
 
     try {
-        // 1. Extraemos los horarios disponibles (Cruce con sedes)
-        const { data: horarios } = await window.midental
-            .from('horarios_disponibles')
-            .select('dia_semana, hora_inicio, hora_fin, sedes_dentistas!inner(nombre_sede)')
-            .eq('sedes_dentistas.dentista_id', userId);
+        // 1. Extraemos los horarios desde el JSON de la sede (como en el diseño original)
+        const { data: sedes } = await window.midental
+            .from('sedes_dentistas')
+            .select('nombre_sede, horarios_json')
+            .eq('dentista_id', userId);
 
-        if (horarios && horarios.length > 0) {
-            horarios.forEach(bloque => {
-                let hInicio = bloque.hora_inicio.substring(0, 5); // ej: 08:00
-                // Asumimos que los bloques HTML tienen data-dia-semana (1-7) y data-hora
-                document.querySelectorAll(`[data-dia-semana="${bloque.dia_semana}"]`).forEach(celda => {
-                    let horaCelda = celda.getAttribute('data-hora');
-                    if (horaCelda === hInicio) {
-                        celda.innerHTML = `<div class="slot-workplace"><div class="watermark-text">${bloque.sedes_dentistas.nombre_sede}</div></div>`;
-                    }
-                });
+        if (sedes && sedes.length > 0) {
+            sedes.forEach(sede => {
+                if (sede.horarios_json && Array.isArray(sede.horarios_json)) {
+                    sede.horarios_json.forEach(slot => {
+                        const celdaHTML = document.querySelector(`[data-slot="${slot}"]`);
+                        if (celdaHTML) celdaHTML.innerHTML = `<div class="slot-workplace"><div class="watermark-text">${sede.nombre_sede}</div></div>`;
+                    });
+                }
             });
         }
 
@@ -240,7 +238,7 @@ window.cargarAgendaDesdeSedes = async function() {
         if (citas) {
             citas.forEach(cita => {
                 const slotIdBusqueda = cita.fecha_hora_formato_slot; 
-                const celdaHTML = document.querySelector(`[data-slot-real="${slotIdBusqueda}"]`);
+                const celdaHTML = document.querySelector(`[data-slot="${slotIdBusqueda}"]`);
                 
                 if (celdaHTML) {
                     const pctName = cita.paciente_nombre_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente');

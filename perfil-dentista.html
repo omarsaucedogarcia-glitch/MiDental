@@ -83,11 +83,16 @@
                             <strong id="displayTokens">0</strong>
                         </div>
                     </div>
-                    <div class="topbar-profile">
+                    
+                    <div class="topbar-profile" style="display: flex; align-items: center; gap: 10px;">
                         <div class="rating-badge">
                             <span id="displayRating">⭐ 5.0</span>
                         </div>
                         <img src="assets/avatar-default-doctor.png" alt="Foto de Perfil" id="topbarAvatar" class="profile-avatar-large" style="width: 40px; height: 40px; border:none; margin:0;">
+                        
+                        <button onclick="window.cerrarSesionLocal()" style="background: #fef2f2; border: 1px solid #fecaca; color: #ef4444; border-radius: 10px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(239,68,68,0.1); transition: 0.2s;" title="Cerrar Sesión">
+                            <span class="material-symbols-outlined" style="font-size: 1.3rem;">logout</span>
+                        </button>
                     </div>
                 </div>
             </header>
@@ -249,7 +254,7 @@
         });
 
         // ==========================================
-        // 1. SUBIR FOTO DE PERFIL (CORRECCIÓN RLS BUCKET)
+        // 1. SUBIR FOTO DE PERFIL 
         // ==========================================
         async function subirFotoPerfilDentista(event) {
             const file = event.target.files[0];
@@ -265,7 +270,6 @@
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${userId}_${Date.now()}.${fileExt}`;
 
-                // SE CORRIGE BUCKET A MAYÚSCULAS PARA EVITAR ERROR 403
                 const { error: uploadError } = await window.midental.storage.from('AVATARES').upload(fileName, file);
                 if (uploadError) throw uploadError;
 
@@ -324,20 +328,16 @@
         }
 
         // ==========================================
-        // 3. CARGAR SEDES DE TRABAJO (ARQUITECTURA RELACIONAL)
+        // 3. CARGAR SEDES DE TRABAJO (VERSIÓN JSON DIRECTA)
         // ==========================================
-        const mapaDiasLetras = { 1: 'Lun', 2: 'Mar', 3: 'Mié', 4: 'Jue', 5: 'Vie', 6: 'Sáb', 7: 'Dom' };
-        const mapaDiasNumeros = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
-
         async function cargarSedesDentistaActual() {
             const userId = localStorage.getItem('midental_user_id');
             const contenedor = document.getElementById('listaLugaresTrabajo');
 
             try {
-                // CORRECCIÓN: Extracción cruzada (JOIN) para obtener la sede y sus bloques horarios
                 const { data: sedes, error } = await window.midental
                     .from('sedes_dentistas')
-                    .select('*, horarios_disponibles(dia_semana, hora_inicio, hora_fin)')
+                    .select('*')
                     .eq('dentista_id', userId);
                     
                 if (error) throw error;
@@ -351,7 +351,7 @@
                 }
 
                 sedesUsuarioLocal.forEach(sede => {
-                    const cantHoras = sede.horarios_disponibles ? sede.horarios_disponibles.length : 0;
+                    const cantHoras = sede.horarios_json ? sede.horarios_json.length : 0;
                     const cardDataStr = encodeURIComponent(JSON.stringify(sede));
                     
                     contenedor.innerHTML += `
@@ -373,7 +373,7 @@
         }
 
         // ==========================================
-        // 4. LÓGICA DEL MODAL DE SEDES (TRANSACCIÓN DUAL)
+        // 4. LÓGICA DEL MODAL DE SEDES (JSON DIRECTO)
         // ==========================================
         function abrirModalLugarNuevo() { 
             document.getElementById('tituloModalSede').innerText = "Vincular Nueva Sede";
@@ -404,14 +404,10 @@
                 el.className = 'slot-vacio'; el.innerText = '+';
             });
 
-            // Reconstruir grilla visual desde los datos relacionales
-            if(sede.horarios_disponibles) {
-                sede.horarios_disponibles.forEach(bloque => {
-                    const diaLetra = mapaDiasLetras[bloque.dia_semana];
-                    const horaAbrev = bloque.hora_inicio.substring(0, 5); // Ej: 08:00
-                    const slotId = `${diaLetra}-${horaAbrev}`;
-                    
-                    const celda = document.querySelector(`[data-slot="${slotId}"]`);
+            // Pintamos los horarios directamente desde el JSON guardado
+            if(sede.horarios_json) {
+                sede.horarios_json.forEach(slot => {
+                    const celda = document.querySelector(`[data-slot="${slot}"]`);
                     if(celda) { celda.className = 'slot-trabajando'; celda.innerText = 'OK'; }
                 });
             }
@@ -432,72 +428,34 @@
 
             if (!nombre || !direccion || !comuna) return alert("Completa Nombre, Dirección y Comuna.");
 
-            // Parsear la grilla visual a un formato de base de datos relacional
-            let bloquesParaInsertar = [];
+            // Guardamos los bloques seleccionados en un array simple
+            let horariosSeleccionados = [];
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
-                if (el.dataset.slot) {
-                    const partes = el.dataset.slot.split('-');
-                    const diaNum = mapaDiasNumeros[partes[0]];
-                    const horaInicio = partes[1] + ':00'; // "08:00:00"
-                    
-                    // Calculamos la hora de fin sumando 1 hora
-                    const horaSolo = parseInt(partes[1].split(':')[0]);
-                    const horaFin = (horaSolo + 1).toString().padStart(2, '0') + ':00:00';
-
-                    bloquesParaInsertar.push({
-                        dia_semana: diaNum,
-                        hora_inicio: horaInicio,
-                        hora_fin: horaFin
-                    });
-                }
+                if (el.dataset.slot) horariosSeleccionados.push(el.dataset.slot);
             });
 
-            if (bloquesParaInsertar.length === 0) return alert("Selecciona al menos un bloque de horario.");
+            if (horariosSeleccionados.length === 0) return alert("Selecciona al menos un bloque de horario.");
 
             btn.innerText = "Guardando..."; btn.disabled = true;
 
             try {
-                let sedeIdFinal = idSede;
+                const payload = { 
+                    nombre_sede: nombre, 
+                    direccion: direccion, 
+                    comuna: comuna, 
+                    horarios_json: horariosSeleccionados
+                };
 
                 if (idSede) {
-                    // MODO EDICIÓN
-                    const { error: errorUpdate } = await window.midental.from('sedes_dentistas')
-                        .update({ nombre_sede: nombre, direccion: direccion, comuna: comuna })
-                        .eq('id', idSede);
-                    
-                    if (errorUpdate) throw errorUpdate;
-
-                    // Limpiamos los horarios viejos para no duplicar
-                    await window.midental.from('horarios_disponibles').delete().eq('id_sede', idSede);
+                    const { error } = await window.midental.from('sedes_dentistas').update(payload).eq('id', idSede);
+                    if (error) throw error;
                 } else {
-                    // MODO NUEVA SEDE
-                    // Simulamos coordenadas base cerca de Santiago para asegurar compatibilidad con el Mapa
-                    const baseLat = -33.4489 + (Math.random() * 0.05 - 0.025);
-                    const baseLng = -70.6693 + (Math.random() * 0.05 - 0.025);
-
-                    const { data: nuevaSede, error: errorInsert } = await window.midental.from('sedes_dentistas')
-                        .insert([{ 
-                            dentista_id: userId, nombre_sede: nombre, direccion: direccion, 
-                            comuna: comuna, latitud: baseLat, longitud: baseLng 
-                        }])
-                        .select().single();
-                    
-                    if (errorInsert) throw errorInsert;
-                    sedeIdFinal = nuevaSede.id;
+                    payload.dentista_id = userId;
+                    const { error } = await window.midental.from('sedes_dentistas').insert([payload]);
+                    if (error) throw error;
                 }
 
-                // Insertamos los bloques relacionales atados a la Sede final
-                const dataHorarios = bloquesParaInsertar.map(b => ({
-                    id_sede: sedeIdFinal,
-                    dia_semana: b.dia_semana,
-                    hora_inicio: b.hora_inicio,
-                    hora_fin: b.hora_fin
-                }));
-
-                const { error: errHorarios } = await window.midental.from('horarios_disponibles').insert(dataHorarios);
-                if (errHorarios) throw errHorarios;
-
-                alert(idSede ? "✅ Sede actualizada exitosamente." : "🏥 ¡Nueva Sede vinculada exitosamente! Ya eres visible en el mapa.");
+                alert(idSede ? "✅ Sede actualizada exitosamente." : "🏥 ¡Nueva Sede vinculada exitosamente!");
                 cerrarModalLugar();
                 cargarSedesDentistaActual(); 
 
@@ -510,9 +468,8 @@
         }
 
         async function eliminarSede(sedeId) {
-            if(!confirm("¿Estás seguro de eliminar esta sede? Perderás visibilidad en el mapa en esta ubicación y se borrarán de tu agenda los bloques de esta clínica.")) return;
+            if(!confirm("¿Estás seguro de eliminar esta sede? Perderás visibilidad en el mapa.")) return;
             try {
-                // Al tener la llave foránea con ON DELETE CASCADE, esto borrará la sede y sus horarios automáticamente
                 const { error } = await window.midental.from('sedes_dentistas').delete().eq('id', sedeId);
                 if (error) throw error;
                 cargarSedesDentistaActual();

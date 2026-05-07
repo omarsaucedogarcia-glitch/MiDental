@@ -68,11 +68,32 @@
         .urgencia-card .doc-avatar { border-color: #ef4444; }
         .btn-llamar-urgencia { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 12px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-top: 10px;}
 
-        /* Modal Premium */
-        .modal-content { max-height: 90vh; overflow-y: auto; padding: 30px 25px; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .day-col { border: 1px solid #e2e8f0; padding: 12px; border-radius: 15px; background: #f8fafc; text-align: center; min-width: 100px; flex-shrink: 0;}
-        .slot-btn { width: 100%; background: white; border: 1px solid var(--pixar-cyan); color: var(--blue-elegant); padding: 8px 0; margin-top: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; font-size: 0.85rem; }
-        .slot-btn:hover, .slot-btn.selected { background: var(--pixar-cyan); color: white; }
+        /* Modal Premium y Agenda Móvil */
+        .modal-content { max-height: 90vh; overflow-y: auto; padding: 30px 25px; border-radius: 25px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); display: block; position: relative; width: 95%; max-width: 550px; background: white;}
+        
+        .btn-google-maps { background: white; color: #4b5563; border: 2px solid #e2e8f0; padding: 10px 15px; border-radius: 14px; font-weight: 900; font-size: 0.85rem; display: inline-flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; margin-top: 10px; transition: 0.2s;}
+        .btn-google-maps:hover { background: #f8fafc; border-color: var(--pixar-cyan); color: var(--blue-elegant);}
+
+        /* Navegador de Semanas */
+        .cal-nav-header { display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:12px 15px; border-radius:15px 15px 0 0; border:1px solid #cbd5e1; border-bottom: none;}
+        .cal-nav-header button { background: white; border: 1px solid #cbd5e1; color: var(--blue-elegant); border-radius: 8px; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        .cal-nav-header button:hover { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan);}
+
+        /* Grilla Deslizable (Swipe) para Celulares */
+        .horarios-grid-container { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 0 0 15px 15px; background: white; padding: 15px; margin-bottom: 25px; -webkit-overflow-scrolling: touch; }
+        .dias-row { display: flex; gap: 12px; min-width: max-content; }
+        .dia-col { display: flex; flex-direction: column; gap: 8px; width: 85px; }
+        .dia-header { text-align: center; color: var(--blue-elegant); font-weight: 900; font-size: 0.9rem; padding-bottom: 10px; border-bottom: 2px solid #f1f5f9; margin-bottom: 5px; line-height: 1.2; }
+        
+        .hora-btn { background: white; border: 1px solid #cbd5e1; color: #475569; padding: 10px 0; border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .hora-btn:hover:not(:disabled) { border-color: var(--pixar-cyan); color: var(--pixar-cyan); transform: translateY(-2px);}
+        .hora-btn.selected { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); box-shadow: 0 4px 10px rgba(0, 180, 216, 0.3); transform: scale(1.05);}
+        .hora-btn:disabled { background: #f8fafc; color: #cbd5e1; border-color: #e2e8f0; cursor: not-allowed; box-shadow: none; text-decoration: line-through;}
+        
+        /* Botón WhatsApp */
+        .btn-whatsapp-agenda { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px; border-radius: 14px; font-size: 1.1rem; font-weight: 900; border: none; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); transition: 0.3s;}
+        .btn-whatsapp-agenda:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(16, 185, 129, 0.4); }
+        .btn-whatsapp-agenda:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; opacity: 0.7;}
 
         /* Ajuste menú inferior */
         .bottom-nav { background: white; border-top: none; }
@@ -125,31 +146,46 @@
         </div>
     </div>
 
-    <div id="modalFichaDoctor" class="modal-overlay" style="display:none; z-index: 1000; background: rgba(15,23,42,0.6);">
-        <div class="modal-content" style="max-width: 500px;">
-            <button class="btn-close" onclick="document.getElementById('modalFichaDoctor').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+    <div id="modalFichaDoctor" class="modal-overlay" style="display:none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(3px);">
+        <div class="modal-content">
+            <button class="btn-close" onclick="cerrarAgendamiento()" style="position: absolute; right: 15px; top: 15px; z-index: 20; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"><span class="material-symbols-outlined">close</span></button>
             
             <div style="text-align: center; margin-bottom: 25px;">
                 <div style="position: relative; display: inline-block;">
                     <img id="modalDocAvatar" src="assets/avatar-default-doctor.png" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0, 180, 216, 0.3);">
                     <span class="material-symbols-outlined" style="position: absolute; bottom: 0; right: 0; background: var(--green-success); color: white; border-radius: 50%; padding: 4px; font-size: 1rem; border: 2px solid white;">verified</span>
                 </div>
-                <h2 id="modalDocNombre" style="margin: 15px 0 5px 0; color: var(--blue-elegant); font-size: 1.4rem;">Cargando...</h2>
+                <h2 id="modalDocNombre" style="margin: 15px 0 5px 0; color: var(--blue-elegant); font-size: 1.4rem; font-weight: 900;">Cargando...</h2>
                 <p id="modalDocEspecialidad" style="margin: 0; color: var(--pixar-cyan); font-weight: bold; font-size: 0.95rem;">Especialidad</p>
                 
-                <div style="margin-top: 15px; background: #f1f5f9; display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; color: #475569;">
+                <div style="margin-top: 15px; background: #f1f5f9; display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; color: #475569; font-weight:bold;">
                     <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #94a3b8;">domain</span> 
                     <span id="modalDocDireccion">Dirección de la clínica</span>
                 </div>
+                
+                <br>
+                <button class="btn-google-maps" onclick="abrirRutaMapaPaciente()">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Google_Maps_icon_%282020%29.svg/512px-Google_Maps_icon_%282020%29.svg.png" style="width: 15px; height: 15px;">
+                    Ver cómo llegar en Google Maps
+                </button>
             </div>
             
-            <h3 style="font-size: 1.1rem; color: var(--blue-elegant); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">Selecciona tu hora</h3>
+            <h3 style="font-size: 1.1rem; color: var(--blue-elegant); margin-bottom: 15px; font-weight: 900;">Selecciona tu hora:</h3>
             
-            <div id="modalCalendarioHoras" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 20px;">
-                <div style="text-align: center; color: #94a3b8; width: 100%; padding: 20px; font-size: 0.9rem;">Buscando disponibilidad del profesional...</div>
+            <div class="cal-nav-header">
+                <button type="button" onclick="cambiarSemanaAgendamiento(-1)"><span class="material-symbols-outlined">chevron_left</span></button>
+                <strong id="lblSemanaCita" style="color:var(--blue-elegant); font-size:0.9rem;">Cargando...</strong>
+                <button type="button" onclick="cambiarSemanaAgendamiento(1)"><span class="material-symbols-outlined">chevron_right</span></button>
             </div>
             
-            <button id="btnConfirmarCita" class="btn-pixar btn-search btn-full" onclick="ejecutarAgendamiento()" disabled style="opacity: 0.5; padding: 15px; font-size: 1.05rem; border-radius: 15px;">Selecciona un bloque arriba</button>
+            <div class="horarios-grid-container">
+                <div class="dias-row" id="modalCalendarioHoras">
+                    </div>
+            </div>
+            
+            <button id="btnConfirmarCita" class="btn-whatsapp-agenda" onclick="ejecutarAgendamiento()" disabled>
+                Selecciona un bloque de horario arriba
+            </button>
         </div>
     </div>
 
@@ -164,49 +200,37 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
 
     <script>
-        // Variables globales para el proceso de agendamiento
+        // VARIABLES GLOBALES DEL MOTOR DE AGENDAMIENTO
         let dentistaSeleccionado = null;
-        let slotSeleccionado = null;
-        
-        // El mapa mapea números (1-7) devueltos por DB a strings legibles
-        const mapaDiasNombres = { 1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo' };
+        let offsetSemanasPaciente = 0;
+        let bloqueAgendamientoSeleccionado = null;
+        let horariosDentistaDB = []; // Almacenará los horarios oficiales del dentista
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Protección de rutas privadas
+            // Protección Modo Invitado
             const userId = localStorage.getItem('midental_user_id');
             const tipoUser = localStorage.getItem('midental_user_tipo');
 
             if (!userId || tipoUser !== 'paciente') {
                 document.querySelectorAll('.priv-link').forEach(enlace => {
                     enlace.addEventListener('click', function(e) {
-                        e.preventDefault();
+                        e.preventDefault(); 
                         alert("🔒 Modo Invitado: Para acceder a tu panel, debes iniciar sesión o crear una cuenta gratuita.");
                         window.location.href = 'index.html';
                     });
                 });
             }
 
-            // Procesar parámetro de URL si el paciente hizo clic en "Urgencia Dental" en el inicio
-            const urlParams = new URLSearchParams(window.location.search);
-            const isUrgenciaFiltro = urlParams.get('urgencia');
-            
+            // Iniciar Carga de Directorio
             await cargarDirectorioMedico();
-
-            if (isUrgenciaFiltro === 'true') {
-                // Pequeña animación/scroll hacia urgencias si viene con el filtro
-                setTimeout(() => {
-                    const colUrgencias = document.querySelector('.column-header .material-symbols-outlined.emergency')?.parentNode;
-                    if(colUrgencias) colUrgencias.scrollIntoView({ behavior: 'smooth' });
-                }, 500);
-            }
         });
 
         // 1. CARGA RELACIONAL DEL DIRECTORIO (MÉDICOS + SEDES)
         async function cargarDirectorioMedico() {
             try {
-                // Obtenemos dentistas y cruzamos (join) con sus sedes
                 const { data: doctores, error } = await window.midental
                     .from('perfiles_dentistas')
                     .select('*, sedes_dentistas(nombre_sede, direccion, comuna)');
@@ -225,12 +249,11 @@
                     const avatar = doc.avatar_url || 'assets/avatar-default-doctor.png';
                     const telefono = doc.telefono || '';
                     
-                    // Priorizamos la primera sede que tenga registrada
                     const sedePrincipal = (doc.sedes_dentistas && doc.sedes_dentistas.length > 0) ? doc.sedes_dentistas[0] : null;
                     const ubicacionStr = sedePrincipal ? `${sedePrincipal.comuna}` : 'Consulta Privada';
                     const direccionExacta = sedePrincipal ? `${sedePrincipal.direccion}, ${sedePrincipal.comuna}` : 'Consulta Privada';
 
-                    // Convertimos todo a un JSON para pasarlo al Modal fácilmente
+                    // Convertimos todo a JSON para pasarlo al Modal sin perder datos
                     const docDataCodificado = encodeURIComponent(JSON.stringify({
                         id: doc.id,
                         nombre: nombreCompleto,
@@ -259,15 +282,13 @@
                                 <h4>${nombreCompleto}</h4>
                                 <p><span class="material-symbols-outlined" style="font-size:1rem;">location_on</span> ${ubicacionStr}</p>
                                 <button class="btn-llamar-urgencia" onclick="llamarUrgencia('${telefono}', '${nombreCompleto}')">
-                                    <span class="material-symbols-outlined" style="font-size: 1.2rem;">call</span>
-                                    LLAMAR AHORA
+                                    <span class="material-symbols-outlined" style="font-size: 1.2rem;">call</span> LLAMAR AHORA
                                 </button>
                             </div>
                         </div>
                     `;
 
-                    // Evaluamos la columna 'disponible_urgencia' (el switch del dashboard del doctor)
-                    if (doc.disponible_urgencia) {
+                    if (doc.disponibilidad_urgencia || doc.acepta_urgencias) {
                         htmlUrgencias += tarjetaUrgenciaHtml;
                     }
                     htmlNormal += tarjetaHtml;
@@ -294,139 +315,187 @@
             window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // 2. FILTRO DE BÚSQUEDA EN TIEMPO REAL
+        // Filtro buscador
         document.getElementById('filtroComuna').addEventListener('input', function(e) {
             const termino = e.target.value.toLowerCase().trim();
             const tarjetas = document.querySelectorAll('.doctor-card');
             let visibles = 0;
-            
             tarjetas.forEach(card => {
                 const textoBuscable = card.getAttribute('data-buscar');
-                if(textoBuscable.includes(termino)) {
-                    card.style.display = 'flex';
-                    visibles++;
-                } else {
-                    card.style.display = 'none';
-                }
+                if(textoBuscable.includes(termino)) { card.style.display = 'flex'; visibles++; } 
+                else { card.style.display = 'none'; }
             });
             document.getElementById('contadorResultados').innerText = `${visibles} especialistas encontrados`;
         });
 
         // ==========================================
-        // 3. FLUJO DE AGENDAMIENTO (MODAL Y CALENDARIO)
+        // 2. SINCRONIZACIÓN DE HORARIOS Y APERTURA DE MODAL
         // ==========================================
         async function abrirPerfilDoctor(dataCodificada) {
+            // Extraer datos pasados desde la tarjeta
             dentistaSeleccionado = JSON.parse(decodeURIComponent(dataCodificada));
-            slotSeleccionado = null; // Reiniciar selección
+            offsetSemanasPaciente = 0;
+            bloqueAgendamientoSeleccionado = null;
+            horariosDentistaDB = [];
 
+            // Llenar interfaz del modal
             document.getElementById('modalDocNombre').innerText = dentistaSeleccionado.nombre;
             document.getElementById('modalDocAvatar').src = dentistaSeleccionado.avatar;
             document.getElementById('modalDocEspecialidad').innerText = dentistaSeleccionado.especialidad;
             document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.direccion;
 
             const btnConfirmar = document.getElementById('btnConfirmarCita');
-            btnConfirmar.innerText = "Selecciona un bloque arriba";
+            btnConfirmar.innerText = "Sincronizando agenda...";
             btnConfirmar.disabled = true;
             btnConfirmar.style.opacity = '0.5';
 
-            document.getElementById('modalCalendarioHoras').innerHTML = `<div style="text-align: center; color: #94a3b8; width: 100%; padding: 20px;">Cargando agenda...</div>`;
+            document.getElementById('modalCalendarioHoras').innerHTML = `<div style="text-align: center; color: #94a3b8; width: 100%; padding: 20px;">Descargando disponibilidad del doctor...</div>`;
             document.getElementById('modalFichaDoctor').style.display = 'flex';
 
-            // Cargar horarios del doctor desde la base de datos relacional
-            await cargarHorariosDeDoctor();
-        }
-
-        async function cargarHorariosDeDoctor() {
+            // RESCATE EXACTO DE HORARIOS DESDE SUPABASE
             try {
-                // Buscamos las sedes de este dentista para obtener los horarios vinculados
-                const { data: sedesConHorarios, error } = await window.midental
+                let arrTemporal = [];
+
+                // 1. Rescatar desde perfiles_dentistas
+                const { data: perfilInfo } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('telefono, disponibilidad_json, horarios_json')
+                    .eq('id', dentistaSeleccionado.id)
+                    .single();
+
+                if (perfilInfo) {
+                    if (perfilInfo.telefono) dentistaSeleccionado.telefono = perfilInfo.telefono;
+                    if (perfilInfo.disponibilidad_json) arrTemporal.push(...perfilInfo.disponibilidad_json);
+                    if (perfilInfo.horarios_json) arrTemporal.push(...perfilInfo.horarios_json);
+                }
+
+                // 2. Rescatar desde sedes_dentistas
+                const { data: sedesInfo } = await window.midental
                     .from('sedes_dentistas')
-                    .select('id, horarios_disponibles(dia_semana, hora_inicio)')
+                    .select('disponibilidad_json, horarios_json')
                     .eq('dentista_id', dentistaSeleccionado.id);
-
-                if (error) throw error;
-
-                const contenedorHoras = document.getElementById('modalCalendarioHoras');
-                contenedorHoras.innerHTML = "";
-
-                // Consolidamos todos los horarios en un solo array, por si tiene más de una sede
-                let bloquesDisponiblesCrudos = [];
-                if (sedesConHorarios) {
-                    sedesConHorarios.forEach(sede => {
-                        if(sede.horarios_disponibles) {
-                            bloquesDisponiblesCrudos.push(...sede.horarios_disponibles);
-                        }
+                    
+                if (sedesInfo) {
+                    sedesInfo.forEach(sede => {
+                        if (sede.disponibilidad_json) arrTemporal.push(...sede.disponibilidad_json);
+                        if (sede.horarios_json) arrTemporal.push(...sede.horarios_json);
                     });
                 }
 
-                if (bloquesDisponiblesCrudos.length === 0) {
-                    contenedorHoras.innerHTML = `<div style="text-align: center; color: #ef4444; width: 100%; padding: 20px;">El especialista no tiene horarios disponibles configurados.</div>`;
-                    return;
-                }
-
-                // Generamos los próximos 7 días a partir de hoy para que el paciente elija
-                const fechaHoy = new Date();
-                let htmlColumnas = "";
-
-                for (let i = 0; i < 7; i++) {
-                    const fechaColumna = new Date(fechaHoy);
-                    fechaColumna.setDate(fechaHoy.getDate() + i);
-                    
-                    const numDiaJS = fechaColumna.getDay() === 0 ? 7 : fechaColumna.getDay(); // (1-Lunes, 7-Domingo)
-                    const diaNombreUI = i === 0 ? 'Hoy' : (i === 1 ? 'Mañana' : mapaDiasNombres[numDiaJS].substring(0,3));
-                    const fechaCortaStr = `${fechaColumna.getDate().toString().padStart(2,'0')}/${(fechaColumna.getMonth()+1).toString().padStart(2,'0')}`;
-                    
-                    // Filtrar los bloques de la DB que coincidan con el día de la semana de esta columna
-                    const bloquesDeEsteDia = bloquesDisponiblesCrudos.filter(b => b.dia_semana === numDiaJS);
-
-                    let htmlBotonesSlot = "";
-                    if (bloquesDeEsteDia.length > 0) {
-                        // Ordenar por hora
-                        bloquesDeEsteDia.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
-                        
-                        bloquesDeEsteDia.forEach(bloque => {
-                            const horaLimpia = bloque.hora_inicio.substring(0, 5); // ej: "08:00"
-                            // El string final que se guardará en la tabla Citas, idéntico al formato del Dashboard-Dentista
-                            const slotExactoDb = `${mapaDiasNombres[numDiaJS].substring(0,3)} ${fechaCortaStr}/${fechaColumna.getFullYear()} - ${horaLimpia}`;
-                            
-                            htmlBotonesSlot += `<button class="slot-btn" onclick="seleccionarBloque(this, '${slotExactoDb}')">${horaLimpia}</button>`;
-                        });
-                    } else {
-                        htmlBotonesSlot = `<div style="color:#cbd5e1; font-size:0.75rem; margin-top:15px;">Sin atención</div>`;
-                    }
-
-                    htmlColumnas += `
-                        <div class="day-col">
-                            <strong style="color:var(--blue-elegant); font-size:0.95rem; display:block;">${diaNombreUI}</strong>
-                            <span style="color:#64748b; font-size:0.75rem; display:block; margin-bottom:10px;">${fechaCortaStr}</span>
-                            ${htmlBotonesSlot}
-                        </div>
-                    `;
-                }
-
-                contenedorHoras.innerHTML = htmlColumnas;
+                // Limpiar duplicados (ej: ["Lun-09:00", "Mar-10:00"])
+                horariosDentistaDB = [...new Set(arrTemporal)];
 
             } catch (err) {
-                document.getElementById('modalCalendarioHoras').innerHTML = `<div style="color:red; width:100%; text-align:center;">Fallo al cargar agenda.</div>`;
+                console.log("Error al sincronizar agenda del doctor:", err);
+            }
+
+            btnConfirmar.innerText = 'Selecciona un bloque de horario arriba';
+            renderizarCalendarioMovil();
+        }
+
+        function cambiarSemanaAgendamiento(direccion) {
+            offsetSemanasPaciente += direccion;
+            if(offsetSemanasPaciente < 0) offsetSemanasPaciente = 0;
+            renderizarCalendarioMovil();
+        }
+
+        function cerrarAgendamiento() {
+            document.getElementById('modalFichaDoctor').style.display = 'none';
+        }
+
+        function abrirRutaMapaPaciente() {
+            const dir = document.getElementById('modalDocDireccion').innerText;
+            if (!dir || dir === "Consulta Privada") return alert("Dirección exacta no disponible.");
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(dir)}`, '_blank');
+        }
+
+        // ==========================================
+        // 3. RENDERIZADO DEL CALENDARIO FILTRADO
+        // ==========================================
+        function renderizarCalendarioMovil() {
+            const container = document.getElementById('modalCalendarioHoras');
+            container.innerHTML = '';
+            
+            const diasAbrev = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+            const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            const lunes = new Date();
+            const diaSemana = lunes.getDay() === 0 ? 7 : lunes.getDay();
+            lunes.setDate(lunes.getDate() - diaSemana + 1 + (offsetSemanasPaciente * 7));
+
+            let domingo = new Date(lunes);
+            domingo.setDate(lunes.getDate() + 6);
+
+            document.getElementById('lblSemanaCita').innerText = `Semana del ${lunes.getDate()} ${mesesCortos[lunes.getMonth()]} al ${domingo.getDate()} ${mesesCortos[domingo.getMonth()]}`;
+
+            const horasTrabajo = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+
+            for (let i = 0; i < 7; i++) {
+                let fCol = new Date(lunes);
+                fCol.setDate(lunes.getDate() + i);
+                let dd = fCol.getDate().toString().padStart(2, '0');
+                let mm = (fCol.getMonth()+1).toString().padStart(2, '0');
+                let yyyy = fCol.getFullYear();
+                
+                const colDiv = document.createElement('div');
+                colDiv.className = 'dia-col';
+                colDiv.innerHTML = `<div class="dia-header">${diasAbrev[i]}<br><small style="font-weight:normal; color:#64748b;">${dd}/${mm}</small></div>`;
+
+                let horasAgregadasEsteDia = 0;
+
+                horasTrabajo.forEach(horaStr => {
+                    const slotID = `${diasAbrev[i]}-${horaStr}`; // Ej: Lun-09:00
+                    
+                    // FILTRO DE SINCRONIZACIÓN
+                    if (horariosDentistaDB.length > 0 && !horariosDentistaDB.includes(slotID)) {
+                        return; // Si el doctor no atiende a esta hora, la saltamos.
+                    }
+
+                    horasAgregadasEsteDia++;
+
+                    const btn = document.createElement('button');
+                    btn.className = 'hora-btn';
+                    btn.innerText = horaStr;
+                    
+                    const ahora = new Date();
+                    const fechaBloque = new Date(fCol.getFullYear(), fCol.getMonth(), fCol.getDate(), parseInt(horaStr.split(':')[0]), 0);
+                    
+                    if(fechaBloque < ahora) {
+                        btn.disabled = true;
+                    } else {
+                        btn.onclick = function() {
+                            document.querySelectorAll('.hora-btn').forEach(b => b.classList.remove('selected'));
+                            this.classList.add('selected');
+                            
+                            // FORMATO EXACTO REQUERIDO: "Lun 04/05/2026 a las 09:00"
+                            bloqueAgendamientoSeleccionado = { 
+                                formato_wa: `${diasAbrev[i]} ${dd}/${mm}/${yyyy} a las ${horaStr}`,
+                                formato_db: `${diasAbrev[i]} ${dd}/${mm}/${yyyy} - ${horaStr}`
+                            };
+                            
+                            const btnConf = document.getElementById('btnConfirmarCita');
+                            btnConf.disabled = false;
+                            btnConf.style.opacity = '1';
+                            btnConf.innerHTML = `<span class="material-symbols-outlined" style="vertical-align: middle;">chat</span> Agendar por WhatsApp: ${diasAbrev[i]} ${dd}/${mm} a las ${horaStr}`;
+                        };
+                    }
+                    colDiv.appendChild(btn);
+                });
+
+                if (horasAgregadasEsteDia === 0) {
+                    colDiv.innerHTML += `<div style="color: #94a3b8; font-size: 0.75rem; text-align: center; margin-top: 15px; font-weight: bold; border: 1px dashed #cbd5e1; padding: 10px 5px; border-radius: 8px;">Sin atención</div>`;
+                }
+
+                container.appendChild(colDiv);
             }
         }
 
-        function seleccionarBloque(btnElement, slotDbString) {
-            // Deseleccionar anteriores
-            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
-            // Seleccionar actual
-            btnElement.classList.add('selected');
-            
-            slotSeleccionado = slotDbString;
-            
-            const btnConfirmar = document.getElementById('btnConfirmarCita');
-            btnConfirmar.innerHTML = `Agendar <span style="font-weight:normal;">${slotSeleccionado.split('-')[1]}</span>`;
-            btnConfirmar.disabled = false;
-            btnConfirmar.style.opacity = '1';
-        }
-
+        // ==========================================
+        // 4. GUARDAR EN DB Y ENVIAR MENSAJE WHATSAPP
+        // ==========================================
         async function ejecutarAgendamiento() {
-            // Verificamos si es un paciente registrado o un invitado simulando
+            if (!bloqueAgendamientoSeleccionado || !dentistaSeleccionado) return;
+
             const userId = localStorage.getItem('midental_user_id');
             const tipoUser = localStorage.getItem('midental_user_tipo');
 
@@ -436,42 +505,43 @@
                 return;
             }
 
+            const telefonoDoc = dentistaSeleccionado.telefono;
+            if(!telefonoDoc || telefonoDoc === "") {
+                alert("⚠️ No se ha encontrado el teléfono de contacto de este profesional en la base de datos.");
+                return;
+            }
+
             const btnConfirmar = document.getElementById('btnConfirmarCita');
-            btnConfirmar.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Confirmando...';
+            btnConfirmar.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Guardando cita...';
             btnConfirmar.disabled = true;
 
             try {
-                // Insertamos la cita en la tabla 'citas_agenda' en estado 'pendiente'
-                // El dashboard del dentista la recogerá y mostrará en su bandeja de "Solicitudes de Agendamiento"
-                const { error } = await window.midental.from('citas_agenda').insert([{
+                // Insertamos la cita en la tabla 'citas_agenda' para el Dashboard
+                const { error: dbError } = await window.midental.from('citas_agenda').insert([{
                     paciente_id: userId,
                     dentista_id: dentistaSeleccionado.id,
-                    fecha_hora_formato_slot: slotSeleccionado,
+                    fecha_hora_formato_slot: bloqueAgendamientoSeleccionado.formato_db,
                     estado: 'pendiente',
-                    motivo: 'Evaluación General (Desde Mapa de Paciente)'
+                    motivo: 'Evaluación General (Vía Mapa)'
                 }]);
 
-                if (error) throw error;
+                if(dbError) throw dbError;
 
-                // Fricción Cero: Abrir WhatsApp para avisar al dentista
-                const nombrePcte = localStorage.getItem('midental_user_name') || 'Un paciente';
-                let fonoLimpio = dentistaSeleccionado.telefono ? dentistaSeleccionado.telefono.replace(/[^0-9]/g, '') : '';
-                
-                alert(`✅ ¡Solicitud enviada!\n\nTu hora quedó reservada como pendiente. Ahora serás redirigido al WhatsApp de ${dentistaSeleccionado.nombre} para confirmar directamente.`);
-                document.getElementById('modalFichaDoctor').style.display = 'none';
-                
-                if (fonoLimpio) {
-                    let msg = `Hola ${dentistaSeleccionado.nombre}, acabo de agendar una hora para el ${slotSeleccionado} a través de la plataforma MiDental. Quedo atento a la confirmación.`;
-                    window.open(`https://wa.me/${fonoLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
-                } else {
-                    window.location.href = 'citas-paciente.html';
-                }
-
-            } catch (err) {
-                alert("Error técnico al agendar: " + err.message);
-                btnConfirmar.innerText = "Reintentar";
-                btnConfirmar.disabled = false;
+            } catch(e) {
+                console.error("Error al registrar intención de cita:", e);
+                alert("Hubo un problema técnico interno, pero abriremos WhatsApp de todas formas para que contactes al doctor.");
             }
+
+            // ABRIR WHATSAPP CON MENSAJE PREESTABLECIDO
+            const nombrePaciente = localStorage.getItem('midental_user_name') || 'Paciente';
+            const telLimpio = telefonoDoc.replace(/[^0-9]/g, ''); 
+            
+            // "Hola Dr. Omar Saucedo Garcia, soy Alfonso Saucedo Vildósola. Vi tu disponibilidad en la plataforma de MiDental y me gustaría agendar una hora de atención contigo para el día Lun 04/05/2026 a las 09:00. Quedo atento a tu confirmación. ¡Saludos!"
+            const textoPredefinido = `Hola ${dentistaSeleccionado.nombre}, soy ${nombrePaciente}. Vi tu disponibilidad en la plataforma de MiDental y me gustaría agendar una hora de atención contigo para el día ${bloqueAgendamientoSeleccionado.formato_wa}. Quedo atento a tu confirmación. ¡Saludos!`;
+            
+            window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(textoPredefinido)}`, '_blank');
+            
+            cerrarAgendamiento();
         }
     </script>
 </body>

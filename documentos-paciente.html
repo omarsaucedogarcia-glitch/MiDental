@@ -176,8 +176,9 @@
                     if (archivoRef.startsWith('http')) {
                         urlSegura = archivoRef;
                     } else {
+                        // CORREGIDO: Minúsculas para coincidir exactamente con Supabase
                         const { data: signedData } = await window.midental.storage
-                            .from('DOCUMENTOS_CLINICOS')
+                            .from('documentos_clinicos')
                             .createSignedUrl(archivoRef, 3600); // 1 hora
                         urlSegura = signedData?.signedUrl || '#';
                     }
@@ -212,7 +213,7 @@
             }
         }
 
-        // 3. LOGICA PARA SUBIR DOCUMENTO (CORRECCIÓN RLS BUCKET PRIVADO)
+        // 3. LOGICA PARA SUBIR DOCUMENTO (CORRECCIÓN BUCKET EN MINÚSCULAS)
         async function procesarSubidaDocumento(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -235,9 +236,9 @@
                 const fileExt = file.name.split('.').pop();
                 const fileName = `Pct_${userId}_${Date.now()}.${fileExt}`;
 
-                // Subida segura al bucket en mayúsculas
+                // CORREGIDO: Minúsculas para coincidir exactamente con Supabase
                 const { error: uploadError } = await window.midental.storage
-                    .from('DOCUMENTOS_CLINICOS')
+                    .from('documentos_clinicos')
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;

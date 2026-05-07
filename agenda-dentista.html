@@ -104,7 +104,8 @@
 
         .event-base { padding: 4px 6px; border-radius: 4px; cursor: pointer; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); line-height: 1.2; }
         .event-pendiente { background-color: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; }
-        .event-confirmada { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; }
+        .event-Confirmado { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; } /* Ajustado a mayúscula por Dashboard */
+        .event-confirmada { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; } /* Respaldo */
         .event-en_atencion { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; }
         .event-completada { background-color: #f1f5f9; border-left: 4px solid #94a3b8; color: #475569; }
 
@@ -254,7 +255,7 @@
             
             <div class="input-group-modal">
                 <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Teléfono (WhatsApp)</label>
-                <input type="text" id="manualTelefono" class="apple-input-modal" placeholder="Ej: 56912345678" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)">
+                <input type="text" id="manualTelefono" class="apple-input-modal" placeholder="Ej: 56912345678">
             </div>
             
             <div class="input-group-modal">
@@ -273,7 +274,6 @@
     <script src="js/app.js"></script>
 
     <script>
-        // FORMATEADOR DE RUT INCORPORADO PARA ASEGURAR FUNCIONAMIENTO
         function formatearRutInput(input) {
             let valor = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
             if (valor.length > 1) {
@@ -286,7 +286,6 @@
             }
         }
 
-        // LÓGICA DEL MENÚ HAMBURGUESA
         function toggleSidebar() {
             const sidebar = document.getElementById('appSidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -300,7 +299,6 @@
 
         let fechaBase = new Date(); 
         let citaEnCursoData = null; 
-
         let slotManualId = null;
         let pacienteManualEncontradoId = null;
 
@@ -358,12 +356,12 @@
                 
                 for(let hora = 8; hora <= 20; hora++) {
                     let horaStr = `${hora.toString().padStart(2, '0')}:00`;
-                    // Asignamos el data-dia-semana (1 para Lunes, 7 para Domingo)
                     let numDiaJS = fechaColumna.getDay() === 0 ? 7 : fechaColumna.getDay();
                     
-                    let slotRealId = `${fechaRealStr}-${horaStr}`; 
+                    // FORMATO EXACTO SINCRONIZADO: "Lun 04/05/2026 - 09:00"
+                    let slotRealId = `${diaLetra} ${fechaRealStr} - ${horaStr}`; 
 
-                    colHTML += `<div class="time-block" data-dia-semana="${numDiaJS}" data-hora="${horaStr}" data-slot-real="${slotRealId}" data-fecha="${fechaRealStr}"></div>`;
+                    colHTML += `<div class="time-block" data-dia-semana="${numDiaJS}" data-hora="${horaStr}" data-slot-real="${slotRealId}"></div>`;
                 }
                 colHTML += `</div>`;
                 daysContainer.innerHTML += colHTML;
@@ -377,42 +375,57 @@
             if (!userId) return;
 
             try {
-                // 1. CORRECCIÓN: Extraer la disponibilidad real haciendo JOIN a la sede
-                const { data: horarios } = await window.midental
-                    .from('horarios_disponibles')
-                    .select('dia_semana, hora_inicio, hora_fin, sedes_dentistas!inner(dentista_id, nombre_sede)')
-                    .eq('sedes_dentistas.dentista_id', userId);
+                // 1. SINCRONIZACIÓN DE DISPONIBILIDAD (Igual que en el mapa del paciente)
+                const { data: perfil } = await window.midental.from('perfiles_dentistas').select('disponibilidad_json, horarios_json').eq('id', userId).single();
+                const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, disponibilidad_json, horarios_json').eq('dentista_id', userId);
 
-                if (horarios && horarios.length > 0) {
-                    horarios.forEach(bloque => {
-                        // Formateamos la hora para que coincida (ej: "09:00:00" a "09:00")
-                        let hInicio = bloque.hora_inicio.substring(0, 5);
-                        let hFin = bloque.hora_fin.substring(0, 5);
-                        let nombreSede = bloque.sedes_dentistas.nombre_sede;
-
-                        // Buscar en la grilla actual las celdas que coincidan con este día de la semana y rango de horas
-                        document.querySelectorAll(`[data-dia-semana="${bloque.dia_semana}"]`).forEach(celda => {
-                            let horaCelda = celda.getAttribute('data-hora');
-                            if (horaCelda >= hInicio && horaCelda < hFin) {
-                                const slotReal = celda.getAttribute('data-slot-real');
-                                celda.innerHTML = `
-                                    <div class="slot-workplace" onclick="abrirModalAgendarManual('${slotReal}')" title="Agendar en ${nombreSede}">
-                                        <span class="material-symbols-outlined" style="font-size: 14px; color: #4ade80;">location_on</span>
-                                        <span class="sede-text-mini">${nombreSede}</span>
-                                        <span class="material-symbols-outlined" style="font-size: 16px; color: #22c55e;">add_circle</span>
-                                    </div>
-                                `;
-                            }
-                        });
+                let slotsMap = {};
+                
+                // Mapeamos lo del perfil
+                if (perfil) {
+                    if (perfil.disponibilidad_json) perfil.disponibilidad_json.forEach(s => slotsMap[s] = 'Consulta Privada');
+                    if (perfil.horarios_json) perfil.horarios_json.forEach(s => slotsMap[s] = 'Consulta Privada');
+                }
+                
+                // Mapeamos las sedes (sobrescribe si hay choque, mostrando el nombre correcto)
+                if (sedes) {
+                    sedes.forEach(s => {
+                        if (s.disponibilidad_json) s.disponibilidad_json.forEach(slot => slotsMap[slot] = s.nombre_sede);
+                        if (s.horarios_json) s.horarios_json.forEach(slot => slotsMap[slot] = s.nombre_sede);
                     });
                 }
 
-                // 2. Extraer Citas Agendadas y dibujarlas encima
+                const numDiaMap = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
+
+                // Pintamos los bloques disponibles verdes
+                Object.keys(slotsMap).forEach(slotKey => {
+                    let partes = slotKey.split('-'); // Ej: ["Lun", "09:00"]
+                    if(partes.length !== 2) return;
+                    
+                    let numDia = numDiaMap[partes[0]];
+                    let hora = partes[1];
+                    let nombreSede = slotsMap[slotKey];
+
+                    let celda = document.querySelector(`[data-dia-semana="${numDia}"][data-hora="${hora}"]`);
+                    if (celda) {
+                        const slotReal = celda.getAttribute('data-slot-real');
+                        celda.innerHTML = `
+                            <div class="slot-workplace" onclick="abrirModalAgendarManual('${slotReal}')" title="Agendar en ${nombreSede}">
+                                <span class="material-symbols-outlined" style="font-size: 14px; color: #4ade80;">location_on</span>
+                                <span class="sede-text-mini">${nombreSede}</span>
+                                <span class="material-symbols-outlined" style="font-size: 16px; color: #22c55e;">add_circle</span>
+                            </div>
+                        `;
+                    }
+                });
+
+                // 2. EXTRAER CITAS AGENDADAS Y DIBUJARLAS ENCIMA
                 const { data: citas } = await window.midental
                     .from('citas_agenda')
                     .select('*, perfiles_pacientes(nombre_completo, telefono)')
                     .eq('dentista_id', userId)
-                    .neq('estado', 'cancelada'); // No mostrar las canceladas visualmente
+                    .neq('estado', 'cancelada')
+                    .neq('estado', 'Rechazado'); // Ocultar rechazadas para limpiar visual
 
                 if (citas) {
                     citas.forEach(cita => {
@@ -444,7 +457,7 @@
                     });
                 }
             } catch (err) {
-                console.error("Error cargando datos de agenda:", err);
+                console.error("Error cargando datos de agenda sincronizados:", err);
             }
         }
 
@@ -511,7 +524,6 @@
                     telLimpio = '56' + telLimpio; 
                 }
 
-                // CORRECCIÓN: Usar estado 'confirmada' en minúsculas por regla de DB
                 const { error } = await window.midental.from('citas_agenda').insert([{
                     dentista_id: dentistaId,
                     paciente_id: pacienteManualEncontradoId, 
@@ -519,7 +531,7 @@
                     paciente_nombre_manual: nombre,
                     paciente_telefono_manual: telLimpio, 
                     fecha_hora_formato_slot: slotManualId,
-                    estado: 'confirmada',
+                    estado: 'Confirmado',
                     motivo: motivo
                 }]);
 
@@ -563,16 +575,15 @@
                 btnWhatsApp = `<button class="btn-pixar btn-green-whatsapp btn-full" onclick="window.open('https://wa.me/${telWA}', '_blank')"><span class="material-symbols-outlined">chat</span> Escribir por WhatsApp</button>`;
             }
 
-            // CORRECCIÓN: Evaluar estados según nueva validación de base de datos
             if (citaEnCursoData.estado === 'pendiente') {
                 badge.style.background = '#fef3c7'; badge.style.color = '#92400e';
                 contenedorAcciones.innerHTML = `
-                    <button class="btn-pixar btn-search btn-full" onclick="actualizarEstadoCita('confirmada')">Confirmar Asistencia</button>
+                    <button class="btn-pixar btn-search btn-full" onclick="actualizarEstadoCita('Confirmado')">Confirmar Asistencia</button>
                     ${btnWhatsApp}
                     <button class="btn-login-outline btn-full" style="color:red; border-color:red;" onclick="cancelarCita()">Cancelar Hora</button>
                 `;
             } 
-            else if (citaEnCursoData.estado === 'confirmada') {
+            else if (citaEnCursoData.estado === 'Confirmado' || citaEnCursoData.estado === 'confirmada') {
                 badge.style.background = '#dcfce7'; badge.style.color = '#166534';
                 contenedorAcciones.innerHTML = `
                     <button class="btn-pixar btn-full" style="background:#3b82f6;" onclick="actualizarEstadoCita('en_atencion')">Iniciar Consulta (Check-In)</button>
@@ -582,7 +593,7 @@
             }
             else if (citaEnCursoData.estado === 'en_atencion') {
                 badge.style.background = '#e0e7ff'; badge.style.color = '#1e40af';
-                badge.innerText = "EN CURSO"; // Ajuste visual
+                badge.innerText = "EN CURSO"; 
                 
                 let btnFicha = citaEnCursoData.paciente_id 
                     ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ir a Ficha Paciente</button>`
@@ -622,7 +633,6 @@
         async function cancelarCita() {
             if(!confirm("¿Seguro que deseas cancelar esta hora? El bloque quedará disponible para otro paciente.")) return;
             try {
-                // CORRECCIÓN: Actualizar a 'cancelada' en vez de usar .delete() para guardar historial
                 const { error } = await window.midental.from('citas_agenda').update({ estado: 'cancelada' }).eq('id', citaEnCursoData.cita_id);
                 if (error) throw error;
                 cerrarModal('modalDetallePaciente');
@@ -632,7 +642,7 @@
 
         async function marcarNoAsiste() {
             if(!confirm("¿Marcar inasistencia? Esto afectará la reputación del paciente en la plataforma MiDental.")) return;
-            await cancelarCita(); // Reutiliza la función de cancelación, pero deja historial de que faltó estando confirmada
+            await cancelarCita(); 
         }
 
         function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
