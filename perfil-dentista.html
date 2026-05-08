@@ -156,6 +156,16 @@
                                         <option value="Cirugía Maxilofacial">Cirugía Maxilofacial</option>
                                     </select>
                                 </div>
+
+                                <!-- SECCIÓN NUEVA: PRESENTACIÓN DEL DENTISTA -->
+                                <div style="grid-column: 1 / -1;">
+                                    <label class="input-label" style="display:flex; justify-content:space-between;">
+                                        <span>Presentación Profesional (Visible para pacientes)</span>
+                                        <span class="material-symbols-outlined" style="font-size: 1rem; color:var(--pixar-cyan);">edit_note</span>
+                                    </label>
+                                    <textarea id="dentistaPresentacion" class="apple-input-modal" placeholder="Ej: Soy cirujano dentista con más de 10 años de experiencia, enfocado en odontología estética y rehabilitación mínimamente invasiva. Mi prioridad es brindar una atención sin dolor y personalizada..." style="height: 100px; resize: vertical; padding: 15px; font-family: inherit; font-size: 0.95rem; line-height: 1.4;"></textarea>
+                                </div>
+
                                 <div style="grid-column: 1 / -1;">
                                     <label class="input-label">WhatsApp de Contacto (Público para pacientes)</label>
                                     <div class="input-group-modal">
@@ -251,10 +261,52 @@
             generarGrillaSieteDias(); 
             window.addEventListener('mouseup', () => { isDragging = false; });
             cargarSedesDentistaActual();
+            cargarDatosPerfilLocal(); // NUEVA FUNCIÓN PARA POBLAR EL FORMULARIO
         });
 
         // ==========================================
-        // 1. SUBIR FOTO DE PERFIL (CORREGIDO)
+        // NUEVO: OBTENER DATOS DE SUPABASE AL CARGAR
+        // ==========================================
+        async function cargarDatosPerfilLocal() {
+            const userId = localStorage.getItem('midental_user_id');
+            if (!userId) return;
+
+            try {
+                const { data, error } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    if (data.rut) document.getElementById('dentistaRUT').value = data.rut;
+                    if (data.registro_sis) document.getElementById('dentistaSIS').value = data.registro_sis;
+                    if (data.prefijo) document.getElementById('dentistaPrefijo').value = data.prefijo;
+                    if (data.nombre_completo) document.getElementById('dentistaNombre').value = data.nombre_completo;
+                    if (data.especialidad) document.getElementById('dentistaEspecialidad').value = data.especialidad;
+                    if (data.telefono) document.getElementById('dentistaTelefono').value = data.telefono;
+                    if (data.valor_consulta) document.getElementById('dentistaValorConsulta').value = data.valor_consulta;
+                    
+                    // LLENAR LA NUEVA CASILLA DE PRESENTACIÓN
+                    if (data.presentacion) document.getElementById('dentistaPresentacion').value = data.presentacion;
+                    
+                    // Actualizar UI Lateral
+                    document.getElementById('sidebarNombreCompleto').innerText = `${data.prefijo || 'Dr.'} ${data.nombre_completo}`;
+                    document.getElementById('sidebarEspecialidad').innerText = data.especialidad || 'Especialista';
+                    
+                    if (data.avatar_url) {
+                        document.getElementById('profileLargeAvatar').src = data.avatar_url;
+                    }
+                }
+            } catch (e) {
+                console.error("Error cargando perfil local:", e);
+            }
+        }
+
+        // ==========================================
+        // 1. SUBIR FOTO DE PERFIL
         // ==========================================
         async function subirFotoPerfilDentista(event) {
             const file = event.target.files[0];
@@ -267,30 +319,25 @@
             btnSube.style.background = '#e2e8f0';
 
             try {
-                // Verificar que el tamaño de la imagen no sea excesivo (ej. máximo 3MB)
                 if (file.size > 3 * 1024 * 1024) {
                     throw new Error("La imagen es muy pesada. El tamaño máximo permitido es 3MB.");
                 }
 
                 const fileExt = file.name.split('.').pop();
-                // Agregar un timestamp asegura que el nombre de archivo sea único y evite problemas de caché
                 const fileName = `${userId}_${Date.now()}.${fileExt}`;
 
-                // SE USAN MINÚSCULAS PARA EL BUCKET: 'avatares'
                 const { error: uploadError } = await window.midental.storage
                     .from('avatares')
-                    .upload(fileName, file, { upsert: true }); // upsert permite reemplazar si subes varias
+                    .upload(fileName, file, { upsert: true });
 
                 if (uploadError) throw uploadError;
 
-                // Extraemos la URL pública (si el bucket 'avatares' está configurado como público)
                 const { data: publicUrlData } = window.midental.storage
                     .from('avatares')
                     .getPublicUrl(fileName);
                     
                 const avatarUrl = publicUrlData.publicUrl;
 
-                // Actualizamos la base de datos del perfil
                 const { error: updateError } = await window.midental
                     .from('perfiles_dentistas')
                     .update({ avatar_url: avatarUrl })
@@ -298,7 +345,6 @@
                     
                 if (updateError) throw updateError;
 
-                // Actualizamos las imágenes en la interfaz de inmediato
                 document.getElementById('profileLargeAvatar').src = avatarUrl;
                 if(document.getElementById('topbarAvatar')) document.getElementById('topbarAvatar').src = avatarUrl;
 
@@ -311,15 +357,17 @@
         }
 
         // ==========================================
-        // 2. ACTUALIZAR DATOS DE PERFIL
+        // 2. ACTUALIZAR DATOS DE PERFIL (AHORA INCLUYE PRESENTACIÓN)
         // ==========================================
         async function guardarPerfilCompletoReal() {
             const userId = localStorage.getItem('midental_user_id');
             const btn = document.getElementById('btnGuardarPerfil');
+            
             const prefijo = document.getElementById('dentistaPrefijo').value;
             const especialidad = document.getElementById('dentistaEspecialidad').value;
             const telefono = document.getElementById('dentistaTelefono').value;
             const valorConsulta = document.getElementById('dentistaValorConsulta').value;
+            const presentacion = document.getElementById('dentistaPresentacion').value.trim();
 
             btn.innerText = "Guardando..."; btn.disabled = true;
 
@@ -330,7 +378,8 @@
                         prefijo: prefijo,
                         especialidad: especialidad,
                         telefono: telefono.replace(/[^0-9]/g, ''),
-                        valor_consulta: parseInt(valorConsulta) || 0
+                        valor_consulta: parseInt(valorConsulta) || 0,
+                        presentacion: presentacion // GUARDAMOS LA PRESENTACIÓN EN LA NUBE
                     })
                     .eq('id', userId);
 
@@ -393,7 +442,7 @@
         }
 
         // ==========================================
-        // 4. LÓGICA DEL MODAL DE SEDES (JSON DIRECTO)
+        // 4. LÓGICA DEL MODAL DE SEDES
         // ==========================================
         function abrirModalLugarNuevo() { 
             document.getElementById('tituloModalSede').innerText = "Vincular Nueva Sede";
@@ -424,7 +473,6 @@
                 el.className = 'slot-vacio'; el.innerText = '+';
             });
 
-            // Pintamos los horarios directamente desde el JSON guardado
             if(sede.horarios_json) {
                 sede.horarios_json.forEach(slot => {
                     const celda = document.querySelector(`[data-slot="${slot}"]`);
@@ -448,7 +496,6 @@
 
             if (!nombre || !direccion || !comuna) return alert("Completa Nombre, Dirección y Comuna.");
 
-            // Guardamos los bloques seleccionados en un array simple
             let horariosSeleccionados = [];
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
                 if (el.dataset.slot) horariosSeleccionados.push(el.dataset.slot);
