@@ -443,6 +443,7 @@
                                 nombre: pctName,
                                 motivo: cita.motivo,
                                 telefono: pctTel,
+                                rut: cita.paciente_rut_manual || '',
                                 estado: estado,
                                 fecha: slotIdBusqueda
                             }));
@@ -595,9 +596,17 @@
                 badge.style.background = '#e0e7ff'; badge.style.color = '#1e40af';
                 badge.innerText = "EN CURSO"; 
                 
+                // NUEVA LÓGICA: SOPORTE DE FICHAS LOCALES
                 let btnFicha = citaEnCursoData.paciente_id 
                     ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ir a Ficha Paciente</button>`
-                    : `<p style="color:var(--pixar-orange); font-size:0.85rem; text-align:center;">El paciente no tiene cuenta en la plataforma. Solo puede finalizarse rápido.</p>`;
+                    : `
+                        <div style="background: #fffbeb; border: 1px dashed #f59e0b; padding: 15px; border-radius: 12px; margin-bottom: 10px;">
+                            <p style="color:#92400e; font-size:0.85rem; text-align:center; margin: 0 0 10px; font-weight: bold;">El paciente no tiene cuenta oficial.</p>
+                            <button class="btn-pixar btn-full" style="background: var(--pixar-orange);" onclick="window.location.href='ficha-paciente.html?local=true&cita=${citaEnCursoData.cita_id}&nombre=${encodeURIComponent(citaEnCursoData.nombre)}&rut=${encodeURIComponent(citaEnCursoData.rut)}&telefono=${encodeURIComponent(citaEnCursoData.telefono)}'">
+                                <span class="material-symbols-outlined">folder_shared</span> Llenar Ficha Local
+                            </button>
+                        </div>
+                      `;
 
                 contenedorAcciones.innerHTML = `
                     ${btnFicha}
@@ -607,9 +616,10 @@
             else if (citaEnCursoData.estado === 'completada') {
                 badge.style.background = '#f1f5f9'; badge.style.color = '#475569';
                 
+                // SOPORTE PARA REVISAR FICHAS LOCALES COMPLETADAS
                 let btnFichaHistorial = citaEnCursoData.paciente_id 
                     ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ver Ficha de este Paciente</button>`
-                    : '';
+                    : `<button class="btn-pixar btn-full" style="background: var(--pixar-orange);" onclick="window.location.href='ficha-paciente.html?local=true&cita=${citaEnCursoData.cita_id}&nombre=${encodeURIComponent(citaEnCursoData.nombre)}&rut=${encodeURIComponent(citaEnCursoData.rut)}&telefono=${encodeURIComponent(citaEnCursoData.telefono)}'">Ver Ficha Local</button>`;
 
                 contenedorAcciones.innerHTML = `
                     <p style="text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:10px;">Esta atención ya fue finalizada.</p>

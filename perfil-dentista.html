@@ -180,6 +180,25 @@
                                         <input type="number" id="dentistaValorConsulta" class="apple-input-modal" placeholder="Ej: 25000">
                                     </div>
                                 </div>
+                                <div style="grid-column: 1 / -1; margin-top: 20px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
+                                    <label class="input-label" style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span><span class="material-symbols-outlined" style="vertical-align: bottom; font-size: 1.2rem; color: var(--pixar-cyan);">list_alt</span> Mis Servicios y Aranceles (Público)</span>
+                                    </label>
+                                    <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">Agrega las prestaciones más comunes que realizas para que los pacientes conozcan tus valores de referencia.</p>
+                                    
+                                    <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; margin-bottom: 15px;">
+                                        <input type="text" id="inputNombreServicio" class="apple-input-modal" placeholder="Ej: Restauración Resina Simple">
+                                        <div class="input-group-modal" style="padding: 8px 15px;">
+                                            <span style="margin:0; color:#94a3b8;">$</span>
+                                            <input type="number" id="inputPrecioServicio" class="apple-input-modal" placeholder="45000" style="margin-left: 5px;">
+                                        </div>
+                                        <button type="button" class="btn-pixar" onclick="agregarServicioLista()" style="padding: 10px 15px; border-radius: 12px;">Agregar</button>
+                                    </div>
+
+                                    <div id="contenedorListaServicios" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                        <p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin: 10px 0;">No has agregado servicios aún.</p>
+                                    </div>
+                                </div>
                             </div>
                             <button type="button" class="btn-pixar btn-full mt-20" onclick="guardarPerfilCompletoReal()" id="btnGuardarPerfil">
                                 <span class="material-symbols-outlined">save</span> Guardar Cambios
@@ -263,6 +282,55 @@
             cargarSedesDentistaActual();
             cargarDatosPerfilLocal(); // NUEVA FUNCIÓN PARA POBLAR EL FORMULARIO
         });
+        // ==========================================
+        // SISTEMA DE SERVICIOS Y ARANCELES
+        // ==========================================
+        let listaServiciosLocal = [];
+
+        function agregarServicioLista() {
+            const nombre = document.getElementById('inputNombreServicio').value.trim();
+            const precio = parseInt(document.getElementById('inputPrecioServicio').value);
+
+            if (!nombre || isNaN(precio) || precio <= 0) {
+                return alert("Por favor ingresa un nombre válido y un precio mayor a 0.");
+            }
+
+            listaServiciosLocal.push({ nombre: nombre, precio: precio, id: Date.now() });
+            
+            document.getElementById('inputNombreServicio').value = '';
+            document.getElementById('inputPrecioServicio').value = '';
+            
+            renderizarListaServicios();
+        }
+
+        function eliminarServicio(id) {
+            listaServiciosLocal = listaServiciosLocal.filter(s => s.id !== id);
+            renderizarListaServicios();
+        }
+
+        function renderizarListaServicios() {
+            const contenedor = document.getElementById('contenedorListaServicios');
+            contenedor.innerHTML = '';
+
+            if (listaServiciosLocal.length === 0) {
+                contenedor.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin: 10px 0;">No has agregado servicios aún.</p>';
+                return;
+            }
+
+            listaServiciosLocal.forEach(servicio => {
+                contenedor.innerHTML += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div>
+                            <strong style="color: var(--blue-elegant); font-size: 0.9rem;">${servicio.nombre}</strong>
+                            <span style="display: block; color: var(--green-success); font-weight: bold; font-size: 0.85rem;">$${servicio.precio.toLocaleString('es-CL')}</span>
+                        </div>
+                        <button type="button" onclick="eliminarServicio(${servicio.id})" style="background: transparent; border: none; color: var(--red-urgency); cursor: pointer; display: flex; align-items: center; padding: 5px;">
+                            <span class="material-symbols-outlined" style="font-size: 1.2rem;">delete</span>
+                        </button>
+                    </div>
+                `;
+            });
+        }
 
         // ==========================================
         // NUEVO: OBTENER DATOS DE SUPABASE AL CARGAR
@@ -288,7 +356,11 @@
                     if (data.especialidad) document.getElementById('dentistaEspecialidad').value = data.especialidad;
                     if (data.telefono) document.getElementById('dentistaTelefono').value = data.telefono;
                     if (data.valor_consulta) document.getElementById('dentistaValorConsulta').value = data.valor_consulta;
-                    
+                    // LLENAR LA LISTA DE SERVICIOS
+                    if (data.servicios_json && data.servicios_json.length > 0) {
+                        listaServiciosLocal = data.servicios_json;
+                        renderizarListaServicios();
+                    }
                     // LLENAR LA NUEVA CASILLA DE PRESENTACIÓN
                     if (data.presentacion) document.getElementById('dentistaPresentacion').value = data.presentacion;
                     
@@ -379,7 +451,8 @@
                         especialidad: especialidad,
                         telefono: telefono.replace(/[^0-9]/g, ''),
                         valor_consulta: parseInt(valorConsulta) || 0,
-                        presentacion: presentacion // GUARDAMOS LA PRESENTACIÓN EN LA NUBE
+                        presentacion: presentacion, // GUARDAMOS LA PRESENTACIÓN EN LA NUBE
+                        servicios_json: listaServiciosLocal // <--- NUEVA LÍNEA
                     })
                     .eq('id', userId);
 

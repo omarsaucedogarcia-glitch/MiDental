@@ -242,10 +242,17 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const pacienteIdURL = urlParams.get('paciente');
-        let pacienteActual = { nombre: "Paciente No Encontrado", telefono: "", rut: "" };
+        const isLocal = urlParams.get('local') === 'true';
+        const citaId = urlParams.get('cita');
+        
+        let pacienteActual = { 
+            nombre: urlParams.get('nombre') ? decodeURIComponent(urlParams.get('nombre')) : "Paciente No Encontrado", 
+            telefono: urlParams.get('telefono') ? decodeURIComponent(urlParams.get('telefono')) : "", 
+            rut: urlParams.get('rut') ? decodeURIComponent(urlParams.get('rut')) : "" 
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (!pacienteIdURL) {
+            if (!pacienteIdURL && !isLocal) {
                 alert("Error: No se especificó un paciente válido.");
                 window.history.back();
                 return;
@@ -255,41 +262,57 @@
 
         async function cargarDatosPaciente() {
             try {
-                const { data: paciente, error } = await window.midental.from('perfiles_pacientes')
-                    .select('nombre_completo, rut, telefono, enfermedades_cronicas, medicamentos, alergias, avatar_url')
-                    .eq('id', pacienteIdURL).single();
-                    
-                if (error) throw error;
-                
-                if (paciente) {
-                    pacienteActual.nombre = paciente.nombre_completo || "Sin Nombre";
-                    pacienteActual.rut = paciente.rut || "No registrado";
-                    pacienteActual.telefono = paciente.telefono || "";
-
-                    document.getElementById('headerNombrePaciente').innerText = pacienteActual.nombre;
+                if (isLocal) {
+                    // MODO FICHA LOCAL (Sin cuenta creada)
+                    document.getElementById('headerNombrePaciente').innerText = pacienteActual.nombre + " (Ficha Local)";
                     document.getElementById('panelNombrePaciente').innerText = pacienteActual.nombre;
-                    document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut}`;
+                    document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut || 'No registrado'}`;
                     document.getElementById('panelTelefonoPaciente').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">call</span> ${pacienteActual.telefono || 'Sin teléfono'}`;
                     document.getElementById('derivarPcteNombre').innerText = pacienteActual.nombre;
-
-                    const imgEl = document.getElementById('panelAvatarImg');
-                    const txtEl = document.getElementById('panelAvatarText');
                     
-                    if (paciente.avatar_url && paciente.avatar_url !== "") {
-                        imgEl.src = paciente.avatar_url;
-                        imgEl.style.display = 'block';
-                        txtEl.style.display = 'none';
-                    } else {
-                        imgEl.style.display = 'none';
-                        txtEl.style.display = 'flex';
-                        txtEl.innerText = pacienteActual.nombre.charAt(0).toUpperCase();
-                    }
+                    document.getElementById('panelAvatarImg').style.display = 'none';
+                    document.getElementById('panelAvatarText').style.display = 'flex';
+                    document.getElementById('panelAvatarText').innerText = pacienteActual.nombre.charAt(0).toUpperCase();
+                    
+                    document.getElementById('alertaClinicaContainer').style.display = 'none';
+                } else {
+                    // MODO PACIENTE REGISTRADO OFICIAL
+                    const { data: paciente, error } = await window.midental.from('perfiles_pacientes')
+                        .select('nombre_completo, rut, telefono, enfermedades_cronicas, medicamentos, alergias, avatar_url')
+                        .eq('id', pacienteIdURL).single();
+                        
+                    if (error) throw error;
+                    
+                    if (paciente) {
+                        pacienteActual.nombre = paciente.nombre_completo || "Sin Nombre";
+                        pacienteActual.rut = paciente.rut || "No registrado";
+                        pacienteActual.telefono = paciente.telefono || "";
 
-                    if (paciente.enfermedades_cronicas || paciente.medicamentos || paciente.alergias) {
-                        document.getElementById('txtCrónicas').innerText = paciente.enfermedades_cronicas || 'Ninguna';
-                        document.getElementById('txtMedicamentos').innerText = paciente.medicamentos || 'Ninguno';
-                        document.getElementById('txtAlergias').innerText = paciente.alergias || 'Ninguna';
-                        document.getElementById('alertaClinicaContainer').style.display = 'block';
+                        document.getElementById('headerNombrePaciente').innerText = pacienteActual.nombre;
+                        document.getElementById('panelNombrePaciente').innerText = pacienteActual.nombre;
+                        document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut}`;
+                        document.getElementById('panelTelefonoPaciente').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">call</span> ${pacienteActual.telefono || 'Sin teléfono'}`;
+                        document.getElementById('derivarPcteNombre').innerText = pacienteActual.nombre;
+
+                        const imgEl = document.getElementById('panelAvatarImg');
+                        const txtEl = document.getElementById('panelAvatarText');
+                        
+                        if (paciente.avatar_url && paciente.avatar_url !== "") {
+                            imgEl.src = paciente.avatar_url;
+                            imgEl.style.display = 'block';
+                            txtEl.style.display = 'none';
+                        } else {
+                            imgEl.style.display = 'none';
+                            txtEl.style.display = 'flex';
+                            txtEl.innerText = pacienteActual.nombre.charAt(0).toUpperCase();
+                        }
+
+                        if (paciente.enfermedades_cronicas || paciente.medicamentos || paciente.alergias) {
+                            document.getElementById('txtCrónicas').innerText = paciente.enfermedades_cronicas || 'Ninguna';
+                            document.getElementById('txtMedicamentos').innerText = paciente.medicamentos || 'Ninguno';
+                            document.getElementById('txtAlergias').innerText = paciente.alergias || 'Ninguna';
+                            document.getElementById('alertaClinicaContainer').style.display = 'block';
+                        }
                     }
                 }
                 cargarHistorialPaciente();
@@ -303,21 +326,29 @@
             if (!dentistaId) return;
 
             try {
-                const { data: historial, error } = await window.midental.from('fichas_clinicas').select('*')
-                    .eq('paciente_id', pacienteIdURL).order('created_at', { ascending: false });
+                // Inteligencia de Búsqueda: Si es local busca por RUT, si es oficial busca por ID.
+                let query = window.midental.from('fichas_clinicas').select('*').order('created_at', { ascending: false });
+                
+                if (isLocal && pacienteActual.rut && pacienteActual.rut !== "No registrado") {
+                    query = query.eq('paciente_rut', pacienteActual.rut);
+                } else if (!isLocal) {
+                    query = query.eq('paciente_id', pacienteIdURL);
+                } else {
+                    query = query.eq('paciente_nombre', pacienteActual.nombre);
+                }
+
+                const { data: historial, error } = await query;
 
                 if (error) throw error;
                 contenedor.innerHTML = "";
 
-                if (historial.length === 0) {
+                if (!historial || historial.length === 0) {
                     contenedor.innerHTML = `<div style="text-align: center; color: #94a3b8; margin-top: 40px; font-size: 0.95rem;"><span class="material-symbols-outlined" style="font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.5;">history</span>No hay atenciones previas registradas.</div>`;
                     return;
                 }
 
                 historial.forEach(ficha => {
                     const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
-                    
-                    // Extraemos los datos separados desde el JSON inteligente
                     const histoJson = ficha.historial_json || {};
                     const motivoStr = histoJson.motivo || ficha.motivo_consulta || 'Sin especificar';
                     const diagStr = histoJson.diagnostico || 'Revisar detalle clínico';
@@ -344,6 +375,11 @@
         async function cargarDocumentosPaciente() {
             const contenedor = document.getElementById('contenedorDocumentosPaciente');
             if (!contenedor) return;
+            if (isLocal) {
+                contenedor.innerHTML = '<p style="color: #f59e0b; font-size: 0.85rem; grid-column: 1/-1; text-align: center; margin-top:10px;"><b>Atención:</b> La carga de archivos no está disponible para Fichas Locales.</p>';
+                document.getElementById('labelBtnSubidaDoc').style.display = 'none';
+                return;
+            }
             
             try {
                 const { data: docs, error } = await window.midental
@@ -656,30 +692,35 @@
                     const nombreArchivo = `Presupuesto_Oficial_${nombrePuro}_${Date.now()}.pdf`;
                     const pdfBlob = docPDF.output('blob');
 
-                    // BUCKET EN MINÚSCULAS EXACTO
-                    const { error: uploadError } = await window.midental.storage
-                        .from('documentos_clinicos')
-                        .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
-
-                    if (uploadError) throw new Error("Fallo la subida del PDF a Supabase.");
-                    
-                    await window.midental.from('documentos_pacientes').insert([{
-                        paciente_id: pacienteIdURL,
-                        dentista_id: dentistaId,
-                        nombre_archivo: `Presupuesto Oficial ${new Date().toLocaleDateString('es-CL')}.pdf`,
-                        tipo: 'pdf',
-                        archivo_url: nombreArchivo 
-                    }]);
-
+                    // Descargar copia local al dentista para sus archivos siempre
                     docPDF.save(nombreArchivo);
+
+                    // Solo subir a Supabase si el paciente tiene cuenta oficial (no es ficha local)
+                    if (!isLocal) {
+                        const { error: uploadError } = await window.midental.storage
+                            .from('documentos_clinicos')
+                            .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
+
+                        if (!uploadError) {
+                            await window.midental.from('documentos_pacientes').insert([{
+                                paciente_id: pacienteIdURL,
+                                dentista_id: dentistaId,
+                                nombre_archivo: `Presupuesto Oficial ${new Date().toLocaleDateString('es-CL')}.pdf`,
+                                tipo: 'pdf',
+                                archivo_url: nombreArchivo 
+                            }]);
+                        }
+                    }
                 }
 
                 const totalPresupuestoCalculado = calcularGranTotal();
-                // Combinamos motivo y diagnóstico visualmente para la tabla general, pero los guardamos separados en JSON
+                
+                // Guardar historial clínico (Soporta nulos en ID si es local, guarda el RUT)
                 const { error: fichaError } = await window.midental.from('fichas_clinicas').insert([{
                     dentista_id: dentistaId, 
-                    paciente_id: pacienteIdURL, 
+                    paciente_id: isLocal ? null : pacienteIdURL, 
                     paciente_nombre: pacienteActual.nombre,
+                    paciente_rut: pacienteActual.rut !== "" && pacienteActual.rut !== "No registrado" ? pacienteActual.rut : null,
                     motivo_consulta: `${motivo} | ${diagnostico}`, 
                     accion_realizada: accion, 
                     presupuesto_total: totalPresupuestoCalculado,
@@ -688,7 +729,13 @@
                 }]);
 
                 if (fichaError) throw fichaError;
+                
+                // Si la ficha fue local y vino desde una cita, la marcamos completada automáticamente
+                if (isLocal && citaId) {
+                    await window.midental.from('citas_agenda').update({ estado: 'completada' }).eq('id', citaId);
+                }
 
+                // Limpiar pantalla
                 document.getElementById('fichaMotivo').value = ''; 
                 document.getElementById('fichaDiagnostico').value = '';
                 document.getElementById('fichaAccion').value = '';
@@ -704,9 +751,10 @@
                 `;
                 document.getElementById('granTotalPagar').innerText = '0';
                 
-                alert("✅ Ficha Oficial guardada y presupuesto asegurado.");
+                alert(isLocal ? "✅ Ficha Local Guardada. Historial protegido." : "✅ Ficha Oficial guardada y presupuesto asegurado.");
+                
                 cargarHistorialPaciente(); 
-                cargarDocumentosPaciente(); 
+                if(!isLocal) cargarDocumentosPaciente(); 
 
             } catch (err) {
                 console.error(err);

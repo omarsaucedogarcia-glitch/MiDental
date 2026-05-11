@@ -225,7 +225,7 @@ body {
 .time-critical { background: var(--red-urgency); animation: parpadeo 1s infinite; }
 .time-warning { background: var(--pixar-orange); }
 @keyframes parpadeo { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-.oferta-img { width: 150px; object-fit: cover; }
+.oferta-img { width: 150px; height: auto; object-fit: contain; background-color: #0b192c; }
 .oferta-info { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
 .oferta-info h4 { color: var(--blue-elegant); font-size: 1.1rem; margin-bottom: 5px; }
 .clinica-name { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
@@ -250,7 +250,7 @@ body {
     
     .agenda-overlay { position: static; margin-top: -30px; padding: 0 20px; }
     .oferta-card { flex-direction: column; }
-    .oferta-img { width: 100%; height: 150px; }
+    .oferta-img { width: 100%; height: auto; max-height: 450px; object-fit: contain; background-color: #0b192c; }
     
     .b2b-info-box { flex-direction: column; text-align: center; }
     .b2b-huge-icon { display: none; }
