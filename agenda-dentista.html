@@ -142,6 +142,33 @@
             .sede-text-mini { font-size: 0.6rem; margin-left: 2px; }
             .slot-workplace .material-symbols-outlined { font-size: 12px !important; }
         }
+        /* =========================================================
+           PARCHE: AGENDA MÓVIL 100% ESTÁTICA Y NATIVA
+           ========================================================= */
+        @media (max-width: 768px) {
+            body { 
+                overflow: hidden !important; /* Bloquea que la página entera se mueva */
+                position: fixed; width: 100%; height: 100%; /* Inmoviliza el chasis */
+            }
+            .dashboard-layout, .dashboard-content { 
+                height: 100dvh !important; /* dvh = Altura Dinámica Real del celular */
+                display: flex !important; 
+                flex-direction: column !important; 
+                padding-bottom: 70px !important; /* Protege el espacio del menú inferior */
+            }
+            .calendar-wrapper { 
+                flex: 1 !important; 
+                display: flex !important; 
+                flex-direction: column !important; 
+                min-height: 0 !important; /* Magia CSS: obliga a que el scroll ocurra adentro */
+            }
+            .calendar-grid-container { 
+                flex: 1 !important; 
+                overflow-y: auto !important; 
+                overflow-x: auto !important; 
+                -webkit-overflow-scrolling: touch; /* Scroll suave de iPhone */
+            }
+        }
     </style>
 </head>
 <body>

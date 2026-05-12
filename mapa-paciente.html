@@ -148,6 +148,29 @@
         .btn-whatsapp-agenda:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; opacity: 0.7;}
 
         .bottom-nav { background: white; border-top: none; z-index: 1000;}
+        /* =========================================================
+           PARCHE: MODAL PACIENTE ESTÁTICO Y BOTÓN FIJO
+           ========================================================= */
+        @media (max-width: 600px) {
+            .modal-content {
+                height: 85dvh !important; /* Respeta la barra del navegador móvil */
+                max-height: 85dvh !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .modal-body-scroll {
+                flex: 1 !important; /* Absorbe el espacio y hace scroll */
+                overflow-y: auto !important;
+                padding-bottom: 20px !important;
+            }
+            .modal-footer-fixed {
+                flex-shrink: 0 !important; /* Impide que el botón se comprima */
+                background: white !important;
+                /* Padding inferior extra para celulares modernos (iPhone FaceID) */
+                padding: 15px 15px calc(20px + env(safe-area-inset-bottom)) 15px !important; 
+                box-shadow: 0 -10px 20px rgba(0,0,0,0.08) !important;
+            }
+        }
     </style>
 </head>
 <body>
