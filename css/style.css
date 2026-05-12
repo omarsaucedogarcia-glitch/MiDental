@@ -528,3 +528,40 @@ body {
 .nav-item-bottom span {
     font-size: 1.6rem;
 }
+/* =========================================================
+   PARCHE QUIRÚRGICO: BOTÓN FIJO EN MODALES (SCROLL INTERNO)
+   ========================================================= */
+
+/* 1. Obligamos al modal a no crecer más de la pantalla */
+.modal-content, 
+.modal-ofertas-content {
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 85vh !important; 
+    overflow: hidden !important; 
+}
+
+/* 2. El cuerpo del modal absorbe el espacio y hace el scroll */
+.modal-body-scroll {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* 3. El pie (donde va el botón) se queda anclado abajo */
+.modal-footer-fixed {
+    flex-shrink: 0 !important;
+    background: white !important; 
+    z-index: 100 !important;
+    position: relative !important;
+    /* Colchón extra para la barra de navegación nativa de iPhone/Android */
+    padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+}
+
+/* 4. Ajuste fino para celulares */
+@media (max-width: 600px) {
+    .modal-content, 
+    .modal-ofertas-content {
+        max-height: 92vh !important; 
+    }
+}
