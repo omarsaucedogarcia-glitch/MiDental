@@ -305,6 +305,7 @@
         let bloqueAgendamientoSeleccionado = null;
         let horariosDentistaDB = []; 
         let pestanaActivaModal = 'sobremi'; // 'sobremi' o 'agendar'
+        let citasOcupadasDB = []; // <--- NUEVA VARIABLE: Guardará las citas ya tomadas
 
         document.addEventListener('DOMContentLoaded', async () => {
             const userId = localStorage.getItem('midental_user_id');
@@ -492,6 +493,20 @@
                     });
                 }
                 horariosDentistaDB = [...new Set(arrTemporal)];
+                // ---> NUEVO: DESCARGAR HORAS YA TOMADAS (EVITA DOBLE AGENDAMIENTO) <---
+                const { data: citasTomadas } = await window.midental
+                    .from('citas_agenda')
+                    .select('fecha_hora_formato_slot')
+                    .eq('dentista_id', dentistaSeleccionado.id)
+                    .neq('estado', 'cancelada')
+                    .neq('estado', 'Rechazado'); // Descarta las canceladas
+
+                if (citasTomadas) {
+                    citasOcupadasDB = citasTomadas.map(cita => cita.fecha_hora_formato_slot);
+                } else {
+                    citasOcupadasDB = [];
+                }
+                // ------------------------------------------------------------------------
             } catch (err) {
                 console.log("Error al sincronizar agenda:", err);
             }
@@ -603,18 +618,26 @@
                     if (horariosDentistaDB.length > 0 && !horariosDentistaDB.includes(slotID)) {
                         return; 
                     }
+                    // ---> NUEVO: VERIFICAR SI LA HORA YA FUE TOMADA POR UN PACIENTE <---
+                    let bloqueExacto = `${diasAbrev[i]} ${dd}/${mm}/${yyyy} - ${horaStr}`;
+                    let estaOcupado = citasOcupadasDB.includes(bloqueExacto);
 
                     horasAgregadasEsteDia++;
 
                     const btn = document.createElement('button');
                     btn.className = 'hora-btn';
-                    btn.innerText = horaStr;
+                    btn.innerText = estaOcupado ? "Ocupado" : horaStr; // Cambia el texto
                     
                     const ahora = new Date();
                     const fechaBloque = new Date(fCol.getFullYear(), fCol.getMonth(), fCol.getDate(), parseInt(horaStr.split(':')[0]), 0);
                     
-                    if(fechaBloque < ahora) {
+                    // Desactivar si la hora ya pasó o si ya está ocupada
+                    if(fechaBloque < ahora || estaOcupado) {
                         btn.disabled = true;
+                        if(estaOcupado) {
+                            btn.style.backgroundColor = "#f1f5f9"; // Fondo grisáceo
+                            btn.style.color = "#cbd5e1"; // Texto apagado
+                        }
                     } else {
                         btn.onclick = function() {
                             document.querySelectorAll('.hora-btn').forEach(b => b.classList.remove('selected'));
