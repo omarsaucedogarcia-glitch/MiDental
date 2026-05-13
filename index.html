@@ -172,84 +172,112 @@
         </div>
     </div>
 
+    <!-- ======================================================= -->
+    <!-- MODAL REGISTRO PACIENTE -->
+    <!-- ======================================================= -->
     <div id="modalRegistroPaciente" class="modal-overlay" style="display:none;">
-        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
-            <button class="btn-close" onclick="cerrarModal('modalRegistroPaciente')"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="modal-title">Registro Paciente</h2>
-            <form class="form-registro" id="formRegistroPaciente">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regPacienteNombre" placeholder="Nombre Completo" class="apple-input-modal" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regPacienteEmail" placeholder="correo@ejemplo.com (Vital para recuperar clave)" class="apple-input-modal" required></div>
-                
-                <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
-                    <input type="password" id="regPacientePassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
-                </div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
-                    <input type="password" id="regPacientePasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
-                </div>
-                
-                <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 15px; display: flex; align-items: start; gap: 10px;">
-                    <input type="checkbox" id="regPacienteTyC" required style="margin-top: 4px; cursor: pointer;">
-                    <label for="regPacienteTyC" style="font-size: 0.85rem; color: #4a5568;">
-                        He leído y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCPaciente')" style="color: var(--pixar-cyan); text-decoration: underline;">Términos y Condiciones</a>.
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn-pixar btn-full" onclick="procesarRegistroPaciente(event)">Crear mi cuenta</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalLoginDentista" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <button class="btn-close" onclick="cerrarModal('modalLoginDentista')"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="modal-title">Acceso Profesional 🦷</h2>
-            <form class="form-registro" id="formLoginDentista">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="loginDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
-                <div class="input-group-modal mb-10"><span class="material-symbols-outlined">lock</span><input type="password" id="loginDentistaPassword" placeholder="Tu contraseña" class="apple-input-modal" required></div>
-                
-                <div style="text-align: right; margin-bottom: 15px;">
-                    <a href="javascript:void(0)" onclick="abrirRecuperarPassword()" style="color: var(--dentista-color, #4ade80); font-size: 0.85rem; text-decoration: underline;">¿Olvidaste tu contraseña?</a>
-                </div>
-
-                <button type="submit" class="btn-pixar btn-dentista btn-full" onclick="event.preventDefault(); if(document.getElementById('formLoginDentista').checkValidity()) iniciarSesion('dentista'); else document.getElementById('formLoginDentista').reportValidity();">Ingresar al Portal</button>
-            </form>
-            <div class="modal-footer-text" style="margin-top: 15px; text-align: center;">
-                <p style="font-size: 0.9rem; margin-bottom: 5px;">¿Eres un nuevo profesional en la red?</p>
-                <a href="javascript:void(0)" onclick="cambiarModal('modalLoginDentista', 'modalRegistroDentista')" style="color: var(--dentista-color, #4ade80); font-weight: bold; text-decoration: underline;">Crear cuenta profesional</a>
+        <div class="modal-content" style="padding: 0;"> <!-- Quitamos el padding para que el footer llegue a los bordes -->
+            <button class="btn-close" onclick="cerrarModal('modalRegistroPaciente')" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
+            
+            <div class="modal-body-scroll">
+                <h2 class="modal-title">Registro Paciente</h2>
+                <form class="form-registro" id="formRegistroPaciente">
+                    <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regPacienteNombre" placeholder="Nombre Completo" class="apple-input-modal" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regPacienteEmail" placeholder="correo@ejemplo.com (Vital para recuperar clave)" class="apple-input-modal" required></div>
+                    
+                    <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
+                        <input type="password" id="regPacientePassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
+                    </div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
+                        <input type="password" id="regPacientePasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
+                    </div>
+                    
+                    <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 5px; display: flex; align-items: start; gap: 10px;">
+                        <input type="checkbox" id="regPacienteTyC" required style="margin-top: 4px; cursor: pointer;">
+                        <label for="regPacienteTyC" style="font-size: 0.85rem; color: #4a5568;">
+                            He leído y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCPaciente')" style="color: var(--pixar-cyan); text-decoration: underline;">Términos y Condiciones</a>.
+                        </label>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer-fixed">
+                <!-- Se agregó form="formRegistroPaciente" para enlazar el botón con el formulario -->
+                <button type="submit" form="formRegistroPaciente" class="btn-pixar btn-full" style="margin: 0;" onclick="procesarRegistroPaciente(event)">Crear mi cuenta</button>
             </div>
         </div>
     </div>
 
-    <div id="modalRegistroDentista" class="modal-overlay" style="display:none;">
-        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
-            <button class="btn-close" onclick="cerrarModal('modalRegistroDentista')"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="modal-title">Únete a la Red 🦷</h2>
-            <form class="form-registro" id="formRegistroDentista">
-                <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regDentistaNombre" placeholder="Nombre y Apellidos" class="apple-input-modal" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regDentistaTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">badge</span><input type="text" id="regDentistaSIS" placeholder="N° Registro Superintendencia (SIS)" class="apple-input-modal" required></div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regDentistaEmail" placeholder="correo.profesional@ejemplo.com" class="apple-input-modal" required></div>
-                
-                <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
-                    <input type="password" id="regDentistaPassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
-                </div>
-                <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
-                    <input type="password" id="regDentistaPasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
-                </div>
-                
-                <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 15px; display: flex; align-items: start; gap: 10px;">
-                    <input type="checkbox" id="regDentistaTyC" required style="margin-top: 4px; cursor: pointer;">
-                    <label for="regDentistaTyC" style="font-size: 0.85rem; color: #4a5568;">
-                        Certifico que mis datos son reales, poseo habilitación profesional y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCDentista')" style="color: var(--dentista-color, #4ade80); text-decoration: underline;">Términos y Condiciones</a>.
-                    </label>
-                </div>
+    <!-- ======================================================= -->
+    <!-- MODAL LOGIN DENTISTA -->
+    <!-- ======================================================= -->
+    <div id="modalLoginDentista" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="padding: 0;">
+            <button class="btn-close" onclick="cerrarModal('modalLoginDentista')" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
             
-                <button type="submit" class="btn-pixar btn-dentista btn-full" onclick="procesarRegistroDentista(event)">Validar y Crear Cuenta</button>
-            </form>
-            <p class="modal-footer-text" style="text-align: center; margin-top: 15px;">¿Ya eres parte de la red? <a href="javascript:void(0)" onclick="cambiarModal('modalRegistroDentista', 'modalLoginDentista')">Inicia sesión</a></p>
+            <div class="modal-body-scroll">
+                <h2 class="modal-title">Acceso Profesional 🦷</h2>
+                <form class="form-registro" id="formLoginDentista">
+                    <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="loginDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
+                    <div class="input-group-modal mb-10"><span class="material-symbols-outlined">lock</span><input type="password" id="loginDentistaPassword" placeholder="Tu contraseña" class="apple-input-modal" required></div>
+                    
+                    <div style="text-align: right; margin-bottom: 15px;">
+                        <a href="javascript:void(0)" onclick="abrirRecuperarPassword()" style="color: var(--dentista-color, #4ade80); font-size: 0.85rem; text-decoration: underline;">¿Olvidaste tu contraseña?</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer-fixed" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Se agregó form="formLoginDentista" -->
+                <button type="submit" form="formLoginDentista" class="btn-pixar btn-dentista btn-full" style="margin: 0;" onclick="event.preventDefault(); if(document.getElementById('formLoginDentista').checkValidity()) iniciarSesion('dentista'); else document.getElementById('formLoginDentista').reportValidity();">Ingresar al Portal</button>
+                
+                <div class="modal-footer-text" style="margin-top: 0; text-align: center; border-top: none; padding-top: 0;">
+                    <p style="font-size: 0.9rem; margin-bottom: 5px;">¿Eres un nuevo profesional en la red?</p>
+                    <a href="javascript:void(0)" onclick="cambiarModal('modalLoginDentista', 'modalRegistroDentista')" style="color: var(--dentista-color, #4ade80); font-weight: bold; text-decoration: underline;">Crear cuenta profesional</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL REGISTRO DENTISTA -->
+    <!-- ======================================================= -->
+    <div id="modalRegistroDentista" class="modal-overlay" style="display:none;">
+        <div class="modal-content" style="padding: 0;">
+            <button class="btn-close" onclick="cerrarModal('modalRegistroDentista')" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
+            
+            <div class="modal-body-scroll">
+                <h2 class="modal-title">Únete a la Red 🦷</h2>
+                <form class="form-registro" id="formRegistroDentista">
+                    <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regDentistaRUT" placeholder="RUT Profesional" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regDentistaNombre" placeholder="Nombre y Apellidos" class="apple-input-modal" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regDentistaTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">badge</span><input type="text" id="regDentistaSIS" placeholder="N° Registro SIS" class="apple-input-modal" required></div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regDentistaEmail" placeholder="correo.profesional@ejemplo.com" class="apple-input-modal" required></div>
+                    
+                    <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
+                        <input type="password" id="regDentistaPassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
+                    </div>
+                    <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
+                        <input type="password" id="regDentistaPasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
+                    </div>
+                    
+                    <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 5px; display: flex; align-items: start; gap: 10px;">
+                        <input type="checkbox" id="regDentistaTyC" required style="margin-top: 4px; cursor: pointer;">
+                        <label for="regDentistaTyC" style="font-size: 0.85rem; color: #4a5568;">
+                            Certifico que mis datos son reales, poseo habilitación profesional y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCDentista')" style="color: var(--dentista-color, #4ade80); text-decoration: underline;">Términos y Condiciones</a>.
+                        </label>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer-fixed" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Se agregó form="formRegistroDentista" -->
+                <button type="submit" form="formRegistroDentista" class="btn-pixar btn-dentista btn-full" style="margin: 0;" onclick="procesarRegistroDentista(event)">Validar y Crear Cuenta</button>
+                <p class="modal-footer-text" style="text-align: center; margin-top: 0; border-top: none; padding-top: 0;">¿Ya eres parte de la red? <a href="javascript:void(0)" onclick="cambiarModal('modalRegistroDentista', 'modalLoginDentista')">Inicia sesión</a></p>
+            </div>
         </div>
     </div>
 
