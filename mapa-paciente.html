@@ -388,10 +388,21 @@
                         </div>
                     `;
 
-                    if (doc.disponibilidad_urgencia || doc.acepta_urgencias) {
+                    // --- INICIO DEL REEMPLAZO QUIRÚRGICO ---
+                    
+                    // Validador Robusto: Convierte cualquier formato de Supabase a texto y evalúa
+                    const recibeUrgencia = 
+                        String(doc.disponibilidad_urgencia).toLowerCase() === 'true' || 
+                        String(doc.acepta_urgencias).toLowerCase() === 'true' ||
+                        String(doc.atiende_urgencias).toLowerCase() === 'true' ||
+                        String(doc.urgencia_activa).toLowerCase() === 'true';
+
+                    if (recibeUrgencia) {
                         htmlUrgencias += tarjetaUrgenciaHtml;
                     }
                     htmlNormal += tarjetaHtml;
+                    
+                    // --- FIN DEL REEMPLAZO QUIRÚRGICO ---
                 });
 
                 document.getElementById('cargandoDirectorio').style.display = 'none';
