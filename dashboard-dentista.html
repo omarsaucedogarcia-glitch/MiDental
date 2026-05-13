@@ -300,7 +300,7 @@
 
             const { data, error } = await window.midental
                 .from('perfiles_dentistas')
-                .select('disponible_urgencia') // Actualizado a la columna correcta
+                .select('acepta_urgencias') // Actualizado a la columna correcta
                 .eq('id', userId)
                 .single();
                 
@@ -318,7 +318,7 @@
             if(userId) {
                 const { error } = await window.midental
                     .from('perfiles_dentistas')
-                    .update({ disponible_urgencia: checkbox.checked }) // Actualizado
+                    .update({ acepta_urgencias: checkbox.checked }) // Actualizado
                     .eq('id', userId);
                     
                 if(error) {
@@ -333,7 +333,7 @@
         function actualizarTextoUrgencia(isActiva) {
             const texto = document.getElementById('statusText');
             if(isActiva) {
-                texto.innerText = "Recibiendo Casos";
+                texto.innerText = "Disponible para Urgencias";
                 texto.style.color = "var(--red-urgency)";
                 texto.style.fontWeight = "900";
             } else {
