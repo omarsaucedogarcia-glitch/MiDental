@@ -195,8 +195,11 @@
                     <div class="total-final-box">TOTAL PRESUPUESTO: $ <span id="granTotalPagar">0</span></div>
 
                     <div class="btn-group-dual mt-20" style="margin-top: 30px;">
+                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalReceta()" style="padding: 15px; border-radius: 12px; font-weight: bold; color: var(--pixar-cyan); border-color: var(--pixar-cyan);">
+                            <span class="material-symbols-outlined">prescriptions</span> Emitir Receta
+                        </button>
                         <button type="button" class="btn-login-outline btn-full" onclick="soloPrevisualizarPDF()" style="padding: 15px; border-radius: 12px; font-weight: bold;">
-                            <span class="material-symbols-outlined">visibility</span> Ver / Imprimir PDF
+                            <span class="material-symbols-outlined">visibility</span> Ver / Imprimir Ficha
                         </button>
                     </div>
 
@@ -263,6 +266,102 @@
                 <div class="pin-display" id="pinMostrado" style="font-size: 2rem; font-weight: bold; letter-spacing: 5px; color: var(--blue-elegant); margin: 15px 0;">------</div>
                 <button class="btn-login-outline btn-full" onclick="enviarPinAlPaciente()" style="padding: 15px; border-radius: 12px; font-weight: bold;">
                     <span class="material-symbols-outlined">chat</span> Enviar Instrucciones al Paciente
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ======================================================= -->
+    <!-- MODAL RECETA MÉDICA Y VADEMÉCUM -->
+    <!-- ======================================================= -->
+    <div id="modalRecetaMedica" class="modal-overlay" style="display:none; z-index: 1000;">
+        <div class="modal-content modal-xl" style="border-radius: 20px; padding: 0; max-width: 800px; margin: auto; background: white;">
+            <button class="btn-close" onclick="document.getElementById('modalRecetaMedica').style.display='none'" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
+            
+            <div class="modal-body-scroll" style="padding: 30px;">
+                <div style="border-bottom: 3px solid var(--pixar-cyan); padding-bottom: 15px; margin-bottom: 25px;">
+                    <h2 style="margin:0; color: var(--blue-elegant); font-size: 1.6rem; display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-outlined" style="font-size: 2rem;">prescriptions</span> Vademécum y Receta
+                    </h2>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Paciente: <strong id="recetaNombrePaciente">--</strong></p>
+                </div>
+                
+                <!-- Buscador Inteligente -->
+                <div style="position: relative; margin-bottom: 20px;">
+                    <label class="input-label" style="font-weight: bold;">Buscar Fármaco (Odontológico)</label>
+                    <div class="input-group-modal">
+                        <span class="material-symbols-outlined">search</span>
+                        <input type="text" id="buscadorFarmaco" class="apple-input-modal" placeholder="Ej: Amoxicilina 500mg, Ketorolaco, Clorhexidina..." oninput="filtrarVademecum()" autocomplete="off">
+                    </div>
+                    <div id="listaResultadosFarmacos" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); z-index: 100; max-height: 200px; overflow-y: auto; display: none;"></div>
+                </div>
+
+                <!-- Cajas de Posología -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="font-size: 0.8rem; color: #64748b; font-weight: bold;">Cantidad</label>
+                            <input type="number" id="posCantidad" class="apple-input-modal" placeholder="Ej: 1" style="padding: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: #64748b; font-weight: bold;">Formato</label>
+                            <select id="posFormato" class="apple-input-modal" style="padding: 8px; background: white;">
+                                <option value="Comprimido(s)">Comprimido(s)</option>
+                                <option value="Cápsula(s)">Cápsula(s)</option>
+                                <option value="ml">ml</option>
+                                <option value="Gotas">Gotas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: #64748b; font-weight: bold;">Cada</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="number" id="posFrecuencia" class="apple-input-modal" placeholder="8" style="padding: 8px; width: 50%;">
+                                <select id="posFrecUnidad" class="apple-input-modal" style="padding: 8px; width: 50%; background: white;">
+                                    <option value="Hora(s)">Hora(s)</option>
+                                    <option value="Día(s)">Día(s)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: #64748b; font-weight: bold;">Vía</label>
+                            <select id="posVia" class="apple-input-modal" style="padding: 8px; background: white;">
+                                <option value="Vía Oral">Vía Oral</option>
+                                <option value="Tópica">Tópica</option>
+                                <option value="Sublingual">Sublingual</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: #64748b; font-weight: bold;">Durante</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="number" id="posDuracion" class="apple-input-modal" placeholder="7" style="padding: 8px; width: 50%;">
+                                <select id="posDurUnidad" class="apple-input-modal" style="padding: 8px; width: 50%; background: white;">
+                                    <option value="Día(s)">Día(s)</option>
+                                    <option value="Semana(s)">Semana(s)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: #64748b; font-weight: bold;">Indicaciones Adicionales</label>
+                        <textarea id="posIndicaciones" class="apple-input-modal" placeholder="Ej: Tomar junto con los alimentos..." rows="2" style="border-radius: 8px; resize: vertical; padding: 10px;"></textarea>
+                    </div>
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="button" class="btn-pixar btn-small" onclick="agregarFarmacoAReceta()" style="padding: 8px 20px; font-weight: bold; border-radius: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 1.2rem; vertical-align: bottom;">add_circle</span> Agregar a la lista
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Fármacos Agregados -->
+                <h3 style="color: var(--blue-elegant); font-size: 1.1rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">Rp. (Fármacos a prescribir)</h3>
+                <div id="listaFármacosAgregados" style="min-height: 100px;">
+                    <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; margin-top: 20px;">No has agregado medicamentos a la receta.</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer-fixed" style="padding: 20px 30px; display: flex; gap: 15px;">
+                <button type="button" class="btn-login-outline btn-full" style="margin: 0; font-weight: bold;" onclick="document.getElementById('modalRecetaMedica').style.display='none'">Cancelar</button>
+                <button type="button" class="btn-pixar btn-full" id="btnEmitirReceta" style="margin: 0; font-weight: bold; font-size: 1.1rem; background: var(--green-success);" onclick="emitirYGuardarRecetaPDF()">
+                    <span class="material-symbols-outlined">print</span> Emitir Orden Médica
                 </button>
             </div>
         </div>
@@ -918,6 +1017,289 @@
             } finally {
                 btnGuardar.innerText = "Guardar Nota Oculta";
                 btnGuardar.disabled = false;
+            }
+        }
+        // ==========================================
+        // MOTOR DE RECETAS MÉDICAS Y VADEMÉCUM
+        // ==========================================
+        let recetaMedicamentos = [];
+        
+        // Base de datos inteligente (Vademécum Odontológico Básico)
+        const vademecumDB = [
+            { "nombre": "AMOXICILINA 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones odontogénicas leves a moderadas." },
+  { "nombre": "AMOXICILINA 875 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Protocolo de dosis alta para mejorar cumplimiento." },
+  { "nombre": "AMOXICILINA/ÁCIDO CLAVULÁNICO 875/125 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones recurrentes o producidas por bacterias productoras de betalactamasas." },
+  { "nombre": "AMOXICILINA/ÁCIDO CLAVULÁNICO 500/125 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones moderadas-severas." },
+  { "nombre": "CLINDAMICINA 300 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Elección en alérgicos a penicilina o infecciones con sospecha de anaerobios." },
+  { "nombre": "CLINDAMICINA 600 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Dosis alta para procesos severos en alérgicos a penicilina." },
+  { "nombre": "AZITROMICINA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Alternativa en alergias, pauta de corta duración." },
+  { "nombre": "METRONIDAZOL 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Específico para bacterias anaerobias. Suele combinarse con Amoxicilina." },
+  { "nombre": "METRONIDAZOL 250 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Uso en terapias combinadas para periodontitis." },
+  { "nombre": "CLARITROMICINA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Macrólido con mejor tolerancia que la Eritromicina." },
+  { "nombre": "CEFADROXILO 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Cefalosporina de 1ra generación; profilaxis y tratamiento." },
+  { "nombre": "CEFALEXINA 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 6, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones de piel y tejidos blandos peri-orales." },
+  { "nombre": "DOXICICLINA 100 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 15, "dunid": "Día(s)", "ind": "Tratamiento coadyuvante en periodontitis agresiva / inhibición de colagenasas." },
+  { "nombre": "PENICILINA V POTÁSICA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 6, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones muy leves, espectro reducido." },
+  { "nombre": "MOXIFLOXACINO 400 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Casos de infecciones odontogénicas graves refractarias (Uso restringido)." },
+  { "nombre": "ESPIRAMICINA/METRONIDAZOL 1.5MUI/250mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Combinación sinérgica común en infecciones periodontales y abscesos." },
+  { "nombre": "PARACETAMOL 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 6, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Dolor leve a moderado. Seguro en embarazo y anticoagulados." },
+  { "nombre": "PARACETAMOL 1 g tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Dolor moderado. No exceder 4g al día." },
+  { "nombre": "IBUPROFENO 400 mg cápsula blanda", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Estándar de oro para dolor inflamatorio dental." },
+  { "nombre": "IBUPROFENO 600 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dolor post-quirúrgico moderado-severo." },
+  { "nombre": "NAPROXENO SÓDICO 550 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dolor prolongado. Excelente vida media." },
+  { "nombre": "KETOROLACO 10 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Potente analgésico de rescate a corto plazo." },
+  { "nombre": "KETOROLACO 30 mg tableta sublingual", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Sublingual", "dur": 2, "dunid": "Día(s)", "ind": "Dolor agudo severo (post-exodoncia compleja)." },
+  { "nombre": "DICLOFENACO POTÁSICO 50 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Rápida acción analgésica." },
+  { "nombre": "KETOPROFENO 100 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Eficaz en procesos con alto componente inflamatorio." },
+  { "nombre": "CELECOXIB 200 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Inhibidor selectivo COX-2. Pacientes con sensibilidad gástrica." },
+  { "nombre": "ETORICOXIB 90 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Dolor agudo post-quirúrgico. Alta potencia y selectividad." },
+  { "nombre": "CLONIXINATO DE LISINA 125 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Analgésico no narcótico, efectivo en dolor dental moderado." },
+  { "nombre": "TRAMADOL / PARACETAMOL 37.5/325 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Dolor severo que no cede a AINES convencionales." },
+  { "nombre": "METAMIZOL SÓDICO (DIPIRONA) 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Excelente antipirético y analgésico. Útil en dolor post-extracción." },
+  { "nombre": "DEXKETOPROFENO 25 mg comprimido", "cant": 1, "form": "Comprimido(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "S-enantiomer del ketoprofeno. Acción más rápida y potente." },
+  { "nombre": "MELOXICAM 15 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Preferente COX-2. Útil en procesos inflamatorios prolongados o ATM." },
+  { "nombre": "MELOXICAM 7.5 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dosis de mantenimiento para procesos inflamatorios leves." },
+  { "nombre": "NIMESULIDA 100 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Selectivo COX-2. Potente antiinflamatorio para periodontitis agudas." },
+  { "nombre": "TENOXICAM 20 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Larga vida media. Indicado en dolor post-quirúrgico persistente." },
+  { "nombre": "PIROXICAM 20 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Uso en patologías de la articulación temporomandibular (ATM)." },
+  { "nombre": "LORNOXICAM 8 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Oxicam de acción corta. Potente analgésico para dolor dental agudo." },
+  { "nombre": "DICLOFENACO SÓDICO 50 mg tableta entérica", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Acción sistémica más prolongada que el potásico." },
+  { "nombre": "NABUMETONA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Profármaco. Menor incidencia de daño en la mucosa gástrica directa." },
+  { "nombre": "INDOMETACINA 25 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Uso limitado a neuralgias específicas o inflamación severa de ATM." },
+  { "nombre": "SULINDACO 200 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Menor toxicidad renal comparado con otros AINES." },
+  { "nombre": "DEXAMETASONA 4 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 2, "dunid": "Día(s)", "ind": "Prevención y manejo del edema post-quirúrgico severo (ej. terceros molares)." },
+  { "nombre": "DEXAMETASONA 4 mg/ml ampolla", "cant": 1, "form": "Ampolla(s)", "frec": 0, "funid": "Dosis Única", "via": "Submucosa / Intramuscular", "dur": 1, "dunid": "Día(s)", "ind": "Aplicación pre-quirúrgica o intraoperatoria inmediata para control del trismo y edema." },
+  { "nombre": "BETAMETASONA 0.6 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Control de procesos inflamatorios agudos prolongados. Vida media larga." },
+  { "nombre": "BETAMETASONA 7 mg/ml ampolla inyectable", "cant": 1, "form": "Ampolla(s)", "frec": 0, "funid": "Dosis Única", "via": "Intramuscular", "dur": 1, "dunid": "Día(s)", "ind": "Efecto depósito. Prevención de inflamación severa en cirugías complejas." },
+  { "nombre": "PREDNISONA 20 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Procesos autoinmunes orales o alergias severas. Requiere pauta decreciente." },
+  { "nombre": "PREDNISONA 5 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dosis de mantención o escalón final en la reducción gradual del corticoide." },
+  { "nombre": "DEFLAZACORT 30 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Alternativa a la prednisona con menor impacto en el metabolismo óseo y de glucosa." },
+  { "nombre": "METILPREDNISOLONA 4 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Alta potencia antiinflamatoria, menor retención de líquidos que otros corticoides." },
+  { "nombre": "TRIAMCINOLONA ACETÓNIDO 0.1% pasta base", "cant": 1, "form": "Tubo", "frec": 8, "funid": "Hora(s)", "via": "Tópica", "dur": 7, "dunid": "Día(s)", "ind": "Tratamiento localizado de aftas severas, úlceras traumáticas y liquen plano oral leve." },
+  { "nombre": "CLOBETASOL PROPIONATO 0.05% ungüento", "cant": 1, "form": "Tubo", "frec": 12, "funid": "Hora(s)", "via": "Tópica", "dur": 14, "dunid": "Día(s)", "ind": "Corticoide de muy alta potencia para liquen plano oral erosivo o pénfigo (Uso en cubeta o gasa)." }
+        ];
+
+        function abrirModalReceta() {
+            document.getElementById('recetaNombrePaciente').innerText = pacienteActual.nombre;
+            recetaMedicamentos = [];
+            limpiarFormularioFarmaco();
+            renderizarListaReceta();
+            document.getElementById('modalRecetaMedica').style.display = 'flex';
+        }
+
+        function limpiarFormularioFarmaco() {
+            document.getElementById('buscadorFarmaco').value = "";
+            document.getElementById('posCantidad').value = "";
+            document.getElementById('posFormato').value = "Comprimido(s)";
+            document.getElementById('posFrecuencia').value = "";
+            document.getElementById('posFrecUnidad').value = "Hora(s)";
+            document.getElementById('posVia').value = "Vía Oral";
+            document.getElementById('posDuracion').value = "";
+            document.getElementById('posDurUnidad').value = "Día(s)";
+            document.getElementById('posIndicaciones').value = "";
+            document.getElementById('listaResultadosFarmacos').style.display = 'none';
+        }
+
+        function filtrarVademecum() {
+            const query = document.getElementById('buscadorFarmaco').value.toLowerCase();
+            const caja = document.getElementById('listaResultadosFarmacos');
+            
+            if (query.length < 2) { caja.style.display = 'none'; return; }
+            
+            const resultados = vademecumDB.filter(f => f.nombre.toLowerCase().includes(query));
+            caja.innerHTML = "";
+            
+            if (resultados.length > 0) {
+                resultados.forEach(f => {
+                    const div = document.createElement('div');
+                    div.style.cssText = "padding: 10px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; color: #334155; font-size: 0.9rem;";
+                    div.innerText = f.nombre;
+                    div.onmouseover = () => div.style.background = "#f8fafc";
+                    div.onmouseout = () => div.style.background = "white";
+                    div.onclick = () => autocompletarPosologia(f);
+                    caja.appendChild(div);
+                });
+                
+                // Opción para texto libre
+                const divLibre = document.createElement('div');
+                divLibre.style.cssText = "padding: 10px 15px; cursor: pointer; color: var(--pixar-cyan); font-size: 0.9rem; font-style: italic;";
+                divLibre.innerText = `+ Usar "${query.toUpperCase()}" como fármaco libre`;
+                divLibre.onclick = () => { document.getElementById('buscadorFarmaco').value = query.toUpperCase(); caja.style.display = 'none'; };
+                caja.appendChild(divLibre);
+                
+                caja.style.display = 'block';
+            } else {
+                caja.style.display = 'none';
+            }
+        }
+
+        function autocompletarPosologia(farmaco) {
+            document.getElementById('buscadorFarmaco').value = farmaco.nombre;
+            document.getElementById('posCantidad').value = farmaco.cant;
+            document.getElementById('posFormato').value = farmaco.form;
+            document.getElementById('posFrecuencia').value = farmaco.frec;
+            document.getElementById('posFrecUnidad').value = farmaco.funid;
+            document.getElementById('posVia').value = farmaco.via;
+            document.getElementById('posDuracion').value = farmaco.dur;
+            document.getElementById('posDurUnidad').value = farmaco.dunid;
+            document.getElementById('posIndicaciones').value = farmaco.ind;
+            document.getElementById('listaResultadosFarmacos').style.display = 'none';
+        }
+
+        function agregarFarmacoAReceta() {
+            const nombre = document.getElementById('buscadorFarmaco').value.trim();
+            const cant = document.getElementById('posCantidad').value;
+            const form = document.getElementById('posFormato').value;
+            const frec = document.getElementById('posFrecuencia').value;
+            const funid = document.getElementById('posFrecUnidad').value;
+            const via = document.getElementById('posVia').value;
+            const dur = document.getElementById('posDuracion').value;
+            const dunid = document.getElementById('posDurUnidad').value;
+            const ind = document.getElementById('posIndicaciones').value.trim();
+
+            if (!nombre || !cant || !frec || !dur) return alert("Completa al menos el Fármaco, Cantidad, Frecuencia y Duración.");
+
+            const posologiaArmada = `${cant} ${form} cada ${frec} ${funid} ${via} durante ${dur} ${dunid}`;
+            
+            recetaMedicamentos.push({ nombre: nombre, posologia: posologiaArmada, indicaciones: ind, id: Date.now() });
+            
+            limpiarFormularioFarmaco();
+            renderizarListaReceta();
+        }
+
+        function eliminarFarmacoReceta(id) {
+            recetaMedicamentos = recetaMedicamentos.filter(m => m.id !== id);
+            renderizarListaReceta();
+        }
+
+        function renderizarListaReceta() {
+            const contenedor = document.getElementById('listaFármacosAgregados');
+            contenedor.innerHTML = "";
+            
+            if (recetaMedicamentos.length === 0) {
+                contenedor.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem; text-align: center; margin-top: 20px;">No has agregado medicamentos a la receta.</p>';
+                return;
+            }
+
+            recetaMedicamentos.forEach((med, index) => {
+                contenedor.innerHTML += `
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 10px; position: relative;">
+                        <button onclick="eliminarFarmacoReceta(${med.id})" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #ef4444; cursor: pointer;"><span class="material-symbols-outlined">delete</span></button>
+                        <strong style="color: #0f172a; font-size: 1rem;">${index + 1}. ${med.nombre}</strong>
+                        <ul style="margin: 5px 0 0 0; padding-left: 20px; color: #475569; font-size: 0.9rem;">
+                            <li>${med.posologia}</li>
+                            ${med.indicaciones ? `<li><em>Nota: ${med.indicaciones}</em></li>` : ''}
+                        </ul>
+                    </div>
+                `;
+            });
+        }
+
+        async function emitirYGuardarRecetaPDF() {
+            if (recetaMedicamentos.length === 0) return alert("Debes agregar al menos un medicamento a la receta.");
+            
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const btn = document.getElementById('btnEmitirReceta');
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando...';
+            btn.disabled = true;
+
+            try {
+                // 1. Obtener info profesional
+                const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
+                
+                // 2. Generar PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo.toUpperCase()}` : '';
+                const drInfo = dr ? `Esp. Odontología - General, RUT: ${dr.rut}\nID/Folio: ${Date.now().toString().slice(-6)}\nFecha receta: ${new Date().toLocaleDateString('es-CL')}` : '';
+
+                // Header
+                doc.setFontSize(18);
+                doc.setTextColor(0, 180, 216);
+                doc.text("MiDental", 14, 20);
+                
+                doc.setFontSize(8);
+                doc.setTextColor(0, 0, 0);
+                doc.text(drName, 200, 16, { align: "right" });
+                doc.text(drInfo, 200, 20, { align: "right" });
+                
+                // Título
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("Receta Médica", 105, 35, { align: "center" });
+
+                // Datos Paciente
+                doc.setFontSize(12);
+                doc.text("Datos del paciente", 14, 50);
+                
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Nombre: ${pacienteActual.nombre.toUpperCase()}`, 14, 56);
+                doc.text(`RUT: ${pacienteActual.rut}`, 14, 61);
+                doc.text(`Teléfono: ${pacienteActual.telefono || 'Sin registro'}`, 14, 66);
+                
+                // Listado Rp.
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bold");
+                doc.text("Rp.", 14, 80);
+                
+                let startY = 88;
+                doc.setFontSize(9);
+                recetaMedicamentos.forEach((med, i) => {
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${i + 1}. ${med.nombre.toUpperCase()}`, 14, startY);
+                    
+                    doc.setFont("helvetica", "normal");
+                    let txtLine = `• ${med.posologia}`;
+                    if (med.indicaciones) txtLine += `\n• Nota: ${med.indicaciones}`;
+                    
+                    const splitText = doc.splitTextToSize(txtLine, 180);
+                    doc.text(splitText, 18, startY + 5);
+                    
+                    startY += (splitText.length * 4) + 8;
+                });
+
+                // Firma Inferior
+                const finalPageY = doc.internal.pageSize.height;
+                doc.setDrawColor(0, 0, 0);
+                doc.line(75, finalPageY - 35, 135, finalPageY - 35);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.text(drName, 105, finalPageY - 30, { align: "center" });
+                doc.text("Odontología - General", 105, finalPageY - 26, { align: "center" });
+                if(dr) doc.text(dr.rut, 105, finalPageY - 22, { align: "center" });
+
+                // 3. Descargar y Guardar en Nube
+                const nombreArchivo = `Receta_${pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+                doc.save(nombreArchivo); // Descarga local para imprimir
+                
+                if (!isLocal) {
+                    const pdfBlob = doc.output('blob');
+                    const { error: uploadError } = await window.midental.storage
+                        .from('documentos_clinicos')
+                        .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
+
+                    if (!uploadError) {
+                        await window.midental.from('documentos_pacientes').insert([{
+                            paciente_id: pacienteIdURL,
+                            dentista_id: dentistaId,
+                            nombre_archivo: `Receta Médica ${new Date().toLocaleDateString('es-CL')}.pdf`,
+                            tipo: 'pdf',
+                            archivo_url: nombreArchivo 
+                        }]);
+                        cargarDocumentosPaciente(); // Refresca la lista de archivos
+                    }
+                }
+
+                alert("✅ Receta emitida exitosamente. Se ha guardado en los documentos del paciente.");
+                document.getElementById('modalRecetaMedica').style.display = 'none';
+
+            } catch (err) {
+                alert("Error al emitir receta: " + err.message);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined">print</span> Emitir Orden Médica';
+                btn.disabled = false;
             }
         }
     </script>
