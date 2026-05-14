@@ -103,10 +103,33 @@
                     </div>
 
                     <div class="alerta-clinica" id="alertaClinicaContainer">
-                        <h4><span class="material-symbols-outlined">warning</span> Alerta Médica</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="margin: 0;"><span class="material-symbols-outlined">warning</span> Alerta Médica (Debe ser llenada desde la sesión del Paciente)</h4>
+                        </div>
                         <p class="alerta-item"><strong>Crónicas:</strong> <span id="txtCrónicas">--</span></p>
                         <p class="alerta-item"><strong>Medicamentos:</strong> <span id="txtMedicamentos">--</span></p>
                         <p class="alerta-item"><strong>Alergias:</strong> <span id="txtAlergias">--</span></p>
+                        
+                        <!-- NUEVA SECCIÓN: NOTAS PRIVADAS DEL DENTISTA -->
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #fca5a5;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong style="color: #991b1b; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">visibility_off</span> Notas Internas (Visible Solo para el Profesional)
+                                </strong>
+                                <button class="btn-text" id="btnEditarNotas" onclick="toggleEdicionNotasPrivadas()" style="color: #b91c1c; font-size: 0.8rem; padding: 4px 8px; background: rgba(255,255,255,0.6); border-radius: 6px; font-weight: bold; border: 1px solid #fecaca; transition: 0.2s;">Editar</button>
+                            </div>
+                            
+                            <!-- Modo Vista -->
+                            <div id="vistaNotasPrivadas" class="alerta-item" style="color: #7f1d1d; font-style: italic; background: rgba(255,255,255,0.4); padding: 8px; border-radius: 6px; min-height: 20px;">Sin notas internas registradas.</div>
+                            
+                            <!-- Modo Edición (Oculto por defecto) -->
+                            <div id="edicionNotasPrivadas" style="display: none; margin-top: 5px;">
+                                <textarea id="inputNotasPrivadas" class="apple-input-modal" style="width: 100%; min-height: 70px; font-size: 0.85rem; padding: 10px; border: 1px solid #fca5a5; background: #fff; border-radius: 8px; resize: vertical; color: #7f1d1d; box-sizing: border-box;" placeholder="Escribe aquí anotaciones privadas (ej: fobia a las agujas, consideraciones de pago, etc.)..."></textarea>
+                                <div style="text-align: right; margin-top: 8px;">
+                                    <button class="btn-pixar btn-small" onclick="guardarNotasPrivadas()" style="padding: 6px 12px; font-size: 0.8rem; background: #b91c1c; color: white; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(185, 28, 28, 0.3);">Guardar Nota Oculta</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="historial-body" id="contenedorHistorial"></div>
@@ -185,29 +208,39 @@
         </main>
     </div>
 
+    <!-- ======================================================= -->
+    <!-- MODAL FICHA CLÍNICA HISTÓRICA (VER REGISTRO PASADO) -->
+    <!-- ======================================================= -->
     <div id="modalVerRegistroPasado" class="modal-overlay" style="display:none; z-index: 1000;">
-        <div class="modal-content modal-xl" style="border-radius: 20px; padding: 30px; max-width: 600px; margin: auto; background: white;">
-            <button class="btn-close" onclick="document.getElementById('modalVerRegistroPasado').style.display='none'"><span class="material-symbols-outlined">close</span></button>
-            <div style="border-bottom: 3px solid var(--pixar-cyan); padding-bottom: 15px; margin-bottom: 25px;">
-                <h2 style="margin:0; color: var(--blue-elegant); font-size: 1.6rem;">Ficha Clínica Histórica</h2>
-                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Fecha de Registro: <strong id="modalPasadoFecha">--/--/----</strong></p>
+        <!-- 1. Le quitamos el padding al contenedor principal para que el footer llegue a los bordes -->
+        <div class="modal-content modal-xl" style="border-radius: 20px; padding: 0; max-width: 600px; margin: auto; background: white;">
+            <button class="btn-close" onclick="document.getElementById('modalVerRegistroPasado').style.display='none'" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
+            
+            <!-- 2. ZONA DE SCROLL: Aquí metemos todo el texto y le devolvemos el padding de 30px -->
+            <div class="modal-body-scroll" style="padding: 30px;">
+                <div style="border-bottom: 3px solid var(--pixar-cyan); padding-bottom: 15px; margin-bottom: 25px;">
+                    <h2 style="margin:0; color: var(--blue-elegant); font-size: 1.6rem;">Ficha Clínica Histórica</h2>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem;">Fecha de Registro: <strong id="modalPasadoFecha">--/--/----</strong></p>
+                </div>
+                
+                <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 0.95rem; color: #334155; line-height: 1.5;">
+                    <strong style="color: var(--blue-elegant);">Motivo de Consulta:</strong><br>
+                    <span id="modalPasadoMotivo">--</span><br><br>
+                    <strong style="color: var(--blue-elegant);">Diagnóstico:</strong><br>
+                    <span id="modalPasadoDiagnostico">--</span><br><br>
+                    <strong style="color: var(--blue-elegant);">Procedimiento:</strong><br>
+                    <span id="modalPasadoProcedimiento">--</span>
+                </div>
+                
+                <div style="background: #f0fdfa; border: 2px dashed var(--green-success); padding: 20px; border-radius: 15px; text-align: right; margin-bottom: 5px;">
+                    <span style="font-size: 1rem; color: #64748b; font-weight: bold;">Presupuesto Emitido:</span><br>
+                    <strong style="font-size: 2rem; color: var(--green-success);">$ <span id="modalPasadoTotal">0</span></strong>
+                </div>
             </div>
             
-            <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 25px; font-size: 0.95rem; color: #334155; line-height: 1.5;">
-                <strong style="color: var(--blue-elegant);">Motivo de Consulta:</strong><br>
-                <span id="modalPasadoMotivo">--</span><br><br>
-                <strong style="color: var(--blue-elegant);">Diagnóstico:</strong><br>
-                <span id="modalPasadoDiagnostico">--</span><br><br>
-                <strong style="color: var(--blue-elegant);">Procedimiento:</strong><br>
-                <span id="modalPasadoProcedimiento">--</span>
-            </div>
-            
-            <div style="background: #f0fdfa; border: 2px dashed var(--green-success); padding: 20px; border-radius: 15px; text-align: right; margin-bottom: 25px;">
-                <span style="font-size: 1rem; color: #64748b; font-weight: bold;">Presupuesto Emitido:</span><br>
-                <strong style="font-size: 2rem; color: var(--green-success);">$ <span id="modalPasadoTotal">0</span></strong>
-            </div>
-            <div class="btn-group-dual">
-                <button class="btn-pixar btn-green-whatsapp btn-full" onclick="reenviarPresupuestoPasado()" style="padding: 15px; border-radius: 12px; font-size: 1.05rem;">
+            <!-- 3. ZONA FIJA: Anclamos el botón de WhatsApp abajo -->
+            <div class="modal-footer-fixed" style="padding: 20px 30px;">
+                <button class="btn-pixar btn-green-whatsapp btn-full" onclick="reenviarPresupuestoPasado()" style="margin: 0; padding: 15px; border-radius: 12px; font-size: 1.05rem;">
                     <span class="material-symbols-outlined">send_to_mobile</span> Reenviar por WhatsApp
                 </button>
             </div>
@@ -278,7 +311,8 @@
                 } else {
                     // MODO PACIENTE REGISTRADO OFICIAL
                     const { data: paciente, error } = await window.midental.from('perfiles_pacientes')
-                        .select('nombre_completo, rut, telefono, enfermedades_cronicas, medicamentos, alergias, avatar_url')
+                        // ---> AGREGAMOS notas_privadas AQUÍ <---
+                        .select('nombre_completo, rut, telefono, enfermedades_cronicas, medicamentos, alergias, avatar_url, notas_privadas')
                         .eq('id', pacienteIdURL).single();
                         
                     if (error) throw error;
@@ -307,12 +341,23 @@
                             txtEl.innerText = pacienteActual.nombre.charAt(0).toUpperCase();
                         }
 
-                        if (paciente.enfermedades_cronicas || paciente.medicamentos || paciente.alergias) {
-                            document.getElementById('txtCrónicas').innerText = paciente.enfermedades_cronicas || 'Ninguna';
-                            document.getElementById('txtMedicamentos').innerText = paciente.medicamentos || 'Ninguno';
-                            document.getElementById('txtAlergias').innerText = paciente.alergias || 'Ninguna';
-                            document.getElementById('alertaClinicaContainer').style.display = 'block';
+                        // Llenar datos médicos del paciente
+                        document.getElementById('txtCrónicas').innerText = paciente.enfermedades_cronicas || 'Ninguna';
+                        document.getElementById('txtMedicamentos').innerText = paciente.medicamentos || 'Ninguno';
+                        document.getElementById('txtAlergias').innerText = paciente.alergias || 'Ninguna';
+                        
+                        // ---> NUEVO: Llenar notas privadas <---
+                        if (paciente.notas_privadas) {
+                            document.getElementById('vistaNotasPrivadas').innerText = paciente.notas_privadas;
+                            document.getElementById('inputNotasPrivadas').value = paciente.notas_privadas;
+                        } else {
+                            document.getElementById('vistaNotasPrivadas').innerText = 'Sin notas internas registradas.';
+                            document.getElementById('inputNotasPrivadas').value = '';
                         }
+
+                        // ---> NUEVO: Siempre mostramos la caja de alerta para dar acceso a las notas <---
+                        document.getElementById('alertaClinicaContainer').style.display = 'block';
+                    
                     }
                 }
                 cargarHistorialPaciente();
@@ -821,6 +866,58 @@
                 window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
             } else {
                 alert(`Copia este código y envíaselo al paciente: ${pin}`);
+            }
+        }
+        // ==========================================
+        // SISTEMA DE NOTAS PRIVADAS DEL DENTISTA
+        // ==========================================
+        function toggleEdicionNotasPrivadas() {
+            const vista = document.getElementById('vistaNotasPrivadas');
+            const edicion = document.getElementById('edicionNotasPrivadas');
+            const btn = document.getElementById('btnEditarNotas');
+            
+            if (edicion.style.display === 'none') {
+                vista.style.display = 'none';
+                edicion.style.display = 'block';
+                btn.innerText = 'Cancelar';
+            } else {
+                vista.style.display = 'block';
+                edicion.style.display = 'none';
+                btn.innerText = 'Editar';
+                // Si cancela, devolvemos el input a su valor original
+                document.getElementById('inputNotasPrivadas').value = vista.innerText === 'Sin notas internas registradas.' ? '' : vista.innerText;
+            }
+        }
+
+        async function guardarNotasPrivadas() {
+            const notasNuevas = document.getElementById('inputNotasPrivadas').value.trim();
+            const btnGuardar = document.querySelector('#edicionNotasPrivadas button');
+            const btnEditar = document.getElementById('btnEditarNotas');
+            
+            btnGuardar.innerText = "Guardando...";
+            btnGuardar.disabled = true;
+            
+            try {
+                // Actualizamos la base de datos en Supabase
+                const { error } = await window.midental.from('perfiles_pacientes')
+                    .update({ notas_privadas: notasNuevas })
+                    .eq('id', pacienteIdURL);
+                    
+                if (error) throw error;
+                
+                // Actualizamos la vista visualmente
+                document.getElementById('vistaNotasPrivadas').innerText = notasNuevas || 'Sin notas internas registradas.';
+                
+                // Cerramos el modo edición
+                document.getElementById('vistaNotasPrivadas').style.display = 'block';
+                document.getElementById('edicionNotasPrivadas').style.display = 'none';
+                btnEditar.innerText = 'Editar';
+                
+            } catch (err) {
+                alert("Error al guardar la nota interna: " + err.message);
+            } finally {
+                btnGuardar.innerText = "Guardar Nota Oculta";
+                btnGuardar.disabled = false;
             }
         }
     </script>
