@@ -214,6 +214,65 @@
                 <button type="submit" form="formRegistroPaciente" class="btn-pixar btn-full" style="margin: 0;" onclick="procesarRegistroPaciente(event)">Crear mi cuenta</button>
             </div>
         </div>
+        // ... CÓDIGO DE REGISTRO PREVIO (Captura de inputs y ejecución de auth.signUp) ...
+const { data: authData, error: authError } = await window.midental.auth.signUp({
+    email: emailInput,
+    password: passwordInput
+});
+
+if (authError) throw authError;
+
+if (authData && authData.user) {
+    const newUserId = authData.user.id; // El ID de autenticación de Supabase
+
+    try {
+        // 1. Verificamos si un dentista ya le había creado un perfil clínico usando su RUT
+        const { data: perfilExistente } = await window.midental
+            .from('perfiles_pacientes')
+            .select('id')
+            .eq('rut', rutInput)
+            .maybeSingle();
+
+        if (perfilExistente) {
+            // Caso 1: El perfil ya existe. Enlazamos el perfil clínico existente con su nueva cuenta de acceso
+            const { error: updateError } = await window.midental
+                .from('perfiles_pacientes')
+                .update({ 
+                    user_id: newUserId, // Enlazamos el ID de login
+                    nombre_completo: nombreInput, // Actualizamos por si el dentista escribió mal el nombre
+                    telefono: telefonoInput.replace(/[^0-9]/g, '')
+                })
+                .eq('id', perfilExistente.id);
+
+            if (updateError) throw updateError;
+            console.log("Ficha clínica reclamada y enlazada correctamente.");
+
+        } else {
+            // Caso 2: Es un paciente 100% nuevo de la red. Creamos una fila desde cero
+            const { error: insertError } = await window.midental
+                .from('perfiles_pacientes')
+                .insert([{
+                    id: crypto.randomUUID(),
+                    user_id: newUserId,
+                    rut: rutInput,
+                    nombre_completo: nombreInput,
+                    telefono: telefonoInput.replace(/[^0-9]/g, ''),
+                    enfermedades_cronicas: 'Ninguna',
+                    medicamentos: 'Ninguno',
+                    alergias: 'Ninguna'
+                }]);
+
+            if (insertError) throw insertError;
+        }
+
+        alert("¡Cuenta creada con éxito! Bienvenido a MiDental. Ya puedes revisar tus presupuestos, recetas e historial clínico.");
+        // Redireccionar al dashboard del paciente...
+
+    } catch (dbErr) {
+        console.error("Error al sincronizar el perfil médico:", dbErr);
+        alert("Tu cuenta se creó, pero hubo un desfase al conectar tu historial médico. Descuida, tu dentista lo regularizará en tu próxima visita.");
+    }
+}
     </div>
 
     <!-- ======================================================= -->

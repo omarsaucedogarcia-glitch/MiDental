@@ -39,7 +39,7 @@
                 <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
                 <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
                 <a href="mis-pacientes.html" class="nav-item active"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Arriendos</a>
+                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
                 <a href="ofertas-flash.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Ofertas Flash</a>
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
@@ -71,6 +71,11 @@
                     <span class="material-symbols-outlined" style="color:#94a3b8;">search</span>
                     <input type="text" id="buscadorPacientes" placeholder="Buscar paciente por nombre..." onkeyup="filtrarListaPacientes()">
                 </div>
+                
+                <button class="btn-pixar" style="padding: 10px 20px; font-weight: bold; border-radius: 12px;" onclick="document.getElementById('modalCrearPacienteClinico').style.display='flex'">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">person_add</span> Nuevo Paciente
+                </button>
+
                 <div style="font-size: 0.9rem; color: #64748b;">
                     Pacientes en tu registro: <strong id="totalPacientesContador" style="color: var(--blue-elegant);">0</strong>
                 </div>
@@ -81,6 +86,111 @@
             </div>
         </main>
     </div>
+    <div id="modalCrearPacienteClinico" class="modal-overlay" style="display:none;">
+    <div class="modal-content" style="max-width: 550px; padding: 0;">
+        <button class="btn-close" onclick="document.getElementById('modalCrearPacienteClinico').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+        
+        <div class="modal-body-scroll" style="padding: 25px;">
+            <h2 class="modal-title" style="text-align: left;">Registrar Paciente Nuevo</h2>
+            <p class="modal-subtitle" style="text-align: left;">Crea la ficha base en la nube. El paciente podrá reclamar su historial médico posteriormente con su RUT.</p>
+            
+            <form class="form-registro" id="formAltaPacienteDentista">
+                <div class="input-group-modal">
+                    <span class="material-symbols-outlined">fingerprint</span>
+                    <input type="text" id="altaPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="formatearRutInput(this)" required>
+                </div>
+                <div class="input-group-modal">
+                    <span class="material-symbols-outlined">person</span>
+                    <input type="text" id="altaPacienteNombre" placeholder="Nombre Completo del Paciente" class="apple-input-modal" required>
+                </div>
+                <div class="input-group-modal">
+                    <span class="material-symbols-outlined">call</span>
+                    <input type="tel" id="altaPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="formatearTelefonoInput(this)" required>
+                </div>
+
+                <h4 style="color: var(--blue-elegant); margin: 20px 0 10px; font-size: 0.95rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; display: flex; align-items: center; gap: 5px;">
+                    <span class="material-symbols-outlined" style="color: red; font-size: 1.1rem;">medical_information</span> Antecedentes Médicos (Alerta Médica)
+                </h4>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <label style="font-size: 0.8rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">Enfermedades Crónicas / Sistémicas</label>
+                        <textarea id="altaPacienteCronicas" class="apple-input-modal" placeholder="Ej: Hipertensión arterial, Diabetes Tipo II, No presenta..." style="height: 50px; padding: 10px; border-radius: 10px; resize: none; font-family: inherit; font-size: 0.9rem;"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">Medicamentos en Uso</label>
+                        <textarea id="altaPacienteMedicamentos" class="apple-input-modal" placeholder="Ej: Metformina 850mg, Losartán 50mg, Ninguno..." style="height: 50px; padding: 10px; border-radius: 10px; resize: none; font-family: inherit; font-size: 0.9rem;"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: #64748b; font-weight: bold; display: block; margin-bottom: 4px;">Alergias Clínicas</label>
+                        <textarea id="altaPacienteAlergias" class="apple-input-modal" placeholder="Ej: Alergia a la Penicilina, Látex, AINES, Ninguna..." style="height: 50px; padding: 10px; border-radius: 10px; resize: none; font-family: inherit; font-size: 0.9rem;"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="modal-footer-fixed">
+            <button type="button" class="btn-pixar btn-full" id="btnGuardarAltaPaciente" onclick="guardarPacienteNuevoDesdeDentista()">Crear Historial Clínico</button>
+        </div>
+    </div>
+</div>
+async function guardarPacienteNuevoDesdeDentista() {
+    const rut = document.getElementById('altaPacienteRUT').value.trim();
+    const nombre = document.getElementById('altaPacienteNombre').value.trim();
+    const telefono = document.getElementById('altaPacienteTelefono').value.trim();
+    const cronicas = document.getElementById('altaPacienteCronicas').value.trim();
+    const medicamentos = document.getElementById('altaPacienteMedicamentos').value.trim();
+    const alergias = document.getElementById('altaPacienteAlergias').value.trim();
+
+    if(!rut || !nombre || !telefono) return alert("Por favor completa los datos obligatorios (RUT, Nombre y Teléfono).");
+
+    const btn = document.getElementById('btnGuardarAltaPaciente');
+    btn.innerText = "Guardando en la Red...";
+    btn.disabled = true;
+
+    try {
+        // Insertamos la fila generando un nuevo id aleatorio en la tabla de perfiles
+        const { data, error } = await window.midental
+            .from('perfiles_pacientes')
+            .insert([{
+                id: crypto.randomUUID(), 
+                rut: rut,
+                nombre_completo: nombre,
+                telefono: telefono.replace(/[^0-9]/g, ''),
+                enfermedades_cronicas: cronicas || 'Ninguna',
+                medicamentos: medicamentos || 'Ninguno',
+                // ERROR AQUÍ: Decía "allergies"
+                alergias: alergias || 'Ninguna', 
+                user_id: null 
+            }])
+            .select();
+
+        if (error) {
+            if(error.code === '23505') throw new Error("Este RUT ya está registrado en la base de datos de MiDental.");
+            throw error;
+        }
+        // --- SOLUCIÓN DE FLUJO AQUÍ ---
+        const nuevoPaciente = data[0]; // Capturamos los datos que devolvió el .select()
+        alert(`🏥 Ficha de ${nombre} creada exitosamente. Te llevaremos a su ficha para que registres su primera atención o presupuesto.`);
+        
+        // Lo mandamos directo a la ficha con el nuevo ID!
+        window.location.href = `ficha-paciente.html?paciente=${nuevoPaciente.id}`;
+
+    } catch (err) {
+
+        alert(`🏥 Ficha de ${nombre} creada exitosamente. Ya puedes buscarlo en tu lista para agendar horas o escribir evoluciones.`);
+        document.getElementById('modalCrearPacienteClinico').style.display = 'none';
+        document.getElementById('formAltaPacienteDentista').reset();
+        
+        if(typeof cargarListaPacientesDentista === 'function') cargarListaPacientesDentista(); // Refresca tu vista
+
+    } catch (err) {
+        alert("Error de registro: " + err.message);
+    } finally {
+        btn.innerText = "Crear Historial Clínico";
+        btn.disabled = false;
+    }
+}
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>

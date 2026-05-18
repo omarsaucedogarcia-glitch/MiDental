@@ -176,7 +176,7 @@
                 const { data, error } = await window.midental
                     .from('perfiles_pacientes')
                     .select('*')
-                    .eq('id', userId)
+                    .eq('user_id', userId)
                     .single();
 
                 if (error) throw error;
@@ -256,7 +256,7 @@
                         medicamentos: medicamentos,
                         alergias: alergias
                     })
-                    .eq('id', userId);
+                    .eq('user_id', userId);
 
                 if (error) throw error;
 
@@ -331,6 +331,7 @@
             localStorage.removeItem('midental_user_name');
             window.location.href = 'index.html';
         }
+        
     </script>
 </body>
 </html>

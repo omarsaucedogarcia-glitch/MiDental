@@ -542,7 +542,7 @@
             if(!nombre || !telInput) return alert("El Nombre y Teléfono son obligatorios.");
 
             const btn = document.getElementById('btnGuardarManual');
-            btn.innerText = "Agendando..."; btn.disabled = true;
+            btn.innerText = "Creando Ficha y Agendando..."; btn.disabled = true;
 
             try {
                 let telLimpio = telInput.replace(/[^0-9]/g, '');
@@ -552,12 +552,36 @@
                     telLimpio = '56' + telLimpio; 
                 }
 
+                let pacienteIdFinal = pacienteManualEncontradoId;
+                let esPacienteNuevo = false;
+
+                // 1. MAGIA CLÍNICA: SI EL PACIENTE NO EXISTE, LE CREAMOS SU FICHA BASE
+                if (!pacienteIdFinal) {
+                    const nuevoId = crypto.randomUUID();
+                    const { error: insertPctError } = await window.midental.from('perfiles_pacientes').insert([{
+                        id: nuevoId,
+                        rut: rut || null, // Guardamos el RUT si lo ingresó para que luego lo reclame
+                        nombre_completo: nombre,
+                        telefono: telLimpio,
+                        enfermedades_cronicas: 'Ninguna',
+                        medicamentos: 'Ninguno',
+                        alergias: 'Ninguna',
+                        user_id: null // Paciente huérfano
+                    }]);
+
+                    if (insertPctError) {
+                        if(insertPctError.code === '23505') throw new Error("Este RUT ya existe. Por favor usa el botón de la lupa para buscarlo.");
+                        throw insertPctError;
+                    }
+                    
+                    pacienteIdFinal = nuevoId;
+                    esPacienteNuevo = true;
+                }
+
+                // 2. CREAMOS LA CITA AMARRADA AL ID REAL DEL PACIENTE
                 const { error } = await window.midental.from('citas_agenda').insert([{
                     dentista_id: dentistaId,
-                    paciente_id: pacienteManualEncontradoId, 
-                    paciente_rut_manual: rut,
-                    paciente_nombre_manual: nombre,
-                    paciente_telefono_manual: telLimpio, 
+                    paciente_id: pacienteIdFinal, // AHORA SIEMPRE TENDRÁ UN ID CLÍNICO
                     fecha_hora_formato_slot: slotManualId,
                     estado: 'Confirmado',
                     motivo: motivo
@@ -565,12 +589,13 @@
 
                 if(error) throw error;
 
+                // 3. MENSAJE DE WHATSAPP INTELIGENTE
                 let mensaje = `Hola ${nombre}, te hemos reservado una hora en MiDental para el día ${slotManualId.replace('-', ' a las ')}. `;
-                if(!pacienteManualEncontradoId) {
-                    mensaje += `Te invitamos a registrarte gratis con tu RUT para gestionar tu Ficha Clínica aquí: www.midental.cl`;
+                if(esPacienteNuevo && rut) {
+                    mensaje += `Hemos creado tu ficha clínica. Te invitamos a registrarte gratis con tu RUT para gestionarla y ver tus documentos aquí: www.midental.cl`;
                 }
 
-                alert("✅ Cita agregada exitosamente.");
+                alert("✅ Cita agregada exitosamente en la agenda y conectada a la Ficha Clínica.");
                 cerrarModal('modalAgendarManual');
                 renderizarSemanaActual();
 
