@@ -299,19 +299,21 @@
                 txtEl.style.display = 'flex';
                 txtEl.innerHTML = `<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>`;
 
-                // CORRECCIÓN: Subida al bucket correcto de pacientes 'AVATARS'
+                // CORRECCIÓN 1: El nombre del bucket debe ir en estricta minúscula
                 const { error: uploadError } = await window.midental.storage
-                    .from('AVATARS')
+                    .from('avatars') 
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                const { data: urlData } = window.midental.storage.from('AVATARS').getPublicUrl(fileName);
+                // Extraemos la URL pública (asegurándonos de usar el bucket en minúscula)
+                const { data: urlData } = window.midental.storage.from('avatars').getPublicUrl(fileName);
                 const publicUrl = urlData.publicUrl;
 
+                // CORRECCIÓN 2: Actualizamos apuntando a 'user_id', no a 'id'
                 const { error: dbError } = await window.midental.from('perfiles_pacientes')
                     .update({ avatar_url: publicUrl })
-                    .eq('id', userId);
+                    .eq('user_id', userId); 
 
                 if (dbError) throw dbError;
 
@@ -321,7 +323,7 @@
 
             } catch (err) {
                 alert("Error al subir foto: " + err.message);
-                cargarDatosPaciente();
+                cargarDatosPaciente(); // Recargamos para revertir la UI en caso de fallo
             }
         }
 

@@ -352,15 +352,18 @@
                     const ubicacionStr = sedePrincipal ? `${sedePrincipal.comuna}` : 'Consulta Privada';
                     const direccionExacta = sedePrincipal ? `${sedePrincipal.direccion}, ${sedePrincipal.comuna}` : 'Consulta Privada';
 
+                    const nombreSedeOficial = sedePrincipal ? sedePrincipal.nombre_sede : 'Consulta Privada';
+
                     const docDataCodificado = encodeURIComponent(JSON.stringify({
                         id: doc.id,
                         nombre: nombreCompleto,
                         especialidad: especialidad,
                         avatar: avatar,
                         direccion: direccionExacta,
+                        nombre_sede: nombreSedeOficial, // <-- AGREGAMOS EL NOMBRE DE LA SEDE
                         telefono: telefono,
                         presentacion: biografia,
-                        servicios: serviciosList // Enviamos servicios al modal
+                        servicios: serviciosList
                     }));
 
                     const tarjetaHtml = `
@@ -442,7 +445,8 @@
             document.getElementById('modalDocNombre').innerText = dentistaSeleccionado.nombre;
             document.getElementById('modalDocAvatar').src = dentistaSeleccionado.avatar;
             document.getElementById('modalDocEspecialidad').innerText = dentistaSeleccionado.especialidad;
-            document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.direccion;
+            // Ahora muestra el nombre de la clínica (Ej: Centro Médico Los Gladiolos)
+document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.nombre_sede;
 
             // PESTAÑA: SOBRE MI (Presentación)
             const cajaPresentacion = document.getElementById('modalDocPresentacion');

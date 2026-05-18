@@ -104,25 +104,44 @@
 
                     <div class="alerta-clinica" id="alertaClinicaContainer">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h4 style="margin: 0;"><span class="material-symbols-outlined">warning</span> Alerta Médica (Debe ser llenada desde la sesión del Paciente)</h4>
+                            <h4 style="margin: 0;"><span class="material-symbols-outlined">warning</span> Alerta Médica</h4>
+                            <button class="btn-text" id="btnEditarAlerta" onclick="toggleEdicionAlerta()" style="color: #b91c1c; font-size: 0.8rem; padding: 4px 8px; background: rgba(255,255,255,0.6); border-radius: 6px; font-weight: bold; border: 1px solid #fecaca; transition: 0.2s;">Editar Antecedentes</button>
                         </div>
-                        <p class="alerta-item"><strong>Crónicas:</strong> <span id="txtCrónicas">--</span></p>
-                        <p class="alerta-item"><strong>Medicamentos:</strong> <span id="txtMedicamentos">--</span></p>
-                        <p class="alerta-item"><strong>Alergias:</strong> <span id="txtAlergias">--</span></p>
-                        
-                        <!-- NUEVA SECCIÓN: NOTAS PRIVADAS DEL DENTISTA -->
+
+                        <div id="vistaAlertaMedica">
+                            <p class="alerta-item"><strong>Crónicas:</strong> <span id="txtCrónicas">--</span></p>
+                            <p class="alerta-item"><strong>Medicamentos:</strong> <span id="txtMedicamentos">--</span></p>
+                            <p class="alerta-item"><strong>Alergias:</strong> <span id="txtAlergias">--</span></p>
+                        </div>
+
+                        <div id="edicionAlertaMedica" style="display: none; flex-direction: column; gap: 8px;">
+                            <div>
+                                <label style="font-size: 0.8rem; color: #7f1d1d; font-weight: bold;">Enfermedades Crónicas / Sistémicas</label>
+                                <textarea id="inputCronicas" class="apple-input-modal" style="width: 100%; min-height: 45px; padding: 8px; border: 1px solid #fca5a5; border-radius: 8px; resize: vertical; font-size: 0.85rem; color: #7f1d1d; background: #fff;" placeholder="Ej: Diabetes, Hipertensión..."></textarea>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.8rem; color: #7f1d1d; font-weight: bold;">Medicamentos Actuales</label>
+                                <textarea id="inputMedicamentos" class="apple-input-modal" style="width: 100%; min-height: 45px; padding: 8px; border: 1px solid #fca5a5; border-radius: 8px; resize: vertical; font-size: 0.85rem; color: #7f1d1d; background: #fff;" placeholder="Ej: Eutirox 100mg..."></textarea>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.8rem; color: #7f1d1d; font-weight: bold;">Alergias Conocidas</label>
+                                <textarea id="inputAlergias" class="apple-input-modal" style="width: 100%; min-height: 45px; padding: 8px; border: 1px solid #fca5a5; border-radius: 8px; resize: vertical; font-size: 0.85rem; color: #7f1d1d; background: #fff;" placeholder="Ej: Penicilina, Látex..."></textarea>
+                            </div>
+                            <div style="text-align: right; margin-top: 5px;">
+                                <button class="btn-pixar btn-small" id="btnGuardarAlerta" onclick="guardarAlertaMedica()" style="background: #b91c1c; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; box-shadow: 0 2px 5px rgba(185, 28, 28, 0.3);">Guardar Antecedentes</button>
+                            </div>
+                        </div>
+
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #fca5a5;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <strong style="color: #991b1b; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
-                                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">visibility_off</span> Notas Internas (Visible Solo para el Profesional)
+                                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">visibility_off</span> Notas Internas (Solo Dentistas)
                                 </strong>
                                 <button class="btn-text" id="btnEditarNotas" onclick="toggleEdicionNotasPrivadas()" style="color: #b91c1c; font-size: 0.8rem; padding: 4px 8px; background: rgba(255,255,255,0.6); border-radius: 6px; font-weight: bold; border: 1px solid #fecaca; transition: 0.2s;">Editar</button>
                             </div>
                             
-                            <!-- Modo Vista -->
                             <div id="vistaNotasPrivadas" class="alerta-item" style="color: #7f1d1d; font-style: italic; background: rgba(255,255,255,0.4); padding: 8px; border-radius: 6px; min-height: 20px;">Sin notas internas registradas.</div>
                             
-                            <!-- Modo Edición (Oculto por defecto) -->
                             <div id="edicionNotasPrivadas" style="display: none; margin-top: 5px;">
                                 <textarea id="inputNotasPrivadas" class="apple-input-modal" style="width: 100%; min-height: 70px; font-size: 0.85rem; padding: 10px; border: 1px solid #fca5a5; background: #fff; border-radius: 8px; resize: vertical; color: #7f1d1d; box-sizing: border-box;" placeholder="Escribe aquí anotaciones privadas (ej: fobia a las agujas, consideraciones de pago, etc.)..."></textarea>
                                 <div style="text-align: right; margin-top: 8px;">
@@ -440,10 +459,15 @@
                             txtEl.innerText = pacienteActual.nombre.charAt(0).toUpperCase();
                         }
 
-                        // Llenar datos médicos del paciente
+                        // Llenar datos médicos del paciente (Lectura y Cajas de Edición)
                         document.getElementById('txtCrónicas').innerText = paciente.enfermedades_cronicas || 'Ninguna';
+                        document.getElementById('inputCronicas').value = paciente.enfermedades_cronicas || '';
+
                         document.getElementById('txtMedicamentos').innerText = paciente.medicamentos || 'Ninguno';
+                        document.getElementById('inputMedicamentos').value = paciente.medicamentos || '';
+
                         document.getElementById('txtAlergias').innerText = paciente.alergias || 'Ninguna';
+                        document.getElementById('inputAlergias').value = paciente.alergias || '';
                         
                         // ---> NUEVO: Llenar notas privadas <---
                         if (paciente.notas_privadas) {
@@ -459,9 +483,70 @@
                     
                     }
                 }
+                
+                // Estas dos llamadas deben quedar dentro de cargarDatosPaciente, pero al final
                 cargarHistorialPaciente();
                 cargarDocumentosPaciente(); 
-            } catch (err) { console.error("Error al cargar paciente:", err); }
+                
+            } catch (err) { 
+                console.error("Error al cargar paciente:", err); 
+            }
+        } // <--- ¡AQUÍ CERRAMOS CORRECTAMENTE LA FUNCIÓN cargarDatosPaciente()!
+
+
+        // ==========================================
+        // EDICIÓN DE ANTECEDENTES SISTÉMICOS (AHORA ESTÁN LIBRES Y GLOBALES)
+        // ==========================================
+        function toggleEdicionAlerta() {
+            const vista = document.getElementById('vistaAlertaMedica');
+            const edicion = document.getElementById('edicionAlertaMedica');
+            const btn = document.getElementById('btnEditarAlerta');
+            
+            if (edicion.style.display === 'none') {
+                vista.style.display = 'none';
+                edicion.style.display = 'flex';
+                btn.innerText = 'Cancelar';
+            } else {
+                vista.style.display = 'block';
+                edicion.style.display = 'none';
+                btn.innerText = 'Editar Antecedentes';
+            }
+        }
+
+        async function guardarAlertaMedica() {
+            if (isLocal) return alert("Esta acción no está disponible para Fichas Locales temporales.");
+            
+            const cronicas = document.getElementById('inputCronicas').value.trim();
+            const medicamentos = document.getElementById('inputMedicamentos').value.trim();
+            const alergias = document.getElementById('inputAlergias').value.trim();
+            
+            const btnGuardar = document.getElementById('btnGuardarAlerta');
+            btnGuardar.innerText = "Guardando..."; btnGuardar.disabled = true;
+
+            try {
+                // Hacemos el UPDATE directamente al perfil del paciente usando su ID Clínico
+                const { error } = await window.midental.from('perfiles_pacientes')
+                    .update({
+                        enfermedades_cronicas: cronicas || 'Ninguna',
+                        medicamentos: medicamentos || 'Ninguno',
+                        alergias: alergias || 'Ninguna'
+                    })
+                    .eq('id', pacienteIdURL);
+                    
+                if (error) throw error;
+                
+                // Actualizamos la vista de lectura sin necesidad de recargar la página
+                document.getElementById('txtCrónicas').innerText = cronicas || 'Ninguna';
+                document.getElementById('txtMedicamentos').innerText = medicamentos || 'Ninguno';
+                document.getElementById('txtAlergias').innerText = alergias || 'Ninguna';
+                
+                toggleEdicionAlerta();
+                
+            } catch (err) {
+                alert("Error al actualizar la Alerta Médica: " + err.message);
+            } finally {
+                btnGuardar.innerText = "Guardar Antecedentes"; btnGuardar.disabled = false;
+            }
         }
 
         async function cargarHistorialPaciente() {

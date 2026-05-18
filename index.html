@@ -100,21 +100,18 @@
     <section id="que-es" class="about-section">
         <div class="about-container">
             <div class="about-content">
-    <div class="about-text">
-        <h2>¿Qué es MiDental?</h2>
-        <p class="highlight-text">El "Booking" de los dentistas: La libertad de elegir sin pagar de más.</p>
-        <p>Hoy, encontrar un dentista bueno y barato es una lotería. MiDental es la primera plataforma que realmente te conecta con el profesional ideal. Es como un buscador inteligente donde, en lugar de llamar a diez clínicas para preguntar precios y horas, entras y ves quién tiene disponibilidad ahora mismo, quién tiene la mejor oferta y quién está cerca de ti.</p>
-        <p>Tú buscas lo que necesitas, cotizas en tiempo real y aprovechas las ofertas de horas que los dentistas bajan de precio para no perder el día. Reservas ahí mismo y, si después necesitas un especialista, el sistema te deriva automáticamente para que no tengas que empezar de cero con otro doctor. Es salud transparente, ahorrando tiempo, dinero y burocracia.</p>
-    </div>
-    
-    <!-- Rompemos la "caja invisible" forzando un min-width para que el logo pueda crecer -->
-    <div class="about-visual" style="background: transparent !important; box-shadow: none !important; min-width: 350px !important; height: auto !important; display: flex; justify-content: center; align-items: center; padding: 20px;">
-        
-        <!-- mix-blend-mode: multiply borrará tu fondo blanco mágicamente -->
-        <img src="assets/LogoMiDental.png" alt="Logo corporativo de MiDental" style="width: 320px; height: auto; max-width: 100%; mix-blend-mode: multiply; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.08) translateY(-10px)'" onmouseout="this.style.transform='scale(1) translateY(0)'">
-        
-    </div>
-</div>
+                <div class="about-text">
+                    <h2>¿Qué es MiDental?</h2>
+                    <p class="highlight-text">El "Booking" de los dentistas: La libertad de elegir sin pagar de más.</p>
+                    <p>Hoy, encontrar un dentista bueno y barato es una lotería. MiDental es la primera plataforma que realmente te conecta con el profesional ideal. Es como un buscador inteligente donde, en lugar de llamar a diez clínicas para preguntar precios y horas, entras y ves quién tiene disponibilidad ahora mismo, quién tiene la mejor oferta y quién está cerca de ti.</p>
+                    <p>Tú buscas lo que necesitas, cotizas en tiempo real y aprovechas las ofertas de horas que los dentistas bajan de precio para no perder el día. Reservas ahí mismo y, si después necesitas un especialista, el sistema te deriva automáticamente para que no tengas que empezar de cero con otro doctor. Es salud transparente, ahorrando tiempo, dinero y burocracia.</p>
+                </div>
+                
+                <div class="about-visual" style="background: transparent !important; box-shadow: none !important; min-width: 350px !important; height: auto !important; display: flex; justify-content: center; align-items: center; padding: 20px;">
+                    
+                    <img src="assets/LogoMiDental.png" alt="Logo corporativo de MiDental" style="width: 320px; height: auto; max-width: 100%; mix-blend-mode: multiply; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.08) translateY(-10px)'" onmouseout="this.style.transform='scale(1) translateY(0)'">
+                    
+                </div>
             </div>
         </div>
     </section>
@@ -178,11 +175,8 @@
         </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- MODAL REGISTRO PACIENTE -->
-    <!-- ======================================================= -->
     <div id="modalRegistroPaciente" class="modal-overlay" style="display:none;">
-        <div class="modal-content" style="padding: 0;"> <!-- Quitamos el padding para que el footer llegue a los bordes -->
+        <div class="modal-content" style="padding: 0;">
             <button class="btn-close" onclick="cerrarModal('modalRegistroPaciente')" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
             
             <div class="modal-body-scroll">
@@ -210,74 +204,11 @@
             </div>
             
             <div class="modal-footer-fixed">
-                <!-- Se agregó form="formRegistroPaciente" para enlazar el botón con el formulario -->
                 <button type="submit" form="formRegistroPaciente" class="btn-pixar btn-full" style="margin: 0;" onclick="procesarRegistroPaciente(event)">Crear mi cuenta</button>
             </div>
         </div>
-        // ... CÓDIGO DE REGISTRO PREVIO (Captura de inputs y ejecución de auth.signUp) ...
-const { data: authData, error: authError } = await window.midental.auth.signUp({
-    email: emailInput,
-    password: passwordInput
-});
-
-if (authError) throw authError;
-
-if (authData && authData.user) {
-    const newUserId = authData.user.id; // El ID de autenticación de Supabase
-
-    try {
-        // 1. Verificamos si un dentista ya le había creado un perfil clínico usando su RUT
-        const { data: perfilExistente } = await window.midental
-            .from('perfiles_pacientes')
-            .select('id')
-            .eq('rut', rutInput)
-            .maybeSingle();
-
-        if (perfilExistente) {
-            // Caso 1: El perfil ya existe. Enlazamos el perfil clínico existente con su nueva cuenta de acceso
-            const { error: updateError } = await window.midental
-                .from('perfiles_pacientes')
-                .update({ 
-                    user_id: newUserId, // Enlazamos el ID de login
-                    nombre_completo: nombreInput, // Actualizamos por si el dentista escribió mal el nombre
-                    telefono: telefonoInput.replace(/[^0-9]/g, '')
-                })
-                .eq('id', perfilExistente.id);
-
-            if (updateError) throw updateError;
-            console.log("Ficha clínica reclamada y enlazada correctamente.");
-
-        } else {
-            // Caso 2: Es un paciente 100% nuevo de la red. Creamos una fila desde cero
-            const { error: insertError } = await window.midental
-                .from('perfiles_pacientes')
-                .insert([{
-                    id: crypto.randomUUID(),
-                    user_id: newUserId,
-                    rut: rutInput,
-                    nombre_completo: nombreInput,
-                    telefono: telefonoInput.replace(/[^0-9]/g, ''),
-                    enfermedades_cronicas: 'Ninguna',
-                    medicamentos: 'Ninguno',
-                    alergias: 'Ninguna'
-                }]);
-
-            if (insertError) throw insertError;
-        }
-
-        alert("¡Cuenta creada con éxito! Bienvenido a MiDental. Ya puedes revisar tus presupuestos, recetas e historial clínico.");
-        // Redireccionar al dashboard del paciente...
-
-    } catch (dbErr) {
-        console.error("Error al sincronizar el perfil médico:", dbErr);
-        alert("Tu cuenta se creó, pero hubo un desfase al conectar tu historial médico. Descuida, tu dentista lo regularizará en tu próxima visita.");
-    }
-}
     </div>
 
-    <!-- ======================================================= -->
-    <!-- MODAL LOGIN DENTISTA -->
-    <!-- ======================================================= -->
     <div id="modalLoginDentista" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="padding: 0;">
             <button class="btn-close" onclick="cerrarModal('modalLoginDentista')" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
@@ -295,7 +226,6 @@ if (authData && authData.user) {
             </div>
 
             <div class="modal-footer-fixed" style="display: flex; flex-direction: column; gap: 15px;">
-                <!-- Se agregó form="formLoginDentista" -->
                 <button type="submit" form="formLoginDentista" class="btn-pixar btn-dentista btn-full" style="margin: 0;" onclick="event.preventDefault(); if(document.getElementById('formLoginDentista').checkValidity()) iniciarSesion('dentista'); else document.getElementById('formLoginDentista').reportValidity();">Ingresar al Portal</button>
                 
                 <div class="modal-footer-text" style="margin-top: 0; text-align: center; border-top: none; padding-top: 0;">
@@ -306,9 +236,6 @@ if (authData && authData.user) {
         </div>
     </div>
 
-    <!-- ======================================================= -->
-    <!-- MODAL REGISTRO DENTISTA -->
-    <!-- ======================================================= -->
     <div id="modalRegistroDentista" class="modal-overlay" style="display:none;">
         <div class="modal-content" style="padding: 0;">
             <button class="btn-close" onclick="cerrarModal('modalRegistroDentista')" style="z-index: 2010;"><span class="material-symbols-outlined">close</span></button>
@@ -339,7 +266,6 @@ if (authData && authData.user) {
             </div>
             
             <div class="modal-footer-fixed" style="display: flex; flex-direction: column; gap: 15px;">
-                <!-- Se agregó form="formRegistroDentista" -->
                 <button type="submit" form="formRegistroDentista" class="btn-pixar btn-dentista btn-full" style="margin: 0;" onclick="procesarRegistroDentista(event)">Validar y Crear Cuenta</button>
                 <p class="modal-footer-text" style="text-align: center; margin-top: 0; border-top: none; padding-top: 0;">¿Ya eres parte de la red? <a href="javascript:void(0)" onclick="cambiarModal('modalRegistroDentista', 'modalLoginDentista')">Inicia sesión</a></p>
             </div>
@@ -468,9 +394,9 @@ if (authData && authData.user) {
         }
 
         // ==========================================
-        // 3. VALIDACIÓN DE CONTRASEÑAS (ANTI-BLOQUEO)
+        // 3. REGISTRO Y RECLAMACIÓN DE FICHAS (PACIENTE)
         // ==========================================
-        function procesarRegistroPaciente(e) {
+        async function procesarRegistroPaciente(e) {
             e.preventDefault();
             const form = document.getElementById('formRegistroPaciente');
             if(!form.checkValidity()) {
@@ -480,19 +406,87 @@ if (authData && authData.user) {
 
             const pwd1 = document.getElementById('regPacientePassword').value;
             const pwd2 = document.getElementById('regPacientePasswordConfirm').value;
+            const emailInput = document.getElementById('regPacienteEmail').value.trim();
+            const rutInput = document.getElementById('regPacienteRUT').value.trim();
+            const nombreInput = document.getElementById('regPacienteNombre').value.trim();
+            const telefonoInput = document.getElementById('regPacienteTelefono').value.trim();
 
             if (pwd1 !== pwd2) {
                 alert("Las contraseñas no coinciden. Por favor, verifícalas.");
                 return;
             }
 
-            if(typeof registrarUsuarioMidental === 'function') {
-                registrarUsuarioMidental('paciente');
-            } else {
-                console.error("Falta enlazar la función registrarUsuarioMidental en app.js");
+            try {
+                // 1. Crear el usuario en Supabase Auth
+                const { data: authData, error: authError } = await window.midental.auth.signUp({
+                    email: emailInput,
+                    password: pwd1
+                });
+
+                if (authError) throw authError;
+
+                if (authData && authData.user) {
+                    const newUserId = authData.user.id; 
+
+                    // 2. Lógica de "Reclamación": Buscar si un Dentista ya le creó una Ficha Huérfana
+                    const { data: perfilExistente } = await window.midental
+                        .from('perfiles_pacientes')
+                        .select('id')
+                        .eq('rut', rutInput)
+                        .maybeSingle();
+
+                    if (perfilExistente) {
+                        // CASO A: ¡Tiene ficha! La amarramos a esta nueva credencial
+                        const { error: updateError } = await window.midental
+                            .from('perfiles_pacientes')
+                            .update({ 
+                                user_id: newUserId, 
+                                email: emailInput,
+                                nombre_completo: nombreInput, 
+                                telefono: telefonoInput.replace(/[^0-9]/g, '')
+                            })
+                            .eq('id', perfilExistente.id);
+
+                        if (updateError) throw updateError;
+                        console.log("Ficha clínica reclamada y enlazada correctamente.");
+
+                    } else {
+                        // CASO B: Es nuevo en el sistema. Creamos su perfil desde cero.
+                        const { error: insertError } = await window.midental
+                            .from('perfiles_pacientes')
+                            .insert([{
+                                id: crypto.randomUUID(),
+                                user_id: newUserId,
+                                rut: rutInput,
+                                email: emailInput,
+                                nombre_completo: nombreInput,
+                                telefono: telefonoInput.replace(/[^0-9]/g, ''),
+                                enfermedades_cronicas: 'Ninguna',
+                                medicamentos: 'Ninguno',
+                                alergias: 'Ninguna'
+                            }]);
+
+                        if (insertError) throw insertError;
+                    }
+
+                    // 3. Inicio de sesión local manual para experiencia fluida
+                    localStorage.setItem('midental_user_id', newUserId);
+                    localStorage.setItem('midental_user_tipo', 'paciente');
+                    localStorage.setItem('midental_user_name', nombreInput);
+
+                    alert("¡Cuenta creada con éxito! Bienvenido a MiDental. Ya puedes revisar tus presupuestos, recetas e historial clínico.");
+                    window.location.href = 'dashboard-paciente.html';
+                }
+
+            } catch (error) {
+                console.error("Error en registro:", error);
+                alert("Hubo un error al crear la cuenta: " + error.message);
             }
         }
 
+        // ==========================================
+        // 4. REGISTRO DENTISTAS (Conexión app.js)
+        // ==========================================
         function procesarRegistroDentista(e) {
             e.preventDefault();
             const form = document.getElementById('formRegistroDentista');
@@ -517,7 +511,7 @@ if (authData && authData.user) {
         }
 
         // ==========================================
-        // FUNCIONES DE MODALES Y UI
+        // 5. FUNCIONES DE MODALES Y UI
         // ==========================================
         function abrirModal(idModal) {
             document.getElementById(idModal).style.display = 'flex';
@@ -546,7 +540,6 @@ if (authData && authData.user) {
             btn.disabled = true;
 
             try {
-                // Validación contra Supabase
                 const { data, error } = await window.midental.auth.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + '/index.html' 
                 });
