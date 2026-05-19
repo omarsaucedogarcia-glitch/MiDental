@@ -108,10 +108,24 @@
         .event-confirmada { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; } /* Respaldo */
         .event-en_atencion { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; }
         .event-completada { background-color: #f1f5f9; border-left: 4px solid #94a3b8; color: #475569; }
+        .event-bloqueado { background-color: #f8fafc; border-left: 4px solid #64748b; color: #475569; opacity: 0.9; }
 
         .calendar-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0;}
         .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-radius: 10px 10px 0 0; border: 1px solid #e2e8f0; border-bottom: none; flex-wrap: wrap; gap: 15px;}
         .calendar-grid-container { flex: 1; overflow-x: auto; overflow-y: auto; background: white; border: 1px solid #e2e8f0; display: flex; position: relative; border-radius: 0 0 10px 10px; }
+
+        /* Autocompletado Inteligente de Pacientes */
+        .autocomplete-list {
+            position: absolute; z-index: 1000; background: white; border: 1px solid #e2e8f0;
+            border-radius: 8px; max-height: 160px; overflow-y: auto; width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: none; margin-top: 5px; top: 100%;
+        }
+        .autocomplete-item {
+            padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9;
+            font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 3px;
+        }
+        .autocomplete-item:hover { background: #f8fafc; }
+        .autocomplete-item strong { color: var(--blue-elegant); font-size: 0.95rem; }
 
         /* =========================================================
            MODO CELULAR: PANORÁMICO, ELEGANTE Y COMPACTO
@@ -227,6 +241,7 @@
                         <span class="leyend-item"><div class="dot" style="background:#f59e0b;"></div> Pendiente</span>
                         <span class="leyend-item"><div class="dot" style="background:#10b981;"></div> Confirmada</span>
                         <span class="leyend-item"><div class="dot" style="background:#3b82f6;"></div> En Curso</span>
+                        <span class="leyend-item"><div class="dot" style="background:#64748b;"></div> Bloqueado</span>
                     </div>
                 </div>
 
@@ -275,9 +290,10 @@
                 <small id="statusBusquedaRut" style="color:var(--pixar-orange); display: block; margin-top: 5px;"></small>
             </div>
             
-            <div class="input-group-modal">
+            <div class="input-group-modal" style="position: relative;">
                 <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Nombre Completo</label>
-                <input type="text" id="manualNombre" class="apple-input-modal" placeholder="Nombre del paciente">
+                <input type="text" id="manualNombre" class="apple-input-modal" placeholder="Escribe para buscar o ingresa uno nuevo..." oninput="buscarPacientePorNombre()" autocomplete="off">
+                <div id="listaAutocompletadoNombre" class="autocomplete-list"></div>
             </div>
             
             <div class="input-group-modal">
@@ -290,10 +306,14 @@
                 <input type="text" id="manualMotivo" class="apple-input-modal" placeholder="Ej: Evaluación, Limpieza, Urgencia...">
             </div>
 
-            <button class="btn-pixar btn-full mt-20" id="btnGuardarManual" onclick="guardarCitaManual()">
-                Agendar y Enviar Invitación
-            </button>
-        </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-login-outline btn-full" id="btnBloquearManual" onclick="bloquearSlotManual()" style="margin:0; border-color: #cbd5e1; color: #64748b; font-size: 0.9rem;">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">block</span> Bloquear
+                </button>
+                <button class="btn-pixar btn-full" id="btnGuardarManual" onclick="guardarCitaManual()" style="margin:0; font-size: 0.9rem;">
+                    Agendar Paciente
+                </button>
+            </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -498,7 +518,11 @@
             document.getElementById('manualNombre').value = "";
             document.getElementById('manualTelefono').value = "";
             document.getElementById('manualMotivo').value = "Atención General";
-            document.getElementById('statusBusquedaRut').innerText = "Ingresa RUT para buscar en la red.";
+            document.getElementById('statusBusquedaRut').innerText = "Ingresa RUT o Nombre para buscar en la red.";
+            
+            // Limpiamos la lista de autocompletado si quedó abierta
+            const listaAutocompletado = document.getElementById('listaAutocompletadoNombre');
+            if (listaAutocompletado) listaAutocompletado.style.display = 'none';
             
             document.getElementById('modalAgendarManual').style.display = 'flex';
         }
@@ -628,25 +652,67 @@
                 btnWhatsApp = `<button class="btn-pixar btn-green-whatsapp btn-full" onclick="window.open('https://wa.me/${telWA}', '_blank')"><span class="material-symbols-outlined">chat</span> Escribir por WhatsApp</button>`;
             }
 
-            if (citaEnCursoData.estado === 'pendiente') {
+            // Si es un HORARIO BLOQUEADO
+            if (citaEnCursoData.estado.toLowerCase() === 'bloqueado') {
+                badge.style.background = '#e2e8f0'; badge.style.color = '#475569';
+                badge.innerText = "HORARIO CERRADO";
+                document.getElementById('detalleNombre').innerText = "Bloqueo Personal";
+                
+                contenedorAcciones.innerHTML = `
+                    <p style="text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:10px;">Has bloqueado este horario para no recibir pacientes.</p>
+                    <button class="btn-pixar btn-full" style="background:var(--green-success);" onclick="actualizarEstadoCita('cancelada')">
+                        <span class="material-symbols-outlined">lock_open</span> Desbloquear y Habilitar
+                    </button>
+                `;
+            }
+            // Si está PENDIENTE
+            else if (citaEnCursoData.estado.toLowerCase() === 'pendiente') {
                 badge.style.background = '#fef3c7'; badge.style.color = '#92400e';
                 contenedorAcciones.innerHTML = `
                     <button class="btn-pixar btn-search btn-full" onclick="actualizarEstadoCita('Confirmado')">Confirmar Asistencia</button>
                     ${btnWhatsApp}
-                    <button class="btn-login-outline btn-full" style="color:red; border-color:red;" onclick="cancelarCita()">Cancelar Hora</button>
+                    <button class="btn-login-outline btn-full" style="color:red; border-color:red;" onclick="cancelarCita()">Rechazar Solicitud</button>
                 `;
             } 
-            else if (citaEnCursoData.estado === 'Confirmado' || citaEnCursoData.estado === 'confirmada') {
+            // Si está CONFIRMADO (Incluye nueva anulación con WhatsApp)
+            else if (citaEnCursoData.estado.toLowerCase() === 'confirmado' || citaEnCursoData.estado.toLowerCase() === 'confirmada') {
                 badge.style.background = '#dcfce7'; badge.style.color = '#166534';
                 contenedorAcciones.innerHTML = `
                     <button class="btn-pixar btn-full" style="background:#3b82f6;" onclick="actualizarEstadoCita('en_atencion')">Iniciar Consulta (Check-In)</button>
                     ${btnWhatsApp}
-                    <button class="btn-login-outline btn-full" style="color:red; border-color:red;" onclick="marcarNoAsiste()">Paciente No Asistió</button>
+                    <div style="display:flex; gap:10px; margin-top:5px;">
+                        <button class="btn-login-outline btn-full" style="color:var(--pixar-orange); border-color:var(--pixar-orange); font-size:0.85rem;" onclick="marcarNoAsiste()">No Asistió</button>
+                        <button class="btn-login-outline btn-full" style="color:red; border-color:red; font-size:0.85rem;" onclick="anularCitaNotificando()">Anular Hora</button>
+                    </div>
                 `;
             }
-            else if (citaEnCursoData.estado === 'en_atencion') {
+            // Si EN ATENCIÓN
+            else if (citaEnCursoData.estado.toLowerCase() === 'en_atencion') {
                 badge.style.background = '#e0e7ff'; badge.style.color = '#1e40af';
                 badge.innerText = "EN CURSO"; 
+                
+                let btnFicha = citaEnCursoData.paciente_id 
+                    ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ir a Ficha Paciente</button>`
+                    : `<button class="btn-pixar btn-full" style="background: var(--pixar-orange);" onclick="window.location.href='ficha-paciente.html?local=true&cita=${citaEnCursoData.cita_id}&nombre=${encodeURIComponent(citaEnCursoData.nombre)}&rut=${encodeURIComponent(citaEnCursoData.rut)}&telefono=${encodeURIComponent(citaEnCursoData.telefono)}'">Llenar Ficha Local</button>`;
+
+                contenedorAcciones.innerHTML = `
+                    ${btnFicha}
+                    <button class="btn-login-outline btn-full" onclick="actualizarEstadoCita('completada')">Finalizar Rápido (Sin Ficha)</button>
+                `;
+            }
+            // Si está COMPLETADA
+            else if (citaEnCursoData.estado.toLowerCase() === 'completada') {
+                badge.style.background = '#f1f5f9'; badge.style.color = '#475569';
+                
+                let btnFichaHistorial = citaEnCursoData.paciente_id 
+                    ? `<button class="btn-pixar btn-search btn-full" onclick="window.location.href='ficha-paciente.html?paciente=${citaEnCursoData.paciente_id}'">Ver Ficha de este Paciente</button>`
+                    : `<button class="btn-pixar btn-full" style="background: var(--pixar-orange);" onclick="window.location.href='ficha-paciente.html?local=true&cita=${citaEnCursoData.cita_id}&nombre=${encodeURIComponent(citaEnCursoData.nombre)}&rut=${encodeURIComponent(citaEnCursoData.rut)}&telefono=${encodeURIComponent(citaEnCursoData.telefono)}'">Ver Ficha Local</button>`;
+
+                contenedorAcciones.innerHTML = `
+                    <p style="text-align:center; color:#64748b; font-size:0.9rem; margin-bottom:10px;">Esta atención ya fue finalizada.</p>
+                    ${btnFichaHistorial}
+                `;
+            
                 
                 // NUEVA LÓGICA: SOPORTE DE FICHAS LOCALES
                 let btnFicha = citaEnCursoData.paciente_id 
@@ -708,6 +774,130 @@
         }
 
         function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+    // --- NUEVA FUNCIÓN: BLOQUEAR SLOT MANUALMENTE ---
+        async function bloquearSlotManual() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const btn = document.getElementById('btnBloquearManual');
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>...';
+            btn.disabled = true;
+
+            try {
+                // Creamos una cita fantasma con estado "bloqueado"
+                const { error } = await window.midental.from('citas_agenda').insert([{
+                    dentista_id: dentistaId,
+                    fecha_hora_formato_slot: slotManualId,
+                    estado: 'bloqueado',
+                    motivo: 'Bloqueo Personal',
+                    paciente_nombre_manual: 'BLOQUEADO',
+                    paciente_telefono_manual: '000000000'
+                }]);
+
+                if (error) throw error;
+
+                cerrarModal('modalAgendarManual');
+                renderizarSemanaActual();
+
+            } catch (err) {
+                alert("Error al bloquear horario: " + err.message);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align: middle;">block</span> Bloquear';
+                btn.disabled = false;
+            }
+        }
+
+        // --- NUEVA FUNCIÓN: ANULACIÓN POR FUERZA MAYOR (AVISA AL PACIENTE) ---
+        async function anularCitaNotificando() {
+            if(!confirm("¿Seguro que deseas ANULAR esta hora? Se cancelará en el sistema y se abrirá WhatsApp para notificar al paciente.")) return;
+            
+            try {
+                const { error } = await window.midental.from('citas_agenda').update({ estado: 'cancelada' }).eq('id', citaEnCursoData.cita_id);
+                if (error) throw error;
+                
+                // Si el paciente tiene un teléfono válido, le avisamos
+                if (citaEnCursoData.telefono && citaEnCursoData.telefono !== 'Sin registro' && citaEnCursoData.telefono !== '000000000') {
+                    const telLimpio = citaEnCursoData.telefono.replace(/[^0-9]/g, '');
+                    const partesFecha = citaEnCursoData.fecha.split('-');
+                    const diaTexto = partesFecha[0] ? partesFecha[0].trim() : '';
+                    const horaTexto = partesFecha[1] ? partesFecha[1].trim() : '';
+                    
+                    const msg = `Estimado(a) paciente ${citaEnCursoData.nombre}, lamentamos informarle que su hora médica agendada para el día ${diaTexto} a las ${horaTexto} ha sido ANULADA por motivos de fuerza mayor. Por favor, contáctenos para poder reagendar su hora. Disculpe las molestias.`;
+                    
+                    window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+                }
+                
+                cerrarModal('modalDetallePaciente');
+                renderizarSemanaActual();
+
+            } catch (err) { alert("Error al anular la cita médica."); }
+        }
+        // --- NUEVAS FUNCIONES: AUTOCOMPLETADO POR NOMBRE ---
+        let timeoutBusquedaNombre;
+        
+        async function buscarPacientePorNombre() {
+            const input = document.getElementById('manualNombre');
+            const termino = input.value.trim().toLowerCase();
+            const lista = document.getElementById('listaAutocompletadoNombre');
+
+            // Si el dentista empieza a escribir de nuevo, desvinculamos el ID anterior (asumiendo que es alguien nuevo)
+            pacienteManualEncontradoId = null;
+            document.getElementById('statusBusquedaRut').innerText = "";
+
+            // Solo buscamos si ha escrito al menos 3 letras
+            if (termino.length < 3) {
+                lista.style.display = 'none';
+                return;
+            }
+
+            // "Debounce": Esperamos 400ms después de que deja de teclear para no saturar Supabase
+            clearTimeout(timeoutBusquedaNombre);
+            timeoutBusquedaNombre = setTimeout(async () => {
+                try {
+                    const { data, error } = await window.midental.from('perfiles_pacientes')
+                        .select('id, rut, nombre_completo, telefono')
+                        .ilike('nombre_completo', `%${termino}%`)
+                        .limit(5); // Traemos máximo 5 sugerencias
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0) {
+                        lista.innerHTML = '';
+                        data.forEach(pct => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item';
+                            item.innerHTML = `<strong>${pct.nombre_completo}</strong><span>RUT: ${pct.rut || 'Sin RUT'} | Tel: ${pct.telefono || 'Sin registro'}</span>`;
+                            item.onclick = () => seleccionarPacienteAutocompletado(pct);
+                            lista.appendChild(item);
+                        });
+                        lista.style.display = 'block';
+                    } else {
+                        lista.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error("Error buscando por nombre:", err);
+                }
+            }, 400); 
+        }
+
+        function seleccionarPacienteAutocompletado(paciente) {
+            pacienteManualEncontradoId = paciente.id;
+            document.getElementById('manualNombre').value = paciente.nombre_completo || '';
+            document.getElementById('manualRut').value = paciente.rut || '';
+            document.getElementById('manualTelefono').value = paciente.telefono || '';
+            
+            document.getElementById('listaAutocompletadoNombre').style.display = 'none';
+            
+            const status = document.getElementById('statusBusquedaRut');
+            status.innerText = "✅ Paciente autocompletado y vinculado.";
+            status.style.color = "var(--green-success)";
+        }
+        
+        // Ocultar la lista si el usuario hace clic afuera del buscador
+        document.addEventListener('click', function(e) {
+            if(e.target.id !== 'manualNombre') {
+                const lista = document.getElementById('listaAutocompletadoNombre');
+                if(lista) lista.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
