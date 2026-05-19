@@ -1376,6 +1376,32 @@
                         cargarDocumentosPaciente(); // Refresca la lista de archivos
                     }
                 }
+                async function subirDocumentoAPaciente(blobPdf, nombreArchivo, tipo) {
+    const pacienteId = obtenerIdPacienteDeUrl(); // Tu función existente
+    const fileName = `${pacienteId}/${Date.now()}_${nombreArchivo}`;
+    
+    // 1. Subir al Storage de Supabase
+    const { data, error } = await window.midental.storage
+        .from('documentos_clinicos')
+        .upload(fileName, blobPdf);
+
+    if (error) throw error;
+
+    // 2. Obtener la URL pública
+    const { data: urlData } = window.midental.storage
+        .from('documentos_clinicos')
+        .getPublicUrl(fileName);
+
+    // 3. Registrar en la base de datos
+    await window.midental.from('documentos_clinicos').insert([{
+        paciente_id: pacienteId,
+        nombre_archivo: nombreArchivo,
+        tipo_documento: tipo,
+        url_publica: urlData.publicUrl
+    }]);
+
+    console.log("Documento guardado exitosamente en la ficha.");
+}
 
                 alert("✅ Receta emitida exitosamente. Se ha guardado en los documentos del paciente.");
                 document.getElementById('modalRecetaMedica').style.display = 'none';
