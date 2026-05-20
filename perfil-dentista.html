@@ -140,7 +140,7 @@
                                     <label class="input-label" title="No modificable. Validado con la SIS">Registro SIS <span class="material-symbols-outlined" style="font-size: 0.9rem; color: #a0aec0;">lock</span></label>
                                     <input type="text" id="dentistaSIS" class="apple-input-modal input-locked" disabled>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 10px; grid-column: 1 / -1;">
+                                <div style="display: grid; grid-template-columns: 80px 1fr 1fr; gap: 10px; grid-column: 1 / -1;">
                                     <div>
                                         <label class="input-label">Prefijo</label>
                                         <select id="dentistaPrefijo" class="apple-input-modal" style="background: white; padding: 10px 5px;">
@@ -149,8 +149,12 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="input-label" title="No modificable por seguridad de la red">Nombre de Visualización <span class="material-symbols-outlined" style="font-size: 0.9rem; color: #a0aec0;">lock</span></label>
-                                        <input type="text" id="dentistaNombre" class="apple-input-modal input-locked" disabled>
+                                        <label class="input-label">Nombre Profesional</label>
+                                        <input type="text" id="dentistaNombre" class="apple-input-modal" placeholder="Tu nombre">
+                                    </div>
+                                    <div>
+                                        <label class="input-label">Fecha de Nacimiento</label>
+                                        <input type="date" id="dentistaNacimiento" class="apple-input-modal">
                                     </div>
                                 </div>
                                 <div style="grid-column: 1 / -1;">
@@ -367,6 +371,7 @@
                     if (data.registro_sis) document.getElementById('dentistaSIS').value = data.registro_sis;
                     if (data.prefijo) document.getElementById('dentistaPrefijo').value = data.prefijo;
                     if (data.nombre_completo) document.getElementById('dentistaNombre').value = data.nombre_completo;
+                    if (data.fecha_nacimiento) document.getElementById('dentistaNacimiento').value = data.fecha_nacimiento || '';
                     if (data.especialidad) document.getElementById('dentistaEspecialidad').value = data.especialidad;
                     if (data.telefono) document.getElementById('dentistaTelefono').value = data.telefono;
                     if (data.valor_consulta) document.getElementById('dentistaValorConsulta').value = data.valor_consulta;
@@ -443,17 +448,21 @@
         }
 
         // ==========================================
-        // 2. ACTUALIZAR DATOS DE PERFIL (AHORA INCLUYE PRESENTACIÓN)
+        // 2. ACTUALIZAR DATOS DE PERFIL (NOMBRE Y NACIMIENTO INCLUIDOS)
         // ==========================================
         async function guardarPerfilCompletoReal() {
             const userId = localStorage.getItem('midental_user_id');
             const btn = document.getElementById('btnGuardarPerfil');
             
             const prefijo = document.getElementById('dentistaPrefijo').value;
+            const nombreCompleto = document.getElementById('dentistaNombre').value.trim();
+            const fechaNacimiento = document.getElementById('dentistaNacimiento').value;
             const especialidad = document.getElementById('dentistaEspecialidad').value;
             const telefono = document.getElementById('dentistaTelefono').value;
             const valorConsulta = document.getElementById('dentistaValorConsulta').value;
             const presentacion = document.getElementById('dentistaPresentacion').value.trim();
+
+            if (!nombreCompleto) return alert("El nombre profesional es obligatorio.");
 
             btn.innerText = "Guardando..."; btn.disabled = true;
 
@@ -462,15 +471,22 @@
                     .from('perfiles_dentistas')
                     .update({
                         prefijo: prefijo,
+                        nombre_completo: nombreCompleto,          // Guardamos Nombre Editable
+                        fecha_nacimiento: fechaNacimiento || null, // Guardamos Fecha de Nacimiento
                         especialidad: especialidad,
                         telefono: telefono.replace(/[^0-9]/g, ''),
                         valor_consulta: parseInt(valorConsulta) || 0,
-                        presentacion: presentacion, // GUARDAMOS LA PRESENTACIÓN EN LA NUBE
-                        servicios_json: listaServiciosLocal // <--- NUEVA LÍNEA
+                        presentacion: presentacion, 
+                        servicios_json: listaServiciosLocal 
                     })
                     .eq('id', userId);
 
                 if (error) throw error;
+                
+                // Actualizar visualmente la barra lateral y superior de inmediato
+                document.getElementById('sidebarNombreCompleto').innerText = `${prefijo} ${nombreCompleto}`;
+                localStorage.setItem('midental_user_name', nombreCompleto);
+
                 alert("✅ Perfil actualizado correctamente.");
                 
                 if (typeof window.sincronizarDatosGlobales === 'function') {

@@ -102,6 +102,11 @@
                             <input type="text" id="pInputRut" class="apple-input input-locked" disabled title="Tu RUT es tu identificador médico único">
                         </div>
                         <div class="input-group">
+                            <label>Fecha de Nacimiento</label>
+                            <input type="date" id="pInputNacimiento" class="apple-input"max="2026-12-31">
+                        </div>
+                        
+                        <div class="input-group">
                             <label>Correo Electrónico</label>
                             <input type="email" id="pInputEmail" class="apple-input" placeholder="correo@ejemplo.com">
                         </div>
@@ -185,6 +190,7 @@
                     // Llenar Formulario Personal
                     document.getElementById('pInputNombre').value = data.nombre_completo || '';
                     document.getElementById('pInputRut').value = data.rut || '';
+                    document.getElementById('pInputNacimiento').value = data.fecha_nacimiento || '';
                     document.getElementById('pInputEmail').value = data.email || '';
                     document.getElementById('pInputTel').value = data.telefono || '';
 
@@ -228,6 +234,7 @@
             const nombre = document.getElementById('pInputNombre').value.trim();
             const email = document.getElementById('pInputEmail').value.trim();
             const telBruto = document.getElementById('pInputTel').value.trim();
+            const nacimiento = document.getElementById('pInputNacimiento').value.trim();
 
             // Datos Médicos
             const enfermedades = document.getElementById('pInputEnfermedades').value.trim();
@@ -252,6 +259,7 @@
                         nombre_completo: nombre,
                         email: email,
                         telefono: telLimpio, // Se envía limpio
+                        fecha_nacimiento: nacimiento || null,
                         enfermedades_cronicas: enfermedades,
                         medicamentos: medicamentos,
                         alergias: alergias

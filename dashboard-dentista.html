@@ -247,6 +247,12 @@
         let centroMedicoOficial = "nuestra clínica"; // Fallback por defecto
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Validar primero
+    await validarSesionActiva(); 
+    
+    // 2. Luego cargar el resto
+    await cargarPerfilYCentroMedico(localStorage.getItem('midental_user_id'));
+    cargarEstadoUrgencia();
             const userId = localStorage.getItem('midental_user_id');
             if (!userId) {
                 window.location.href = 'index.html';
@@ -538,6 +544,31 @@
                 btn.innerText = "Desbloquear Ficha"; btn.disabled = false;
             }
         }
+        // FORZAR SINCRONIZACIÓN PROFESIONAL
+async function validarSesionActiva() {
+    const userId = localStorage.getItem('midental_user_id');
+    if (!userId) return;
+
+    try {
+        // Consultamos la base de datos para ver si el dentista aún existe y está activo
+        const { data, error } = await window.midental
+            .from('perfiles_dentistas')
+            .select('id')
+            .eq('id', userId)
+            .single();
+
+        if (error || !data) {
+            // Si la base de datos dice que no existe, cerramos sesión por seguridad
+            console.warn("Sesión invalidada en servidor.");
+            window.cerrarSesionLocal();
+        } else {
+            console.log("Sesión validada exitosamente con el servidor.");
+            // Opcional: Aquí podrías refrescar datos clave si los hubiera
+        }
+    } catch (err) {
+        console.error("Error validando sesión:", err);
+    }
+}
     </script>
 </body>
 </html>
