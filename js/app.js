@@ -280,3 +280,6 @@ window.cerrarSesionLocal = async function() {
         window.location.href = 'index.html';
     }
 }
+function formatearTelefonoInput(input) {
+    input.value = input.value.replace(/[^0-9+]/g, '');
+}

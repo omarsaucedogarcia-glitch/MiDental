@@ -102,7 +102,8 @@
                             <input type="text" id="pInputRut" class="apple-input input-locked" disabled title="Tu RUT es tu identificador médico único">
                         </div>
                         <div class="input-group">
-                            <label>Fecha de Nacimiento</label>
+                            <label>Fecha de Nacimiento</label><span id="labelEdad" style="color:var(--pixar-cyan); font-weight:bold; margin-left:10px;"></span></label>
+<input type="date" id="pInputNacimiento" class="apple-input" onchange="calcularYMostrarEdad(this.value, 'labelEdad')">
                             <input type="date" id="pInputNacimiento" class="apple-input"max="2026-12-31">
                         </div>
                         
@@ -342,6 +343,16 @@
             window.location.href = 'index.html';
         }
         
+    function calcularYMostrarEdad(fechaString, labelId) {
+            if (!fechaString) return;
+            const hoy = new Date();
+            const nacimiento = new Date(fechaString);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const mes = hoy.getMonth() - nacimiento.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+            
+            document.getElementById(labelId).innerText = `(${edad} años)`;
+        }
     </script>
 </body>
 </html>

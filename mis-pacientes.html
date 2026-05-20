@@ -135,6 +135,26 @@
             </div>
         </div>
     </div>
+    <div id="modalEditarPaciente" class="modal-overlay" style="display:none; z-index: 2000;">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="btn-close" onclick="document.getElementById('modalEditarPaciente').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="color: var(--blue-elegant);">Editar Datos Base</h2>
+            
+            <input type="hidden" id="editPctId">
+            <div class="input-group-modal" style="margin-top: 15px;">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Nombre Completo</label>
+                <input type="text" id="editPctNombre" class="apple-input-modal">
+            </div>
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Fecha de Nacimiento</label>
+                <input type="date" id="editPctNacimiento" class="apple-input-modal">
+            </div>
+            
+            <button class="btn-pixar btn-full mt-20" id="btnGuardarEdicionPct" onclick="guardarEdicionPacienteBase()">
+                <span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Actualizar Paciente
+            </button>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
@@ -210,7 +230,7 @@
 
             try {
                 const { data: fichas, error } = await window.midental.from('fichas_clinicas')
-                    .select('paciente_id, paciente_nombre, paciente_rut, created_at, ultima_atencion')
+                    .select('paciente_id, paciente_nombre, paciente_rut, created_at, ultima_atencion, perfiles_pacientes (fecha_nacimiento, telefono)')
                     .eq('dentista_id', userId)
                     .order('created_at', { ascending: false });
 
@@ -223,7 +243,10 @@
                     
                     if(!basePacientes[clave]) {
                         basePacientes[clave] = {
-                            id: ficha.paciente_id, 
+                            id: ficha.paciente_id,
+                            nombre: ficha.paciente_nombre || 'Paciente Sin Nombre',
+                            fecha_nacimiento: ficha.perfiles_pacientes?.fecha_nacimiento || null,
+                            telefono: ficha.perfiles_pacientes?.telefono || '', 
                             claveUnica: clave,
                             nombre: ficha.paciente_nombre || 'Paciente Sin Nombre',
                             ultima_visita: ficha.ultima_atencion || ficha.created_at,
@@ -240,7 +263,21 @@
             }
         }
 
-        // Dibujar las tarjetas en pantalla
+        let centroMedicoOficial = "nuestra clínica"; // Para el mensaje de WhatsApp
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Obtenemos la sede del dentista para el mensaje
+            const userId = localStorage.getItem('midental_user_id');
+            if(userId) {
+                const { data } = await window.midental.from('sedes_dentistas').select('nombre_sede').eq('dentista_id', userId).limit(1).maybeSingle();
+                if(data && data.nombre_sede) centroMedicoOficial = data.nombre_sede;
+            }
+            cargarFicheroCompleto();
+        });
+
+        // ==========================================
+        // 1. RENDERIZADO CON BOTONES DE EDICIÓN Y CUMPLEAÑOS
+        // ==========================================
         function renderizarListaPacientes(filtroTexto = "") {
             const contenedor = document.getElementById('contenedorListaPacientes');
             const contador = document.getElementById('totalPacientesContador');
@@ -248,6 +285,7 @@
 
             const claves = Object.keys(basePacientes);
             let mostrados = 0;
+            const hoy = new Date();
 
             claves.forEach(clave => {
                 const paciente = basePacientes[clave];
@@ -259,18 +297,32 @@
                     const fechaAtencion = new Date(paciente.ultima_visita).toLocaleDateString('es-CL');
                     const isManual = !paciente.id;
                     const idCorto = isManual ? "SIN REGISTRO" : paciente.id.split('-')[0].toUpperCase();
-                    const badgeHtml = isManual ? `<span class="badge-manual">Paciente Manual</span>` : '';
+                    
+                    // --- MAGIA DE CUMPLEAÑOS ---
+                    let esCumplehoy = false;
+                    let edadActual = "";
+                    if (paciente.fecha_nacimiento) {
+                        const partes = paciente.fecha_nacimiento.toString().split('-'); // YYYY-MM-DD
+                        if (hoy.getMonth() + 1 === parseInt(partes[1]) && hoy.getDate() === parseInt(partes[2])) {
+                            esCumplehoy = true;
+                        }
+                        edadActual = hoy.getFullYear() - parseInt(partes[0]);
+                        const m = hoy.getMonth() + 1 - parseInt(partes[1]);
+                        if (m < 0 || (m === 0 && hoy.getDate() < parseInt(partes[2]))) edadActual--;
+                    }
+
+                    // Badge de Cumpleaños si es hoy
+                    const badgeCumple = esCumplehoy ? `<span style="background: #fef08a; color: #b45309; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; margin-left: 10px; border: 1px solid #fde047;">🎂 ¡Hoy es su Cumpleaños!</span>` : '';
+                    
+                    // Botón de WhatsApp Felicitar
+                    const btnFelicitar = (esCumplehoy && paciente.telefono) ? `
+                        <button onclick="event.stopPropagation(); enviarFelicitacion('${paciente.nombre}', '${paciente.telefono}')" style="background:#25d366; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 4px rgba(37,211,102,0.3);">
+                            <span class="material-symbols-outlined" style="font-size:1rem;">celebration</span> Saludar
+                        </button>` : '';
 
                     const card = document.createElement('div');
                     card.className = 'patient-card';
-                    
-                    card.onclick = () => {
-                        if (isManual) {
-                            alert(`Este paciente (${paciente.nombre}) fue agendado manualmente con el sistema antiguo.\n\nPídele que se registre en www.midental.cl con su RUT para activar su Ficha Clínica Segura.`);
-                        } else {
-                            window.location.href = `ficha-paciente.html?paciente=${paciente.id}`;
-                        }
-                    };
+                    card.onclick = () => { window.location.href = `ficha-paciente.html?paciente=${paciente.id}`; };
                     
                     card.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 15px;">
@@ -278,20 +330,19 @@
                                 ${paciente.nombre.charAt(0).toUpperCase()}
                             </div>
                             <div class="patient-basic-info">
-                                <h3>${paciente.nombre} ${badgeHtml}</h3>
-                                <p><span class="material-symbols-outlined" style="font-size:1rem;">vpn_key</span> ID Seguro: ${idCorto}</p>
+                                <h3>${paciente.nombre} ${badgeCumple}</h3>
+                                <p>
+                                    <span class="material-symbols-outlined" style="font-size:1rem;">vpn_key</span> ID: ${idCorto} 
+                                    <span style="margin-left:10px; color:var(--blue-elegant); font-weight:bold;">${edadActual ? `(${edadActual} años)` : ''}</span>
+                                </p>
                             </div>
                         </div>
-                        <div style="text-align: right; display: flex; align-items: center; gap: 20px;">
-                            <div>
-                                <span style="display:block; font-size:0.8rem; color:#888;">Última atención: ${fechaAtencion}</span>
-                                <span style="background: #e0e7ff; color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-top: 5px; display: inline-block;">
-                                    ${paciente.num_atenciones} Evolución(es)
-                                </span>
-                            </div>
-                            <button class="btn-abrir-ficha">
-                                ${isManual ? 'Ver Estado' : 'Abrir Ficha'} <span class="material-symbols-outlined" style="font-size: 1.1rem;">arrow_forward</span>
+                        <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
+                            ${btnFelicitar}
+                            <button onclick="event.stopPropagation(); abrirEdicionPaciente('${paciente.id}', '${paciente.nombre}', '${paciente.fecha_nacimiento || ''}')" style="background:transparent; border:1px solid #cbd5e1; color:#64748b; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer;">
+                                Editar
                             </button>
+                            <button class="btn-abrir-ficha">Abrir Ficha <span class="material-symbols-outlined" style="font-size: 1.1rem;">arrow_forward</span></button>
                         </div>
                     `;
                     contenedor.appendChild(card);
@@ -299,7 +350,58 @@
             });
 
             contador.innerText = mostrados;
-            if(mostrados === 0) contenedor.innerHTML = `<p style="text-align:center; color:#888; margin-top:40px;">No se encontraron pacientes en tu registro.</p>`;
+        }
+
+        // ==========================================
+        // 2. EDICIÓN DEL PACIENTE
+        // ==========================================
+        function abrirEdicionPaciente(id, nombre, nacimiento) {
+            if(!id || id === 'undefined') return alert("Este paciente fue ingresado con el sistema antiguo. Pídele que se registre con su RUT.");
+            document.getElementById('editPctId').value = id;
+            document.getElementById('editPctNombre').value = nombre;
+            document.getElementById('editPctNacimiento').value = nacimiento;
+            document.getElementById('modalEditarPaciente').style.display = 'flex';
+        }
+
+        async function guardarEdicionPacienteBase() {
+            const id = document.getElementById('editPctId').value;
+            const nombre = document.getElementById('editPctNombre').value.trim();
+            const nacimiento = document.getElementById('editPctNacimiento').value;
+
+            if(!nombre) return alert("El nombre no puede quedar vacío.");
+            
+            const btn = document.getElementById('btnGuardarEdicionPct');
+            btn.innerHTML = "Guardando..."; btn.disabled = true;
+
+            try {
+                const { error } = await window.midental.from('perfiles_pacientes')
+                    .update({ nombre_completo: nombre, fecha_nacimiento: nacimiento || null })
+                    .eq('id', id);
+
+                if(error) throw error;
+                
+                alert("✅ Datos actualizados. Refrescando fichero...");
+                document.getElementById('modalEditarPaciente').style.display = 'none';
+                cargarFicheroCompleto(); // Recargamos para ver los cambios
+
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Actualizar Paciente';
+                btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // 3. MENSAJE WHATSAPP DE CUMPLEAÑOS
+        // ==========================================
+        function enviarFelicitacion(nombrePaciente, telefonoPaciente) {
+            if(!telefonoPaciente) return alert("El paciente no tiene un teléfono registrado.");
+            
+            const telLimpio = telefonoPaciente.replace(/[^0-9]/g, '');
+            const mensaje = `¡Hola ${nombrePaciente}! 🎉 Te escribimos de parte de todo el equipo de ${centroMedicoOficial} para desearte un muy ¡Feliz Cumpleaños! 🎂 Queremos agradecerte por tu compromiso y fidelidad con el cuidado de tu salud dental. ¡Que tengas un día excelente junto a los tuyos!`;
+            
+            window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
         function filtrarListaPacientes() {
