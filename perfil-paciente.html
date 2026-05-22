@@ -101,10 +101,10 @@
                             <label>RUT (Indexado a Ficha Médica) <span class="material-symbols-outlined" style="font-size: 0.9rem; color: #a0aec0; vertical-align: middle;">lock</span></label>
                             <input type="text" id="pInputRut" class="apple-input input-locked" disabled title="Tu RUT es tu identificador médico único">
                         </div>
+                        
                         <div class="input-group">
-                            <label>Fecha de Nacimiento</label><span id="labelEdad" style="color:var(--pixar-cyan); font-weight:bold; margin-left:10px;"></span></label>
-<input type="date" id="pInputNacimiento" class="apple-input" onchange="calcularYMostrarEdad(this.value, 'labelEdad')">
-                            <input type="date" id="pInputNacimiento" class="apple-input"max="2026-12-31">
+                            <label>Fecha de Nacimiento <span id="labelEdad" style="color:var(--pixar-cyan); font-weight:bold; margin-left:10px;"></span></label>
+                            <input type="date" id="pInputNacimiento" class="apple-input" max="2026-12-31" onchange="calcularYMostrarEdad(this.value, 'labelEdad')">
                         </div>
                         
                         <div class="input-group">
@@ -179,32 +179,39 @@
             }
 
             try {
+                // CAMBIO CLAVE: Usamos .maybeSingle() en lugar de .single() para evitar el error 406
                 const { data, error } = await window.midental
                     .from('perfiles_pacientes')
                     .select('*')
                     .eq('user_id', userId)
-                    .single();
+                    .maybeSingle(); 
 
                 if (error) throw error;
 
                 if (data) {
                     // Llenar Formulario Personal
-                    document.getElementById('pInputNombre').value = data.nombre_completo || '';
-                    document.getElementById('pInputRut').value = data.rut || '';
-                    document.getElementById('pInputNacimiento').value = data.fecha_nacimiento || '';
-                    document.getElementById('pInputEmail').value = data.email || '';
-                    document.getElementById('pInputTel').value = data.telefono || '';
+                    if(document.getElementById('pInputNombre')) document.getElementById('pInputNombre').value = data.nombre_completo || '';
+                    if(document.getElementById('pInputRut')) document.getElementById('pInputRut').value = data.rut || '';
+                    if(document.getElementById('pInputEmail')) document.getElementById('pInputEmail').value = data.email || '';
+                    if(document.getElementById('pInputTel')) document.getElementById('pInputTel').value = data.telefono || '';
+
+                    // Manejo blindado de Fecha y Edad
+                    if (data.fecha_nacimiento) {
+                        const inputNac = document.getElementById('pInputNacimiento');
+                        if(inputNac) inputNac.value = data.fecha_nacimiento;
+                        calcularYMostrarEdad(data.fecha_nacimiento, 'labelEdad');
+                    }
 
                     // Llenar Formulario Médico
-                    document.getElementById('pInputEnfermedades').value = data.enfermedades_cronicas || '';
-                    document.getElementById('pInputMedicamentos').value = data.medicamentos || '';
-                    document.getElementById('pInputAlergias').value = data.alergias || '';
+                    if(document.getElementById('pInputEnfermedades')) document.getElementById('pInputEnfermedades').value = data.enfermedades_cronicas || '';
+                    if(document.getElementById('pInputMedicamentos')) document.getElementById('pInputMedicamentos').value = data.medicamentos || '';
+                    if(document.getElementById('pInputAlergias')) document.getElementById('pInputAlergias').value = data.alergias || '';
 
                     // Actualizar Sidebar
                     const nombreMostrar = data.nombre_completo || 'Paciente';
                     document.getElementById('patientNameDisplay').innerText = nombreMostrar;
                     
-                    if (data.reputacion) {
+                    if (data.reputacion && document.getElementById('patientScore')) {
                         document.getElementById('patientScore').innerText = data.reputacion.toFixed(1);
                     }
 
@@ -212,19 +219,39 @@
                     const imgEl = document.getElementById('patientAvatarImg');
                     const txtEl = document.getElementById('patientAvatarText');
                     
-                    if (data.avatar_url) {
+                    if (data.avatar_url && imgEl && txtEl) {
                         imgEl.src = data.avatar_url;
                         imgEl.style.display = 'block';
                         txtEl.style.display = 'none';
-                    } else {
+                    } else if (imgEl && txtEl) {
                         imgEl.style.display = 'none';
                         txtEl.style.display = 'flex';
                         txtEl.innerText = nombreMostrar.charAt(0).toUpperCase();
                     }
+                } else {
+                    // SI EL PACIENTE ES NUEVO Y NO TIENE DATOS (Previene el congelamiento)
+                    document.getElementById('patientNameDisplay').innerText = "Completar Perfil";
+                    document.getElementById('patientAvatarText').innerText = "P";
                 }
             } catch (err) {
                 console.error("Error al cargar perfil:", err);
+                // Si ocurre cualquier otro error, quitamos el "Cargando..."
+                document.getElementById('patientNameDisplay').innerText = "Error de Conexión";
             }
+        }
+
+        function calcularYMostrarEdad(fechaString, labelId) {
+            if (!fechaString) return;
+            const label = document.getElementById(labelId);
+            if (!label) return; // Si no existe la etiqueta HTML, abortamos suavemente sin romper la página
+            
+            const hoy = new Date();
+            const nacimiento = new Date(fechaString);
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const mes = hoy.getMonth() - nacimiento.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+            
+            label.innerText = `(${edad} años)`;
         }
 
         async function guardarCambiosPacienteReal() {
@@ -345,13 +372,16 @@
         
     function calcularYMostrarEdad(fechaString, labelId) {
             if (!fechaString) return;
+            const label = document.getElementById(labelId);
+            if (!label) return; // Si no existe la etiqueta HTML, abortamos suavemente sin romper la página
+            
             const hoy = new Date();
             const nacimiento = new Date(fechaString);
             let edad = hoy.getFullYear() - nacimiento.getFullYear();
             const mes = hoy.getMonth() - nacimiento.getMonth();
             if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
             
-            document.getElementById(labelId).innerText = `(${edad} años)`;
+            label.innerText = `(${edad} años)`;
         }
     </script>
 </body>
