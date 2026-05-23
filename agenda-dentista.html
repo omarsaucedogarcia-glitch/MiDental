@@ -549,20 +549,39 @@
         async function buscarPacienteRed() {
             const rut = document.getElementById('manualRut').value.trim();
             const status = document.getElementById('statusBusquedaRut');
+            const dentistaId = localStorage.getItem('midental_user_id');
             if(!rut) return;
 
             status.innerText = "Buscando...";
             status.style.color = "var(--blue-elegant)";
 
             try {
-                const { data, error } = await window.midental.from('perfiles_pacientes').select('id, nombre_completo, telefono').eq('rut', rut).single();
+                // Buscamos si el RUT existe en la base de datos
+                const { data, error } = await window.midental.from('perfiles_pacientes').select('id, nombre_completo, telefono, user_id').eq('rut', rut).single();
                 
                 if(data) {
-                    pacienteManualEncontradoId = data.id;
-                    document.getElementById('manualNombre').value = data.nombre_completo || '';
-                    document.getElementById('manualTelefono').value = data.telefono || '';
-                    status.innerText = "✅ Paciente encontrado y vinculado.";
-                    status.style.color = "var(--green-success)";
+                    // Comprobamos si este dentista ya lo ha atendido antes
+                    const { data: citasHistorial } = await window.midental.from('citas_agenda')
+                        .select('id').eq('dentista_id', dentistaId).eq('paciente_id', data.id).limit(1);
+
+                    const esPacienteConocido = (citasHistorial && citasHistorial.length > 0);
+                    const esPacienteGlobalConApp = (data.user_id !== null); // El paciente tiene cuenta oficial de MiDental
+
+                    if (esPacienteConocido || esPacienteGlobalConApp) {
+                        // Es SEGURO mostrar los datos
+                        pacienteManualEncontradoId = data.id;
+                        document.getElementById('manualNombre').value = data.nombre_completo || '';
+                        document.getElementById('manualTelefono').value = data.telefono || '';
+                        status.innerText = "✅ Paciente encontrado y vinculado.";
+                        status.style.color = "var(--green-success)";
+                    } else {
+                        // ALERTA DE PRIVACIDAD: Es un paciente manual de OTRO dentista. Ocultamos sus datos.
+                        pacienteManualEncontradoId = data.id; // Vinculamos el ID de forma invisible para no duplicar el RUT en la BD
+                        document.getElementById('manualNombre').value = '';
+                        document.getElementById('manualTelefono').value = '';
+                        status.innerText = "Paciente registrado en otra clínica. Por favor ingresa su Nombre y Teléfono manualmente.";
+                        status.style.color = "var(--pixar-orange)";
+                    }
                 } else {
                     pacienteManualEncontradoId = null;
                     status.innerText = "Paciente nuevo. Ingresa sus datos abajo.";
@@ -861,45 +880,64 @@
 
             } catch (err) { alert("Error al anular la cita médica."); }
         }
-        // --- NUEVAS FUNCIONES: AUTOCOMPLETADO POR NOMBRE ---
+
+        // --- AUTOCOMPLETADO BLINDADO POR PRIVACIDAD ---
         let timeoutBusquedaNombre;
         
         async function buscarPacientePorNombre() {
             const input = document.getElementById('manualNombre');
             const termino = input.value.trim().toLowerCase();
             const lista = document.getElementById('listaAutocompletadoNombre');
+            const dentistaId = localStorage.getItem('midental_user_id'); // Identificador del Dentista
 
-            // Si el dentista empieza a escribir de nuevo, desvinculamos el ID anterior (asumiendo que es alguien nuevo)
+            // Si el dentista empieza a escribir de nuevo, desvinculamos el ID anterior
             pacienteManualEncontradoId = null;
             document.getElementById('statusBusquedaRut').innerText = "";
 
-            // Solo buscamos si ha escrito al menos 3 letras
             if (termino.length < 3) {
                 lista.style.display = 'none';
                 return;
             }
 
-            // "Debounce": Esperamos 400ms después de que deja de teclear para no saturar Supabase
             clearTimeout(timeoutBusquedaNombre);
             timeoutBusquedaNombre = setTimeout(async () => {
                 try {
-                    const { data, error } = await window.midental.from('perfiles_pacientes')
-                        .select('id, rut, nombre_completo, telefono')
-                        .ilike('nombre_completo', `%${termino}%`)
-                        .limit(5); // Traemos máximo 5 sugerencias
+                    // CAMBIO CLAVE DE SEGURIDAD: Buscamos SOLO en las citas de este dentista
+                    const { data, error } = await window.midental.from('citas_agenda')
+                        .select('paciente_id, perfiles_pacientes!inner(id, rut, nombre_completo, telefono)')
+                        .eq('dentista_id', dentistaId)
+                        .ilike('perfiles_pacientes.nombre_completo', `%${termino}%`)
+                        .limit(30); // Límite amplio por si hay múltiples citas de la misma persona
 
                     if (error) throw error;
 
                     if (data && data.length > 0) {
-                        lista.innerHTML = '';
-                        data.forEach(pct => {
-                            const item = document.createElement('div');
-                            item.className = 'autocomplete-item';
-                            item.innerHTML = `<strong>${pct.nombre_completo}</strong><span>RUT: ${pct.rut || 'Sin RUT'} | Tel: ${pct.telefono || 'Sin registro'}</span>`;
-                            item.onclick = () => seleccionarPacienteAutocompletado(pct);
-                            lista.appendChild(item);
-                        });
-                        lista.style.display = 'block';
+                        // Limpiamos duplicados (un paciente puede tener 5 citas, solo queremos mostrarlo 1 vez)
+                        const pacientesUnicos = [];
+                        const idsVistos = new Set();
+                        
+                        for (let cita of data) {
+                            const pct = cita.perfiles_pacientes;
+                            if (pct && !idsVistos.has(pct.id)) {
+                                idsVistos.add(pct.id);
+                                pacientesUnicos.push(pct);
+                                if (pacientesUnicos.length === 5) break; // Mostramos máximo 5 sugerencias
+                            }
+                        }
+
+                        if (pacientesUnicos.length > 0) {
+                            lista.innerHTML = '';
+                            pacientesUnicos.forEach(pct => {
+                                const item = document.createElement('div');
+                                item.className = 'autocomplete-item';
+                                item.innerHTML = `<strong>${pct.nombre_completo}</strong><span>RUT: ${pct.rut || 'Sin RUT'} | Tel: ${pct.telefono || 'Sin registro'}</span>`;
+                                item.onclick = () => seleccionarPacienteAutocompletado(pct);
+                                lista.appendChild(item);
+                            });
+                            lista.style.display = 'block';
+                        } else {
+                            lista.style.display = 'none';
+                        }
                     } else {
                         lista.style.display = 'none';
                     }

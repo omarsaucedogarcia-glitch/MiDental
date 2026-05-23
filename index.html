@@ -360,13 +360,27 @@
 
     <script>
         // ==========================================
-        // 1. REDIRECCIÓN AUTOMÁTICA (AUTO-LOGIN)
+        // 1. CONTROL DE SEGURIDAD Y AUTO-LOGIN
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
+            // Verificamos si es la primera vez que se abre el navegador en esta jornada
+            if (!sessionStorage.getItem('sesion_validada_hoy')) {
+                
+                // Limpieza profunda de seguridad: Borramos credenciales antiguas
+                localStorage.removeItem('midental_user_id');
+                localStorage.removeItem('midental_user_tipo');
+                localStorage.removeItem('midental_user_name');
+                if (window.midental) window.midental.auth.signOut(); // Cierra sesión en Supabase
+                
+                // Marcamos que esta pestaña ya fue higienizada
+                sessionStorage.setItem('sesion_validada_hoy', 'true');
+                return; // Detenemos la redirección para forzar al dentista a usar sus credenciales
+            }
+
+            // Si la sesión de navegador ya estaba activa (ej: el usuario solo recargó la página)
             const userId = localStorage.getItem('midental_user_id');
             const userTipo = localStorage.getItem('midental_user_tipo');
             
-            // Si el dispositivo ya tiene una sesión válida, te saltas la pantalla de inicio
             if (userId && userTipo) {
                 if (userTipo === 'dentista') {
                     window.location.href = 'dashboard-dentista.html';
@@ -557,9 +571,13 @@
             }
         }
         
-        // Cierra los modales al hacer clic fuera del cuadro
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-overlay')) {
+        // Solución UX: Cierra modales solo si el clic inicia y termina en el fondo oscuro
+        let mouseDownTarget = null;
+        window.addEventListener('mousedown', (e) => {
+            mouseDownTarget = e.target;
+        });
+        window.addEventListener('mouseup', (e) => {
+            if (e.target.classList.contains('modal-overlay') && mouseDownTarget === e.target) {
                 e.target.style.display = 'none';
             }
         });

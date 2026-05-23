@@ -54,16 +54,24 @@ function formatearTelefonoParaWhatsApp(telInput) {
 // ------------------------------------------
 // 2. SISTEMA DE REGISTRO Y LOGIN
 // ------------------------------------------
+
+// Nota: El registro de Pacientes se maneja en index.html por la lógica de "Reclamar Ficha Huérfana".
+// Esta función es exclusiva para crear cuentas de DENTISTAS NUEVOS.
 async function registrarUsuarioMidental(tipo) {
-    const prefijo = tipo === 'dentista' ? 'regDentista' : 'regPaciente';
+    if (tipo !== 'dentista') {
+        console.error("El registro de pacientes está manejado en index.html");
+        return;
+    }
+
     const elementos = {
-        rut: document.getElementById(`${prefijo}RUT`),
-        nombre: document.getElementById(`${prefijo}Nombre`),
-        telefono: document.getElementById(`${prefijo}Telefono`),
-        email: document.getElementById(`${prefijo}Email`),
-        pass: document.getElementById(`${prefijo}Password`),
-        passConfirm: document.getElementById(`${prefijo}PasswordConfirm`),
-        tyc: document.getElementById(`${prefijo}TyC`)
+        rut: document.getElementById(`regDentistaRUT`),
+        nombre: document.getElementById(`regDentistaNombre`),
+        telefono: document.getElementById(`regDentistaTelefono`),
+        email: document.getElementById(`regDentistaEmail`),
+        pass: document.getElementById(`regDentistaPassword`),
+        passConfirm: document.getElementById(`regDentistaPasswordConfirm`),
+        tyc: document.getElementById(`regDentistaTyC`),
+        sis: document.getElementById('regDentistaSIS')
     };
 
     for (const [campo, elemento] of Object.entries(elementos)) {
@@ -77,15 +85,9 @@ async function registrarUsuarioMidental(tipo) {
     const pass = elementos.pass.value;
     const passConfirm = elementos.passConfirm.value;
     const tycAceptados = elementos.tyc.checked;
+    const sis = elementos.sis.value;
     
-    let sis = null;
-    if (tipo === 'dentista') {
-        const elSis = document.getElementById('regDentistaSIS');
-        if (!elSis) return alert("🛑 Falta 'regDentistaSIS'.");
-        sis = elSis.value;
-        if (!sis) return alert("⚠️ El Registro SIS es obligatorio.");
-    }
-
+    if (!sis) return alert("⚠️ El Registro SIS es obligatorio.");
     if (!tycAceptados) return alert("⚠️ Acepta los Términos y Condiciones.");
     if (!rutCrudo || !nombre || !telefonoCrudo || !pass) return alert("⚠️ Completa los campos obligatorios.");
     if (pass !== passConfirm) return alert("❌ Las contraseñas no coinciden.");
@@ -94,8 +96,7 @@ async function registrarUsuarioMidental(tipo) {
     const rutLimpio = formatearRutEstricto(rutCrudo);
     const telefonoFormateado = formatearTelefonoParaWhatsApp(telefonoCrudo);
 
-    if (!email && tipo === 'paciente') email = `${rutLimpio.replace(/[^0-9kK]/g, '')}@paciente.midental.cl`;
-    else if (!email) return alert("⚠️ Correo electrónico obligatorio.");
+    if (!email) return alert("⚠️ Correo electrónico obligatorio.");
 
     try {
         const { data: authData, error: authError } = await window.midental.auth.signUp({
@@ -104,16 +105,22 @@ async function registrarUsuarioMidental(tipo) {
         });
         if (authError) throw authError;
 
-        const tabla = (tipo === 'dentista') ? 'perfiles_dentistas' : 'perfiles_pacientes';
-        const payload = { id: authData.user.id, rut: rutLimpio, nombre_completo: nombre, telefono: telefonoFormateado, email: email.includes('@paciente') ? null : email };
-        if (tipo === 'dentista') { payload.registro_sis = sis; payload.especialidad = "Odontología General"; }
+        const payload = { 
+            id: authData.user.id, 
+            rut: rutLimpio, 
+            nombre_completo: nombre, 
+            telefono: telefonoFormateado, 
+            email: email,
+            registro_sis: sis, 
+            especialidad: "Odontología General" 
+        };
 
-        const { error: dbError } = await window.midental.from(tabla).upsert([payload], { onConflict: 'id' });
+        const { error: dbError } = await window.midental.from('perfiles_dentistas').upsert([payload], { onConflict: 'id' });
         if (dbError) throw dbError;
         
         alert("🎉 ¡Registro exitoso! Ya puedes iniciar sesión.");
-        document.getElementById(`modalRegistro${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).style.display = 'none';
-        document.getElementById(`modalLogin${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).style.display = 'flex';
+        document.getElementById('modalRegistroDentista').style.display = 'none';
+        document.getElementById('modalLoginDentista').style.display = 'flex';
     } catch (err) {
         alert(`Error al registrar: ${err.message}`);
     }
@@ -134,11 +141,24 @@ async function iniciarSesion(tipo) {
         const tabla = tipo === 'dentista' ? 'perfiles_dentistas' : 'perfiles_pacientes';
 
         const { data: perfil } = await window.midental.from(tabla).select('email').eq('rut', rutLimpio).maybeSingle();
-        
-        let emailParaLogin = perfil?.email;
-        // Respaldo de seguridad para pacientes registrados manualmente o sin correo
-        if (!emailParaLogin && tipo === 'paciente') emailParaLogin = `${rutLimpio.replace(/[^0-9kK]/g, '')}@paciente.midental.cl`;
-        if (!emailParaLogin) throw new Error("RUT no registrado en nuestra red.");
+        if (!perfil) throw new Error("RUT no registrado en nuestra red.");
+
+        let emailParaLogin = perfil.email;
+
+        // MAGIA ALIAS (Sub-addressing): Si es paciente, reconstruimos su correo con el Alias para poder iniciar sesión en Supabase
+        if (tipo === 'paciente') {
+            if (emailParaLogin && emailParaLogin.includes('@')) {
+                const rutNumeros = rutLimpio.replace(/[^0-9kK]/g, '');
+                const partesEmail = emailParaLogin.split('@');
+                // Reconstruimos: correo+rut@gmail.com
+                emailParaLogin = `${partesEmail[0]}+${rutNumeros}@${partesEmail[1]}`;
+            } else {
+                // Respaldo de seguridad para pacientes registrados manualmente o sin correo
+                emailParaLogin = `${rutLimpio.replace(/[^0-9kK]/g, '')}@paciente.midental.cl`;
+            }
+        }
+
+        if (!emailParaLogin) throw new Error("Error obteniendo credenciales de acceso.");
 
         const { data: session, error: authError } = await window.midental.auth.signInWithPassword({ email: emailParaLogin, password: password });
         if (authError) throw new Error("Contraseña incorrecta.");
@@ -277,9 +297,7 @@ window.cerrarSesionLocal = async function() {
         localStorage.removeItem('midental_user_id');
         localStorage.removeItem('midental_user_tipo');
         localStorage.removeItem('midental_user_name');
+        sessionStorage.removeItem('sesion_validada_hoy'); // Limpiamos la bandera de seguridad diaria
         window.location.href = 'index.html';
     }
-}
-function formatearTelefonoInput(input) {
-    input.value = input.value.replace(/[^0-9+]/g, '');
 }
