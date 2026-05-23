@@ -408,96 +408,110 @@
         }
 
         // ==========================================
-        // 3. REGISTRO Y RECLAMACIÓN DE FICHAS (PACIENTE)
+        // 3. REGISTRO Y CREADOR DE PERFILES FAMILIARES (PACIENTE)
         // ==========================================
         async function procesarRegistroPaciente(e) {
             e.preventDefault();
             const form = document.getElementById('formRegistroPaciente');
-            if(!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
+            if(!form.checkValidity()) { form.reportValidity(); return; }
 
             const pwd1 = document.getElementById('regPacientePassword').value;
             const pwd2 = document.getElementById('regPacientePasswordConfirm').value;
-            const emailInput = document.getElementById('regPacienteEmail').value.trim();
+            const emailOriginal = document.getElementById('regPacienteEmail').value.trim();
             const rutInput = document.getElementById('regPacienteRUT').value.trim();
             const nombreInput = document.getElementById('regPacienteNombre').value.trim();
             const telefonoInput = document.getElementById('regPacienteTelefono').value.trim();
+            const rutLimpio = rutInput.replace(/[^0-9kK]/g, '');
 
-            if (pwd1 !== pwd2) {
-                alert("Las contraseñas no coinciden. Por favor, verifícalas.");
-                return;
-            }
+            if (pwd1 !== pwd2) return alert("Las contraseñas no coinciden.");
 
+            const btn = form.querySelector('button[type="submit"]');
+            const textoBtn = btn.innerText;
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Validando...';
+            btn.disabled = true;
+
+            let currentUserId = null;
+
+            // FASE 1: Autenticación (Registro o Login Familiar)
             try {
-                // 1. Crear el usuario en Supabase Auth
                 const { data: authData, error: authError } = await window.midental.auth.signUp({
-                    email: emailInput,
+                    email: emailOriginal,
                     password: pwd1
                 });
 
+                // Si Supabase devuelve el error de forma estándar
                 if (authError) throw authError;
 
-                if (authData && authData.user) {
-                    const newUserId = authData.user.id; 
+                currentUserId = authData.user.id;
+                
+            } catch (error) {
+                // Si Supabase lanza la excepción (lo que te está pasando en la consola), la atrapamos aquí
+                const msg = String(error.message || "").toLowerCase();
+                const isAlreadyRegistered = error.status === 422 || msg.includes("already") || msg.includes("regist");
 
-                    // 2. Lógica de "Reclamación": Buscar si un Dentista ya le creó una Ficha Huérfana
-                    const { data: perfilExistente } = await window.midental
-                        .from('perfiles_pacientes')
-                        .select('id')
-                        .eq('rut', rutInput)
-                        .maybeSingle();
+                if (isAlreadyRegistered) {
+                    console.log("Correo existente detectado. Validando contraseña para anexar perfil familiar...");
+                    
+                    // Intentamos iniciar sesión con la contraseña proporcionada
+                    const { data: signData, error: signError } = await window.midental.auth.signInWithPassword({
+                        email: emailOriginal,
+                        password: pwd1
+                    });
 
-                    if (perfilExistente) {
-                        // CASO A: ¡Tiene ficha! La amarramos a esta nueva credencial
-                        const { error: updateError } = await window.midental
-                            .from('perfiles_pacientes')
-                            .update({ 
-                                user_id: newUserId, 
-                                email: emailInput,
-                                nombre_completo: nombreInput, 
-                                telefono: telefonoInput.replace(/[^0-9]/g, '')
-                            })
-                            .eq('id', perfilExistente.id);
-
-                        if (updateError) throw updateError;
-                        console.log("Ficha clínica reclamada y enlazada correctamente.");
-
-                    } else {
-                        // CASO B: Es nuevo en el sistema. Creamos su perfil desde cero.
-                        const { error: insertError } = await window.midental
-                            .from('perfiles_pacientes')
-                            .insert([{
-                                id: crypto.randomUUID(),
-                                user_id: newUserId,
-                                rut: rutInput,
-                                email: emailInput,
-                                nombre_completo: nombreInput,
-                                telefono: telefonoInput.replace(/[^0-9]/g, ''),
-                                enfermedades_cronicas: 'Ninguna',
-                                medicamentos: 'Ninguno',
-                                alergias: 'Ninguna'
-                            }]);
-
-                        if (insertError) throw insertError;
+                    if (signError) {
+                        alert("⚠️ Este correo ya pertenece a una cuenta de MiDental (ej. tu cuenta de Dentista). Debes ingresar la misma contraseña original de esa cuenta para poder agregar esta nueva ficha de paciente.");
+                        btn.innerHTML = textoBtn;
+                        btn.disabled = false;
+                        return; // Detenemos el proceso
                     }
-
-                    // 3. Inicio de sesión local manual para experiencia fluida
-                    localStorage.setItem('midental_user_id', newUserId);
-                    localStorage.setItem('midental_user_tipo', 'paciente');
-                    localStorage.setItem('midental_user_name', nombreInput);
-
-                    alert("¡Cuenta creada con éxito! Bienvenido a MiDental. Ya puedes revisar tus presupuestos, recetas e historial clínico.");
-                    window.location.href = 'dashboard-paciente.html';
+                    
+                    currentUserId = signData.user.id;
+                } else {
+                    // Si es otro error distinto
+                    alert("Error de registro: " + (error.message || "Intenta nuevamente."));
+                    btn.innerHTML = textoBtn;
+                    btn.disabled = false;
+                    return;
                 }
+            }
+
+            // FASE 2: Creación/Actualización de la Ficha Médica
+            try {
+                btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Creando Ficha...';
+                
+                const { error: dbError } = await window.midental
+                    .from('perfiles_pacientes')
+                    .upsert([{
+                        id: crypto.randomUUID(), 
+                        user_id: currentUserId,
+                        rut: rutLimpio,
+                        email: emailOriginal,
+                        nombre_completo: nombreInput,
+                        telefono: telefonoInput.replace(/[^0-9]/g, ''),
+                        enfermedades_cronicas: 'Ninguna',
+                        medicamentos: 'Ninguno',
+                        alergias: 'Ninguna'
+                    }], { onConflict: 'rut' });
+
+                if (dbError) throw dbError;
+
+                // FASE 3: Éxito y Redirección
+                localStorage.setItem('midental_user_id', currentUserId);
+                localStorage.setItem('midental_user_tipo', 'paciente');
+                localStorage.setItem('midental_user_name', nombreInput);
+                localStorage.setItem('midental_paciente_rut', rutLimpio);
+
+                alert("✅ ¡Perfil configurado con éxito! Bienvenido a MiDental.");
+                window.location.href = 'dashboard-paciente.html';
 
             } catch (error) {
-                console.error("Error en registro:", error);
-                alert("Hubo un error al crear la cuenta: " + error.message);
+                console.error("Error en base de datos:", error);
+                alert("Hubo un problema al guardar la ficha clínica: " + error.message);
+                btn.innerHTML = textoBtn;
+                btn.disabled = false;
             }
         }
-
+        
         // ==========================================
         // 4. REGISTRO DENTISTAS (Conexión app.js)
         // ==========================================
