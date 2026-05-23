@@ -171,6 +171,7 @@
         async function cargarDatosPaciente() {
             const userId = localStorage.getItem('midental_user_id');
             const userTipo = localStorage.getItem('midental_user_tipo');
+            const rutActual = localStorage.getItem('midental_paciente_rut'); // NUEVO: Extraemos el RUT
 
             if (!userId || userTipo !== 'paciente') {
                 alert("Debes iniciar sesión como paciente.");
@@ -179,12 +180,13 @@
             }
 
             try {
-                // CAMBIO CLAVE: Usamos .maybeSingle() en lugar de .single() para evitar el error 406
+                // CAMBIO CLAVE: Ahora buscamos usando el RUT para identificar al familiar correcto
                 const { data, error } = await window.midental
                     .from('perfiles_pacientes')
                     .select('*')
                     .eq('user_id', userId)
-                    .maybeSingle(); 
+                    .eq('rut', rutActual) // FILTRO EXACTO
+                    .maybeSingle();
 
                 if (error) throw error;
 

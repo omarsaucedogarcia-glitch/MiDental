@@ -140,33 +140,27 @@ async function iniciarSesion(tipo) {
         const rutLimpio = formatearRutEstricto(rutInput);
         const tabla = tipo === 'dentista' ? 'perfiles_dentistas' : 'perfiles_pacientes';
 
+        // 1. Buscamos el correo asociado a ese RUT específico
         const { data: perfil } = await window.midental.from(tabla).select('email').eq('rut', rutLimpio).maybeSingle();
-        if (!perfil) throw new Error("RUT no registrado en nuestra red.");
+        if (!perfil || !perfil.email) throw new Error("RUT no registrado en nuestra red.");
 
-        let emailParaLogin = perfil.email;
-
-        // MAGIA ALIAS (Sub-addressing): Si es paciente, reconstruimos su correo con el Alias para poder iniciar sesión en Supabase
-        if (tipo === 'paciente') {
-            if (emailParaLogin && emailParaLogin.includes('@')) {
-                const rutNumeros = rutLimpio.replace(/[^0-9kK]/g, '');
-                const partesEmail = emailParaLogin.split('@');
-                // Reconstruimos: correo+rut@gmail.com
-                emailParaLogin = `${partesEmail[0]}+${rutNumeros}@${partesEmail[1]}`;
-            } else {
-                // Respaldo de seguridad para pacientes registrados manualmente o sin correo
-                emailParaLogin = `${rutLimpio.replace(/[^0-9kK]/g, '')}@paciente.midental.cl`;
-            }
-        }
-
-        if (!emailParaLogin) throw new Error("Error obteniendo credenciales de acceso.");
-
-        const { data: session, error: authError } = await window.midental.auth.signInWithPassword({ email: emailParaLogin, password: password });
+        // 2. Iniciamos sesión en la Cuenta Maestra
+        const { data: session, error: authError } = await window.midental.auth.signInWithPassword({ 
+            email: perfil.email, 
+            password: password 
+        });
         if (authError) throw new Error("Contraseña incorrecta.");
 
+        // 3. Guardamos los datos de sesión (¡Incluyendo el RUT!)
         localStorage.setItem('midental_user_id', session.user.id);
         localStorage.setItem('midental_user_tipo', tipo);
         
-        window.location.href = (tipo === 'dentista') ? 'dashboard-dentista.html' : 'dashboard-paciente.html';
+        if (tipo === 'paciente') {
+            localStorage.setItem('midental_paciente_rut', rutLimpio);
+            window.location.href = 'dashboard-paciente.html';
+        } else {
+            window.location.href = 'dashboard-dentista.html';
+        }
         
     } catch (err) {
         alert("Acceso denegado: " + err.message);
