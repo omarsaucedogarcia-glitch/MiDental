@@ -360,7 +360,7 @@
 
     <script>
         // ==========================================
-        // 1. CONTROL DE SEGURIDAD Y AUTO-LOGIN
+        // 1. CONTROL DE SEGURIDAD Y ACCESO INTELIGENTE
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
             // Verificamos si es la primera vez que se abre el navegador en esta jornada
@@ -370,26 +370,16 @@
                 localStorage.removeItem('midental_user_id');
                 localStorage.removeItem('midental_user_tipo');
                 localStorage.removeItem('midental_user_name');
+                localStorage.removeItem('midental_paciente_rut'); // Nos aseguramos de limpiar el RUT también
                 if (window.midental) window.midental.auth.signOut(); // Cierra sesión en Supabase
                 
                 // Marcamos que esta pestaña ya fue higienizada
                 sessionStorage.setItem('sesion_validada_hoy', 'true');
-                return; // Detenemos la redirección para forzar al dentista a usar sus credenciales
             }
-
-            // Si la sesión de navegador ya estaba activa (ej: el usuario solo recargó la página)
-            const userId = localStorage.getItem('midental_user_id');
-            const userTipo = localStorage.getItem('midental_user_tipo');
-            
-            if (userId && userTipo) {
-                if (userTipo === 'dentista') {
-                    window.location.href = 'dashboard-dentista.html';
-                } else if (userTipo === 'paciente') {
-                    window.location.href = 'dashboard-paciente.html';
-                }
-            }
+            // Eliminamos la redirección forzada de esta sección para evitar el "Efecto Bucle" al presionar Atrás.
         });
 
+        
         // ==========================================
         // 2. BUSCADOR INTELIGENTE EN EL HERO
         // ==========================================
@@ -421,11 +411,13 @@
             const rutInput = document.getElementById('regPacienteRUT').value.trim();
             const nombreInput = document.getElementById('regPacienteNombre').value.trim();
             const telefonoInput = document.getElementById('regPacienteTelefono').value.trim();
-            const rutLimpio = rutInput.replace(/[^0-9kK]/g, '');
+            
+            // Usamos el formateador estricto para asegurar consistencia
+            const rutLimpio = window.formatearRutEstricto(rutInput);
 
             if (pwd1 !== pwd2) return alert("Las contraseñas no coinciden.");
 
-            const btn = form.querySelector('button[type="submit"]');
+            const btn = document.querySelector('button[form="formRegistroPaciente"]');
             const textoBtn = btn.innerText;
             btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Validando...';
             btn.disabled = true;
@@ -439,35 +431,30 @@
                     password: pwd1
                 });
 
-                // Si Supabase devuelve el error de forma estándar
                 if (authError) throw authError;
-
                 currentUserId = authData.user.id;
                 
             } catch (error) {
-                // Si Supabase lanza la excepción (lo que te está pasando en la consola), la atrapamos aquí
                 const msg = String(error.message || "").toLowerCase();
                 const isAlreadyRegistered = error.status === 422 || msg.includes("already") || msg.includes("regist");
 
                 if (isAlreadyRegistered) {
                     console.log("Correo existente detectado. Validando contraseña para anexar perfil familiar...");
                     
-                    // Intentamos iniciar sesión con la contraseña proporcionada
                     const { data: signData, error: signError } = await window.midental.auth.signInWithPassword({
                         email: emailOriginal,
                         password: pwd1
                     });
 
                     if (signError) {
-                        alert("⚠️ Este correo ya pertenece a una cuenta de MiDental (ej. tu cuenta de Dentista). Debes ingresar la misma contraseña original de esa cuenta para poder agregar esta nueva ficha de paciente.");
+                        alert("⚠️ Este correo ya pertenece a una cuenta de MiDental. Debes ingresar la misma contraseña original de esa cuenta para poder agregar esta nueva ficha de paciente.");
                         btn.innerHTML = textoBtn;
                         btn.disabled = false;
-                        return; // Detenemos el proceso
+                        return; 
                     }
                     
                     currentUserId = signData.user.id;
                 } else {
-                    // Si es otro error distinto
                     alert("Error de registro: " + (error.message || "Intenta nuevamente."));
                     btn.innerHTML = textoBtn;
                     btn.disabled = false;
@@ -475,25 +462,47 @@
                 }
             }
 
-            // FASE 2: Creación/Actualización de la Ficha Médica
+            // FASE 2: Creación/Actualización Segura de la Ficha Médica (Dos Pasos)
             try {
                 btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Creando Ficha...';
                 
-                const { error: dbError } = await window.midental
+                // Paso 2A: Verificamos si el dentista ya le había creado una ficha a este RUT
+                const { data: perfilExistente } = await window.midental
                     .from('perfiles_pacientes')
-                    .upsert([{
-                        id: crypto.randomUUID(), 
-                        user_id: currentUserId,
-                        rut: rutLimpio,
-                        email: emailOriginal,
-                        nombre_completo: nombreInput,
-                        telefono: telefonoInput.replace(/[^0-9]/g, ''),
-                        enfermedades_cronicas: 'Ninguna',
-                        medicamentos: 'Ninguno',
-                        alergias: 'Ninguna'
-                    }], { onConflict: 'rut' });
+                    .select('id')
+                    .eq('rut', rutLimpio)
+                    .maybeSingle();
 
-                if (dbError) throw dbError;
+                if (perfilExistente) {
+                    // Paso 2B (Actualizar): Si existe, lo actualizamos respetando su ID original
+                    const { error: updateError } = await window.midental
+                        .from('perfiles_pacientes')
+                        .update({
+                            user_id: currentUserId,
+                            email: emailOriginal,
+                            nombre_completo: nombreInput,
+                            telefono: telefonoInput.replace(/[^0-9]/g, '')
+                        })
+                        .eq('id', perfilExistente.id);
+
+                    if (updateError) throw updateError;
+                } else {
+                    // Paso 2B (Insertar): Si es un paciente 100% nuevo, lo creamos
+                    const { error: insertError } = await window.midental
+                        .from('perfiles_pacientes')
+                        .insert([{
+                            user_id: currentUserId,
+                            rut: rutLimpio,
+                            email: emailOriginal,
+                            nombre_completo: nombreInput,
+                            telefono: telefonoInput.replace(/[^0-9]/g, ''),
+                            enfermedades_cronicas: 'Ninguna',
+                            medicamentos: 'Ninguno',
+                            alergias: 'Ninguna'
+                        }]);
+
+                    if (insertError) throw insertError;
+                }
 
                 // FASE 3: Éxito y Redirección
                 localStorage.setItem('midental_user_id', currentUserId);

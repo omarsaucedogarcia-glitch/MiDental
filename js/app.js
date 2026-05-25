@@ -205,7 +205,14 @@ window.sincronizarDatosGlobales = async function() {
             .forEach(id => { const el = document.getElementById(id); if (el) el.innerText = dr.tokens_disponibles || "0"; });
         }
     } else if (tipo === 'paciente') {
-        const { data: pcte } = await window.midental.from('perfiles_pacientes').select('*').eq('id', userId).single();
+        const rutActual = localStorage.getItem('midental_paciente_rut'); // Extraemos el RUT del familiar activo
+        
+        const { data: pcte } = await window.midental.from('perfiles_pacientes')
+            .select('*')
+            .eq('user_id', userId) // Filtro 1: La Cuenta Maestra
+            .eq('rut', rutActual)  // Filtro 2: El familiar específico
+            .maybeSingle();        // maybeSingle apaga el error 406
+            
         if (pcte) {
             localStorage.setItem('midental_user_name', pcte.nombre_completo);
             
