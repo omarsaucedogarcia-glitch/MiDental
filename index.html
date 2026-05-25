@@ -426,9 +426,18 @@
 
             // FASE 1: Autenticación (Registro o Login Familiar)
             try {
+                // Le devolvemos los metadatos al signUp para evitar el Error 500 del servidor
                 const { data: authData, error: authError } = await window.midental.auth.signUp({
                     email: emailOriginal,
-                    password: pwd1
+                    password: pwd1,
+                    options: { 
+                        data: { 
+                            tipo_usuario: 'paciente', 
+                            rut_usuario: rutLimpio, 
+                            nombre_completo: nombreInput, 
+                            telefono: telefonoInput.replace(/[^0-9]/g, '') 
+                        } 
+                    }
                 });
 
                 if (authError) throw authError;
