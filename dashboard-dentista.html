@@ -111,6 +111,16 @@
             .request-actions { width: 100%; justify-content: space-between;}
             .btn-confirm-action, .btn-reject-action { flex: 1; justify-content: center;}
         }
+        /* =========================================================
+           SISTEMA DE PESTAÑAS (TABS) PARA AGENDA
+           ========================================================= */
+        .agenda-tabs { display: flex; gap: 10px; background: #e2e8f0; padding: 5px; border-radius: 12px; width: fit-content; }
+        .agenda-tab-btn { background: transparent; border: none; padding: 8px 20px; border-radius: 8px; font-weight: bold; color: #64748b; cursor: pointer; transition: 0.3s; font-size: 0.9rem;}
+        .agenda-tab-btn.active { background: white; color: var(--blue-elegant); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
     </style>
 </head>
 <body>
@@ -192,6 +202,16 @@
                 </div>
             </div>
 
+            <div class="agenda-view-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="color: var(--blue-elegant); margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-outlined">analytics</span> Resumen de Jornada
+                </h2>
+                <div class="agenda-tabs">
+                    <button class="agenda-tab-btn active" id="tabHoy" onclick="cambiarVistaDia('hoy')">Hoy</button>
+                    <button class="agenda-tab-btn" id="tabManana" onclick="cambiarVistaDia('manana')">Mañana</button>
+                </div>
+            </div>
+
             <div class="summary-widgets-grid">
                 <div class="summary-card" style="border-left: 5px solid var(--green-success);">
                     <div class="summary-icon blue-bg" style="color: var(--green-success); background: #f0fdf4;"><span class="material-symbols-outlined">event_available</span></div>
@@ -236,14 +256,15 @@
 
             <div class="appointments-section mt-20">
                 <div class="section-header" style="margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="color: var(--blue-elegant); display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.2rem;">
-                        <span class="material-symbols-outlined">calendar_today</span> Pacientes de la Jornada Actual
+                    <h2 style="color: var(--blue-elegant); display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.2rem;" id="tituloListaCitas">
+                        <span class="material-symbols-outlined">calendar_today</span> Pacientes de Hoy
                     </h2>
                     <button class="btn-text" style="font-weight: bold; color: var(--pixar-cyan); border: none; background: transparent; cursor: pointer;" onclick="window.location.href='agenda-dentista.html'">Ver Agenda Completa &rarr;</button>
                 </div>
-                <div class="appointments-list" id="dashAgendaHoy">
-                    <p style="color: #94a3b8; padding: 30px 20px; background: white; border-radius: 15px; text-align: center; border: 1px dashed #cbd5e1; font-weight: bold;">No tienes citas registradas para hoy.</p>
-                </div>
+                
+                <div class="appointments-list tab-content active" id="listaHoy"></div>
+                <div class="appointments-list tab-content" id="listaManana"></div>
+            </div>
             </div>
 
         </main>
@@ -257,6 +278,10 @@
         let solicitudesPendientesMemoria = [];
         let cronometroIntervalo; 
         let centroMedicoOficial = "nuestra clínica"; // Fallback por defecto
+        let resumenAgenda = {
+            hoy: { confirmadas: 0, pendientes: 0, atendidos: 0, noAsistieron: 0, html: "", total: 0 },
+            manana: { confirmadas: 0, pendientes: 0, atendidos: 0, noAsistieron: 0, html: "", total: 0 }
+        };
 
         document.addEventListener('DOMContentLoaded', async () => {
             // 1. Validar primero
@@ -429,16 +454,23 @@
         }
 
         // ==========================================
-        // LÓGICA DE AGENDA DE LA JORNADA Y RESUMEN AMPLIADO
+        // LÓGICA DE AGENDA (HOY Y MAÑANA) SEPARADA POR TABS
         // ==========================================
         async function cargarJornadaCompleta(userId) {
-            const contenedor = document.getElementById('dashAgendaHoy');
-            
             const hoy = new Date();
-            const dd = String(hoy.getDate()).padStart(2, '0');
-            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-            const yyyy = hoy.getFullYear();
-            const fechaHoyStr = `${dd}/${mm}/${yyyy}`; 
+            const manana = new Date(hoy);
+            manana.setDate(hoy.getDate() + 1);
+
+            const formateaFecha = (fecha) => `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`;
+            
+            const fechaHoyStr = formateaFecha(hoy);
+            const fechaMananaStr = formateaFecha(manana);
+
+            // Reiniciamos los contadores en memoria
+            resumenAgenda = {
+                hoy: { confirmadas: 0, pendientes: 0, atendidos: 0, noAsistieron: 0, html: "", total: 0 },
+                manana: { confirmadas: 0, pendientes: 0, atendidos: 0, noAsistieron: 0, html: "", total: 0 }
+            };
 
             try {
                 const { data: citas, error } = await window.midental.from('citas_agenda')
@@ -450,32 +482,45 @@
 
                 if (error) throw error;
 
-                const citasDeHoy = citas.filter(c => c.fecha_hora_formato_slot && c.fecha_hora_formato_slot.includes(fechaHoyStr));
+                // 1. Filtramos para obtener solo las citas de HOY y MAÑANA
+                const citasProximas = citas.filter(c => 
+                    c.fecha_hora_formato_slot && 
+                    (c.fecha_hora_formato_slot.includes(fechaHoyStr) || c.fecha_hora_formato_slot.includes(fechaMananaStr))
+                );
 
-                // Nuevos contadores
-                let confirmadasHoy = 0;
-                let pendientesHoy = 0;
-                let atendidosHoy = 0;
-                let noAsistieronHoy = 0;
-                let htmlCitas = "";
+                // --- NUEVO: ORDENAMIENTO CRONOLÓGICO ESTRICTO ---
+                citasProximas.sort((a, b) => {
+                    // Intentamos ordenar usando la marca de tiempo exacta de la base de datos (Máxima precisión)
+                    if (a.fecha_hora && b.fecha_hora) {
+                        return new Date(a.fecha_hora) - new Date(b.fecha_hora);
+                    }
+                    // Plan B: Si no hay marca de tiempo, extraemos la hora del texto (ej. "09:30") y ordenamos numéricamente
+                    const horaA = (a.fecha_hora_formato_slot.split('-')[1] || a.fecha_hora_formato_slot).trim();
+                    const horaB = (b.fecha_hora_formato_slot.split('-')[1] || b.fecha_hora_formato_slot).trim();
+                    return horaA.localeCompare(horaB);
+                });
 
-                citasDeHoy.forEach(cita => {
+                citasProximas.forEach(cita => {
+                    const esHoy = cita.fecha_hora_formato_slot.includes(fechaHoyStr);
+                    const diaKey = esHoy ? 'hoy' : 'manana';
+                    const argDia = esHoy ? 'hoy' : 'mañana'; // String corregido para WhatsApp
+                    
                     const estadoLower = cita.estado ? cita.estado.toLowerCase() : 'pendiente';
                     
-                    // 1. Clasificación para los contadores
-                    if (estadoLower === 'pendiente') pendientesHoy++;
-                    else if (estadoLower === 'confirmado' || estadoLower === 'confirmada') confirmadasHoy++;
-                    else if (estadoLower === 'completada' || estadoLower === 'en_atencion') atendidosHoy++;
-                    else if (estadoLower === 'no_asiste') noAsistieronHoy++;
+                    // Sumamos al contador del día que corresponda
+                    if (estadoLower === 'pendiente') resumenAgenda[diaKey].pendientes++;
+                    else if (estadoLower === 'confirmado' || estadoLower === 'confirmada') resumenAgenda[diaKey].confirmadas++;
+                    else if (estadoLower === 'completada' || estadoLower === 'en_atencion') resumenAgenda[diaKey].atendidos++;
+                    else if (estadoLower === 'no_asiste') resumenAgenda[diaKey].noAsistieron++;
 
-                    // 2. Extracción de datos
+                    resumenAgenda[diaKey].total++;
+
                     const pctName = cita.paciente_nombre_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente');
                     const pctTel = cita.paciente_telefono_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '');
                     const horaSolo = cita.fecha_hora_formato_slot.split('-')[1]?.trim() || cita.fecha_hora_formato_slot;
                     
-                    // 3. Diseño dinámico de la tarjeta según su estado
                     let estadoLabel = 'Por Confirmar';
-                    let colorBadge = 'background:#fff7ed; color:#d97706; border-color:#fde68a;'; // Naranja
+                    let colorBadge = 'background:#fff7ed; color:#d97706; border-color:#fde68a;'; 
                     let borderIzquierdo = 'var(--pixar-orange)';
                     let opacidad = "1";
 
@@ -487,29 +532,31 @@
                         estadoLabel = estadoLower === 'en_atencion' ? 'En Curso' : 'Atendido';
                         colorBadge = 'background:#eff6ff; color:#3b82f6; border-color:#bfdbfe;'; 
                         borderIzquierdo = '#3b82f6';
-                        if (estadoLower === 'completada') opacidad = "0.6"; // Se apaga visualmente si ya se fue
+                        if (estadoLower === 'completada') opacidad = "0.6"; 
                     } else if (estadoLower === 'no_asiste') {
                         estadoLabel = 'No Asistió';
                         colorBadge = 'background:#fef2f2; color:#ef4444; border-color:#fecaca;'; 
                         borderIzquierdo = 'var(--red-urgency)';
-                        opacidad = "0.5"; // Se apaga visualmente si faltó
+                        opacidad = "0.5"; 
                     }
 
-                    // Botón Inteligente de WhatsApp (Solo si está pendiente o confirmado)
+                    // CORRECCIÓN WHATSAPP: Le pasamos 'hoy' o 'mañana' en lugar de true/false
                     let btnRecordatorioHTML = "";
                     if ((estadoLower === 'confirmado' || estadoLower === 'confirmada' || estadoLower === 'pendiente') && pctTel) {
                         btnRecordatorioHTML = `
                             <button class="btn-pixar" style="background:#25d366; display:inline-flex; align-items:center; gap:5px; margin-top:8px; padding:6px 12px; font-size:0.8rem; border:none; box-shadow: 0 2px 5px rgba(37,211,102,0.2);" 
-                                onclick="enviarRecordatorioWhatsApp('${pctName}', '${pctTel.replace(/[^0-9]/g, '')}', '${horaSolo}')">
+                                onclick="enviarRecordatorioWhatsApp('${pctName}', '${pctTel.replace(/[^0-9]/g, '')}', '${horaSolo}', '${argDia}')">
                                 <span class="material-symbols-outlined" style="font-size:1rem;">chat</span> Recordar Cita
                             </button>
                         `;
                     }
 
-                    // Renderizado de la tarjeta individual
-                    htmlCitas += `
+                    // Insertamos la tarjeta en el HTML del día que le corresponde
+                    resumenAgenda[diaKey].html += `
                         <div class="appointment-card" style="opacity: ${opacidad}; border-left-color: ${borderIzquierdo};">
-                            <div class="appointment-time">${horaSolo}</div>
+                            <div class="appointment-time" style="display: flex; flex-direction: column; justify-content: center;">
+                                ${horaSolo}
+                            </div>
                             <div class="appointment-info" style="flex:1; margin-left: 20px;">
                                 <h4 style="margin:0 0 5px 0; color: var(--blue-elegant); font-size: 1.1rem;">${pctName}</h4>
                                 <p style="margin:0; font-size:0.9rem; color:#64748b; font-weight: 500;">${cita.motivo || 'Consulta General'}</p>
@@ -524,43 +571,70 @@
                     `;
                 });
 
-                // Actualizar los 4 contadores en el HTML
-                document.getElementById('dashConfirmedCount').innerText = confirmadasHoy;
-                document.getElementById('dashPendingCount').innerText = pendientesHoy;
-                if(document.getElementById('dashCompletedCount')) document.getElementById('dashCompletedCount').innerText = atendidosHoy;
-                if(document.getElementById('dashNoShowCount')) document.getElementById('dashNoShowCount').innerText = noAsistieronHoy;
-
-                // Generar Mensaje Motivacional Personalizado
-                const totalPacientes = confirmadasHoy + pendientesHoy + atendidosHoy + noAsistieronHoy;
-                let mensajeJornada = "";
-                
-                if (totalPacientes === 0) {
-                    mensajeJornada = "Hoy tienes tu agenda despejada. Un respiro excelente para planificar, revisar arriendos de boxes o lanzar una Oferta Flash.";
-                } else if (confirmadasHoy === 0 && pendientesHoy === 0 && atendidosHoy > 0) {
-                    mensajeJornada = `¡Jornada finalizada con éxito! Has atendido a *${atendidosHoy} pacientes*. Excelente trabajo.`;
-                } else {
-                    mensajeJornada = `Hoy coordinas una jornada de *${totalPacientes} pacientes* (*${atendidosHoy} ya atendidos* y *${confirmadasHoy} próximos*). ¡Que tengas un excelente turno!`;
-                }
-                document.getElementById('dashMotivationalQuote').innerHTML = mensajeJornada;
-
-                // Pintar lista en pantalla
-                if (htmlCitas !== "") document.getElementById('dashAgendaHoy').innerHTML = htmlCitas;
+                // Cargamos por defecto la vista de HOY
+                cambiarVistaDia('hoy');
 
             } catch (err) {
                 console.error("Error al cargar la jornada:", err);
             }
         }
 
+        // --- Controlador del Carrusel/Pestañas ---
+        function cambiarVistaDia(dia) {
+            // Actualizar botones UI
+            document.getElementById('tabHoy').classList.toggle('active', dia === 'hoy');
+            document.getElementById('tabManana').classList.toggle('active', dia === 'manana');
+
+            // Mostrar la lista correspondiente
+            document.getElementById('listaHoy').classList.toggle('active', dia === 'hoy');
+            document.getElementById('listaManana').classList.toggle('active', dia === 'manana');
+
+            const datos = resumenAgenda[dia];
+            const diaTexto = dia === 'hoy' ? 'hoy' : 'mañana';
+
+            // Actualizar Título
+            document.getElementById('tituloListaCitas').innerHTML = `<span class="material-symbols-outlined">calendar_today</span> Pacientes de ${diaTexto.charAt(0).toUpperCase() + diaTexto.slice(1)}`;
+
+            // Actualizar Contadores Widgets
+            document.getElementById('dashConfirmedCount').innerText = datos.confirmadas;
+            document.getElementById('dashPendingCount').innerText = datos.pendientes;
+            if(document.getElementById('dashCompletedCount')) document.getElementById('dashCompletedCount').innerText = datos.atendidos;
+            if(document.getElementById('dashNoShowCount')) document.getElementById('dashNoShowCount').innerText = datos.noAsistieron;
+
+            // Actualizar Frase Motivacional
+            let mensajeJornada = "";
+            if (datos.total === 0) {
+                mensajeJornada = `Tienes tu agenda despejada para ${diaTexto}. Un respiro excelente para planificar.`;
+            } else if (datos.confirmadas === 0 && datos.pendientes === 0 && datos.atendidos > 0) {
+                mensajeJornada = `¡Jornada finalizada con éxito! Has atendido a *${datos.atendidos} pacientes* ${diaTexto}.`;
+            } else {
+                mensajeJornada = `Para ${diaTexto} coordinas un total de *${datos.total} pacientes* (*${datos.atendidos} ya atendidos* y *${datos.confirmadas} próximos*). ¡Éxito en tu turno!`;
+            }
+            document.getElementById('dashMotivationalQuote').innerHTML = mensajeJornada;
+
+            // Inyectar HTML o mensaje vacío
+            const listaEl = document.getElementById(dia === 'hoy' ? 'listaHoy' : 'listaManana');
+            if(datos.html !== "") {
+                listaEl.innerHTML = datos.html;
+            } else {
+                listaEl.innerHTML = `<p style="color: #94a3b8; padding: 30px 20px; background: white; border-radius: 15px; text-align: center; border: 1px dashed #cbd5e1; font-weight: bold;">No tienes citas registradas para ${diaTexto}.</p>`;
+            }
+        }
+
         // ==========================================
-        // MOTOR ENVIAR RECORDATORIO WHATSAPP NATIVO
+        // MOTOR ENVIAR RECORDATORIO WHATSAPP CORREGIDO
         // ==========================================
-        function enviarRecordatorioWhatsApp(nombrePaciente, telefonoPaciente, horaCita) {
+        function enviarRecordatorioWhatsApp(nombrePaciente, telefonoPaciente, horaCita, fechaCita = "hoy") {
             if(!telefonoPaciente) return alert("El paciente no registra un teléfono válido.");
             
-            // Estructura del mensaje automatizado oficial en nombre de la sede
-            const mensaje = `Hola ${nombrePaciente}, te escribimos de ${centroMedicoOficial} para recordarte tu cita agendada para el día de hoy a las ${horaCita}. Te solicitamos puntualidad para resguardar los tiempos de tu atención. ¡Nos vemos pronto!`;
+            const telLimpio = telefonoPaciente.replace(/[^0-9]/g, '');
             
-            window.open(`https://wa.me/${telefonoPaciente}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            // Evaluamos correctamente la variable string que ahora enviamos
+            const textoDia = (fechaCita === 'mañana' || fechaCita === 'manana') ? "el día de mañana" : "el día de hoy";
+            
+            const mensaje = `Hola ${nombrePaciente}, te escribimos de ${centroMedicoOficial} para recordarte tu cita agendada para ${textoDia} a las ${horaCita}. Te solicitamos puntualidad para resguardar los tiempos de tu atención. ¡Nos vemos pronto!`;
+            
+            window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
         // ==========================================
