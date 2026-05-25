@@ -151,44 +151,43 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const userId = localStorage.getItem('midental_user_id');
-            const displayNombre = document.getElementById('nombrePacienteUi');
+            const userTipo = localStorage.getItem('midental_user_tipo');
+            const rutActual = localStorage.getItem('midental_paciente_rut'); // 1. Recuperamos el RUT específico
 
-            if (!userId) {
-                // Protección activa de rutas
+            // Validamos que sea paciente y tenga sesión
+            if (!userId || userTipo !== 'paciente' || !rutActual) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            // 1. Intentar cargar rápido de memoria local
-            const nombreGuardado = localStorage.getItem('midental_user_name');
-            if (nombreGuardado) {
-                // Capitalizar correctamente solo el primer nombre
-                const primerNombre = nombreGuardado.split(' ')[0];
-                displayNombre.innerText = primerNombre.charAt(0).toUpperCase() + primerNombre.slice(1).toLowerCase();
-            }
-
-            // 2. Actualizar con dato fresco de la base de datos
             try {
-                const { data, error } = await window.midental
+                // 2. Buscamos al paciente usando la Cuenta Maestra (user_id) + El Familiar (rut)
+                const { data: pacienteData, error } = await window.midental
                     .from('perfiles_pacientes')
-                    .select('nombre_completo')
-                    .eq('id', userId)
-                    .single();
+                    .select('*')
+                    .eq('user_id', userId)
+                    .eq('rut', rutActual) // Filtro crucial
+                    .maybeSingle();       // 3. Evita que el sistema colapse al encontrar más familiares
 
-                if (error) {
-                    // Si el error es por token expirado/inexistente, expulsar a index
-                    console.error("Error de sesión:", error);
+                if (error || !pacienteData) {
+                    console.warn("Ficha clínica no encontrada. Cerrando sesión...");
+                    localStorage.clear();
                     window.location.href = 'index.html';
                     return;
                 }
 
-                if (data && data.nombre_completo) {
-                    const primerNombreFresco = data.nombre_completo.split(' ')[0];
-                    displayNombre.innerText = primerNombreFresco.charAt(0).toUpperCase() + primerNombreFresco.slice(1).toLowerCase();
-                    localStorage.setItem('midental_user_name', data.nombre_completo);
+                // 4. CORRECCIÓN: Pintamos el nombre usando el ID exacto de tu HTML
+                const primerNombre = pacienteData.nombre_completo.split(' ')[0];
+                const elementoNombre = document.getElementById('nombrePacienteUi');
+                if (elementoNombre) {
+                    // Ponemos la primera letra en mayúscula por estética
+                    elementoNombre.innerText = primerNombre.charAt(0).toUpperCase() + primerNombre.slice(1).toLowerCase();
                 }
+
+                // Aquí puedes continuar cargando el resto de funciones futuras (citas, documentos, etc.)
+
             } catch (err) {
-                console.error("Error crítico al recuperar perfil:", err);
+                console.error("Error validando la sesión del paciente:", err);
             }
         });
     </script>
