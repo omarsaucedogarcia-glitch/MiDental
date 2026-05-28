@@ -1,0 +1,1129 @@
+/* ============================================================
+   odontograma.css
+   MiDental — Capa visual del Odontograma Clínico
+   --------------------------------------------------------------
+   Convenciones:
+   - Prefijo `odn-` para todas las clases para aislar del resto.
+   - Variables semánticas estrictamente clínicas en :root.
+   - Sistema de capas (anatómica/diagnóstica/terapéutica/histórica)
+     mediante z-index y opacidad, conmutables vía .hidden / .active.
+   - Diseño desktop-first, breakpoints a 1280 / 1024 / 768 / 540.
+   ============================================================ */
+
+:root {
+    /* ---------------- Cromática semántica clínica ---------------- */
+    --odn-state-existing:        #94a3b8;   /* gris  — anatomía / pieza existente sin hallazgos */
+    --odn-state-existing-soft:   #cbd5e1;
+    --odn-state-completed:       #1e3a8a;   /* azul  — tratamiento ejecutado y verificado */
+    --odn-state-completed-soft:  #93c5fd;
+    --odn-state-planned:         #f59e0b;   /* ámbar — planificado, no iniciado */
+    --odn-state-planned-soft:    #fcd34d;
+    --odn-state-active:          #dc2626;   /* rojo  — patología activa */
+    --odn-state-active-soft:     #fca5a5;
+    --odn-state-control-ok:      #16a34a;   /* verde — control exitoso / mantención */
+    --odn-state-control-soft:    #86efac;
+    --odn-state-review:          #7c3aed;   /* morado— revisión indicada */
+    --odn-state-review-soft:     #c4b5fd;
+    --odn-state-historic:        #0f172a;   /* negro — registro histórico congelado */
+    --odn-state-historic-soft:   #475569;
+
+    /* ---------------- Superficie y chrome neutro ---------------- */
+    --odn-bg-app:        #0b1220;          /* fondo del modal (oscuro clínico) */
+    --odn-bg-canvas:     #f8fafc;          /* canvas SVG */
+    --odn-bg-panel:      #ffffff;
+    --odn-bg-panel-alt:  #f1f5f9;
+    --odn-bg-overlay:    rgba(7, 14, 27, 0.78);
+    --odn-border:        #e2e8f0;
+    --odn-border-strong: #cbd5e1;
+    --odn-divider:       #f1f5f9;
+
+    /* ---------------- Tipografía y texto ---------------- */
+    --odn-text:           #0f172a;
+    --odn-text-soft:      #475569;
+    --odn-text-muted:     #94a3b8;
+    --odn-text-inverse:   #f8fafc;
+    --odn-accent:         #00A8FF;          /* alineado con --pixar-cyan global */
+    --odn-accent-deep:    #0A3D62;          /* alineado con --blue-elegant global */
+
+    /* ---------------- Geometría ---------------- */
+    --odn-radius-sm: 6px;
+    --odn-radius-md: 10px;
+    --odn-radius-lg: 16px;
+    --odn-radius-xl: 22px;
+
+    /* ---------------- Z-index del sistema de capas ---------------- */
+    /* Permite superponer hallazgos sobre la anatomía y los planes
+       sobre los hallazgos, manteniendo el histórico por debajo.   */
+    --odn-z-layer-anatomical:   10;
+    --odn-z-layer-historic:     20;
+    --odn-z-layer-diagnostic:   30;
+    --odn-z-layer-therapeutic:  40;
+    --odn-z-layer-selection:    50;
+    --odn-z-layer-hover:        60;
+    --odn-z-layer-modal:        9000;
+    --odn-z-layer-toast:        9500;
+
+    /* ---------------- Sombras y profundidad ---------------- */
+    --odn-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --odn-shadow-md: 0 6px 16px rgba(15, 23, 42, 0.08);
+    --odn-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.18);
+    --odn-ring-focus: 0 0 0 3px rgba(0, 168, 255, 0.35);
+
+    /* ---------------- Transiciones ---------------- */
+    --odn-easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --odn-dur-fast: 120ms;
+    --odn-dur-base: 200ms;
+    --odn-dur-slow: 360ms;
+}
+
+/* ============================================================
+   1. Utilidades de estado global (manipulables por JS externo)
+   ============================================================ */
+.odn-hidden        { display: none !important; }
+.odn-invisible     { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+
+.odn-disabled      { opacity: 0.45; pointer-events: none; cursor: not-allowed; filter: saturate(0.6); }
+.odn-loading       { position: relative; pointer-events: none; }
+.odn-loading::after{
+    content: ""; position: absolute; inset: 0;
+    background: rgba(255, 255, 255, 0.55);
+    background-image: linear-gradient(90deg, transparent 0%, rgba(0,168,255,0.18) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: odn-shimmer 1.1s linear infinite;
+    border-radius: inherit;
+}
+@keyframes odn-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Accesibilidad: foco visible global dentro del odontograma */
+.odn-shell :focus-visible {
+    outline: none;
+    box-shadow: var(--odn-ring-focus);
+    border-radius: var(--odn-radius-sm);
+}
+
+/* Respeto a usuarios con motion reducido */
+@media (prefers-reduced-motion: reduce) {
+    .odn-shell *, .odn-shell *::before, .odn-shell *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
+}
+
+/* ============================================================
+   2. Botón de acceso al odontograma (CTA en la ficha)
+   ============================================================ */
+.odn-launcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 22px;
+    background: linear-gradient(135deg, var(--odn-accent-deep) 0%, #133e6c 60%, var(--odn-accent) 100%);
+    color: var(--odn-text-inverse);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.2px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--odn-radius-md);
+    cursor: pointer;
+    box-shadow: var(--odn-shadow-md);
+    transition: transform var(--odn-dur-fast) var(--odn-easing),
+                box-shadow var(--odn-dur-base) var(--odn-easing),
+                filter   var(--odn-dur-base) var(--odn-easing);
+    white-space: nowrap;
+}
+.odn-launcher:hover  { transform: translateY(-1px); box-shadow: var(--odn-shadow-lg); filter: brightness(1.05); }
+.odn-launcher:active { transform: translateY(0); filter: brightness(0.97); }
+
+.odn-launcher .material-symbols-outlined { font-size: 1.35rem; }
+
+.odn-launcher-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    background: linear-gradient(120deg, #0b1f37 0%, #0a3d62 100%);
+    border-radius: var(--odn-radius-lg);
+    color: var(--odn-text-inverse);
+    box-shadow: var(--odn-shadow-md);
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.odn-launcher-strip__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.odn-launcher-strip__title {
+    margin: 0; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.3px;
+    display: flex; align-items: center; gap: 8px;
+}
+.odn-launcher-strip__subtitle {
+    margin: 0; font-size: 0.85rem; opacity: 0.78; font-weight: 500;
+}
+
+/* Chips de contadores en vivo dentro del launcher strip */
+.odn-launcher-strip__stats {
+    display: inline-flex; align-items: center; gap: 6px;
+    flex-wrap: wrap;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+}
+.odn-stat-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    color: var(--odn-text-inverse);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    line-height: 1;
+}
+.odn-stat-chip__dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+    flex: 0 0 auto;
+}
+.odn-stat-chip__num   { font-weight: 800; font-size: 0.92rem; }
+.odn-stat-chip__label { opacity: 0.72; text-transform: lowercase; letter-spacing: 0.2px; }
+
+.odn-stat-chip[data-state="active"]    .odn-stat-chip__dot { background: var(--odn-state-active); }
+.odn-stat-chip[data-state="planned"]   .odn-stat-chip__dot { background: var(--odn-state-planned); }
+.odn-stat-chip[data-state="completed"] .odn-stat-chip__dot { background: var(--odn-state-completed); }
+
+/* Botón CTA del topbar del modal — "Llevar a presupuesto" */
+.odn-btn-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    background: var(--odn-state-control-ok);
+    color: white;
+    font-size: 0.85rem; font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--odn-radius-md);
+    cursor: pointer;
+    box-shadow: var(--odn-shadow-sm);
+    transition: filter var(--odn-dur-fast) var(--odn-easing),
+                transform var(--odn-dur-fast) var(--odn-easing);
+    white-space: nowrap;
+}
+.odn-btn-cta:hover  { filter: brightness(1.1); }
+.odn-btn-cta:active { transform: translateY(1px); }
+.odn-btn-cta:disabled { opacity: 0.5; cursor: not-allowed; }
+.odn-btn-cta .material-symbols-outlined { font-size: 1.15rem; }
+
+/* En viewport reducido se oculta la etiqueta y deja sólo el icono. */
+@media (max-width: 900px) {
+    .odn-btn-cta__label { display: none; }
+    .odn-btn-cta { padding: 8px 10px; }
+    .odn-launcher-strip__stats { display: none; }
+}
+
+/* ============================================================
+   3. Modal a pantalla completa: shell + chrome
+   ============================================================ */
+.odn-modal {
+    position: fixed; inset: 0;
+    z-index: var(--odn-z-layer-modal);
+    background: var(--odn-bg-overlay);
+    display: none;
+    align-items: stretch;
+    justify-content: stretch;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+.odn-modal.odn-active {
+    display: flex;
+    animation: odn-modal-in var(--odn-dur-base) var(--odn-easing);
+}
+@keyframes odn-modal-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.odn-shell {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    background: var(--odn-bg-app);
+    color: var(--odn-text-inverse);
+    overflow: hidden;
+}
+
+/* ---------- Header del modal ---------- */
+.odn-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 22px;
+    background: linear-gradient(180deg, #0d1730 0%, #0a1226 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    min-height: 62px;
+}
+.odn-topbar__left  { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.odn-topbar__right { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+
+.odn-patient-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    min-width: 0;
+}
+.odn-patient-chip__avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--odn-accent);
+    display: grid; place-items: center;
+    color: white; font-weight: 800; font-size: 0.85rem;
+    flex: 0 0 auto;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+.odn-patient-chip__name {
+    font-weight: 700; font-size: 0.95rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 240px;
+}
+.odn-patient-chip__meta {
+    font-size: 0.78rem; opacity: 0.65; font-weight: 500;
+    white-space: nowrap;
+}
+
+.odn-topbar__title {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.78);
+}
+.odn-topbar__title .material-symbols-outlined {
+    vertical-align: middle; font-size: 1.2rem; color: var(--odn-accent);
+    margin-right: 6px;
+}
+
+/* Selector de versión / dentición */
+.odn-select {
+    appearance: none;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: var(--odn-text-inverse);
+    padding: 8px 32px 8px 12px;
+    border-radius: var(--odn-radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23ffffff' fill-opacity='0.75' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: background-color var(--odn-dur-fast) var(--odn-easing),
+                border-color var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-select:hover  { background-color: rgba(255, 255, 255, 0.12); }
+.odn-select:focus  { border-color: var(--odn-accent); }
+
+/* Botones del header */
+.odn-btn-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: var(--odn-radius-md);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--odn-text-inverse);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    cursor: pointer;
+    transition: background-color var(--odn-dur-fast) var(--odn-easing),
+                transform var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-btn-icon:hover  { background: rgba(255, 255, 255, 0.14); }
+.odn-btn-icon:active { transform: scale(0.96); }
+.odn-btn-icon--danger { color: #fca5a5; }
+.odn-btn-icon--danger:hover { background: rgba(239, 68, 68, 0.18); color: #fee2e2; }
+.odn-btn-icon .material-symbols-outlined { font-size: 1.25rem; }
+
+/* ============================================================
+   4. Layout principal: 3 columnas (tools | canvas | timeline)
+   ============================================================ */
+.odn-workspace {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr) 340px;
+    grid-template-rows: 1fr;
+    gap: 14px;
+    padding: 14px;
+    height: 100%;
+    min-height: 0;
+    background:
+        radial-gradient(900px 500px at 50% -10%, rgba(0, 168, 255, 0.10), transparent 70%),
+        var(--odn-bg-app);
+}
+
+/* ============================================================
+   5. Panel lateral de herramientas clínicas
+   ============================================================ */
+.odn-toolpanel {
+    background: var(--odn-bg-panel);
+    color: var(--odn-text);
+    border-radius: var(--odn-radius-lg);
+    box-shadow: var(--odn-shadow-md);
+    display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+    border: 1px solid var(--odn-border);
+}
+
+.odn-toolpanel__header {
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--odn-divider);
+    display: flex; align-items: center; gap: 8px;
+}
+.odn-toolpanel__header h3 {
+    margin: 0; font-size: 0.95rem; font-weight: 800;
+    color: var(--odn-accent-deep);
+    letter-spacing: 0.3px; text-transform: uppercase;
+}
+.odn-toolpanel__header .material-symbols-outlined { color: var(--odn-accent); font-size: 1.2rem; }
+
+.odn-toolpanel__scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 14px 16px 18px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--odn-border-strong) transparent;
+}
+.odn-toolpanel__scroll::-webkit-scrollbar { width: 8px; }
+.odn-toolpanel__scroll::-webkit-scrollbar-thumb {
+    background: var(--odn-border-strong);
+    border-radius: 4px;
+}
+
+.odn-tool-group {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--odn-divider);
+}
+.odn-tool-group:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+
+.odn-tool-group__title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--odn-text-muted);
+    margin: 0 0 10px 0;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.odn-tool-group__hint {
+    font-size: 0.72rem;
+    color: var(--odn-text-muted);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* ------------------------------------------------------------
+   Grupos clínicos colapsables (Patología, Estado, Planificación)
+   ------------------------------------------------------------ */
+.odn-finding-group {
+    --odn-fg-color: var(--odn-state-existing);
+    background: var(--odn-bg-panel-alt);
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-md);
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+.odn-finding-group[data-color="active"]     { --odn-fg-color: var(--odn-state-active); }
+.odn-finding-group[data-color="completed"]  { --odn-fg-color: var(--odn-state-completed); }
+.odn-finding-group[data-color="planned"]    { --odn-fg-color: var(--odn-state-planned); }
+.odn-finding-group[data-color="historic"]   { --odn-fg-color: var(--odn-state-historic); }
+.odn-finding-group[data-color="control-ok"] { --odn-fg-color: var(--odn-state-control-ok); }
+
+/* ------------------------------------------------------------
+   Paleta diferenciada por código de hallazgo
+   Mantiene la familia cromática del estado pero da una huella
+   visual única a cada procedimiento para identificación clínica
+   instantánea en el SVG y en los botones del panel.
+   ------------------------------------------------------------ */
+/* PLAN (ámbar→naranja→tabaco) */
+.odn-finding-btn[data-code="plan-resina"]                { --odn-finding-color: #f59e0b; }
+.odn-finding-btn[data-code="plan-recubrimiento"]         { --odn-finding-color: #fb923c; }
+.odn-finding-btn[data-code="plan-trepanacion"]           { --odn-finding-color: #facc15; }
+.odn-finding-btn[data-code="plan-biopulp-convencional"]  { --odn-finding-color: #d97706; }
+.odn-finding-btn[data-code="plan-biopulp-mecanizada"]    { --odn-finding-color: #c2410c; }
+.odn-finding-btn[data-code="plan-indirecta"]             { --odn-finding-color: #92400e; }
+.odn-finding-btn[data-code="plan-implante"]              { --odn-finding-color: #fbbf24; }
+/* REALIZADO (verde→lima→pino) */
+.odn-finding-btn[data-code="done-resina"]                { --odn-finding-color: #22c55e; }
+.odn-finding-btn[data-code="done-recubrimiento"]         { --odn-finding-color: #4ade80; }
+.odn-finding-btn[data-code="done-trepanacion"]           { --odn-finding-color: #84cc16; }
+.odn-finding-btn[data-code="done-biopulp-convencional"]  { --odn-finding-color: #16a34a; }
+.odn-finding-btn[data-code="done-biopulp-mecanizada"]    { --odn-finding-color: #15803d; }
+.odn-finding-btn[data-code="done-indirecta"]             { --odn-finding-color: #166534; }
+.odn-finding-btn[data-code="done-implante"]              { --odn-finding-color: #65a30d; }
+
+/* Mismas tintas en las superficies SVG pintadas: el motor escribe
+   `data-finding-code` en cada polígono al aplicar el hallazgo.    */
+.odn-surface.odn-planned[data-finding-code="plan-resina"]                { fill: #f59e0b; }
+.odn-surface.odn-planned[data-finding-code="plan-recubrimiento"]         { fill: #fb923c; }
+.odn-surface.odn-planned[data-finding-code="plan-trepanacion"]           { fill: #facc15; }
+.odn-surface.odn-planned[data-finding-code="plan-biopulp-convencional"]  { fill: #d97706; }
+.odn-surface.odn-planned[data-finding-code="plan-biopulp-mecanizada"]    { fill: #c2410c; }
+.odn-surface.odn-planned[data-finding-code="plan-indirecta"]             { fill: #92400e; }
+.odn-surface.odn-planned[data-finding-code="plan-implante"]              { fill: #fbbf24; }
+
+.odn-surface.odn-control-ok[data-finding-code="done-resina"]                { fill: #22c55e; }
+.odn-surface.odn-control-ok[data-finding-code="done-recubrimiento"]         { fill: #4ade80; }
+.odn-surface.odn-control-ok[data-finding-code="done-trepanacion"]           { fill: #84cc16; }
+.odn-surface.odn-control-ok[data-finding-code="done-biopulp-convencional"]  { fill: #16a34a; }
+.odn-surface.odn-control-ok[data-finding-code="done-biopulp-mecanizada"]    { fill: #15803d; }
+.odn-surface.odn-control-ok[data-finding-code="done-indirecta"]             { fill: #166534; }
+.odn-surface.odn-control-ok[data-finding-code="done-implante"]              { fill: #65a30d; }
+
+.odn-finding-group__head {
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--odn-text);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    text-align: left;
+    border-bottom: 1px solid transparent;
+    transition: background-color var(--odn-dur-fast) var(--odn-easing),
+                border-color var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-finding-group__head:hover { background: rgba(15, 23, 42, 0.03); }
+.odn-finding-group__dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--odn-fg-color);
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+    flex: 0 0 auto;
+}
+.odn-finding-group__name { flex: 1 1 auto; min-width: 0; }
+.odn-finding-group__chevron {
+    color: var(--odn-text-muted);
+    font-size: 1.2rem;
+    transition: transform var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-finding-group[data-collapsed="true"] .odn-finding-group__chevron {
+    transform: rotate(-90deg);
+}
+.odn-finding-group[data-collapsed="true"] .odn-finding-group__body {
+    display: none;
+}
+.odn-finding-group__body {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 6px 8px 10px;
+    border-top: 1px dashed var(--odn-border);
+}
+
+/* Botón de hallazgo clínico individual */
+.odn-finding-btn {
+    --odn-finding-color: var(--odn-fg-color, var(--odn-state-existing));
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    background: var(--odn-bg-panel);
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-sm);
+    color: var(--odn-text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.25;
+    transition: border-color var(--odn-dur-fast) var(--odn-easing),
+                background-color var(--odn-dur-fast) var(--odn-easing),
+                box-shadow var(--odn-dur-fast) var(--odn-easing),
+                transform var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-finding-btn::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--odn-finding-color);
+    flex: 0 0 auto;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.05);
+}
+.odn-finding-btn:hover {
+    border-color: var(--odn-finding-color);
+    transform: translateX(2px);
+}
+.odn-finding-btn.odn-active {
+    background: #fff;
+    border-color: var(--odn-finding-color);
+    box-shadow: inset 0 0 0 1px var(--odn-finding-color),
+                0 2px 8px rgba(15, 23, 42, 0.06);
+    color: var(--odn-accent-deep);
+}
+.odn-finding-btn.odn-active::after {
+    content: "check_circle";
+    font-family: 'Material Symbols Outlined';
+    font-size: 1.05rem;
+    margin-left: auto;
+    color: var(--odn-finding-color);
+}
+/* Icono que distingue acción sobre pieza completa vs superficie */
+.odn-finding-btn[data-scope="whole-tooth"]::after {
+    content: "all_inclusive";
+    font-family: 'Material Symbols Outlined';
+    font-size: 1.05rem;
+    margin-left: auto;
+    color: var(--odn-text-muted);
+    opacity: 0.7;
+}
+.odn-finding-btn[data-scope="whole-tooth"].odn-active::after {
+    content: "all_inclusive";
+    color: var(--odn-finding-color);
+    opacity: 1;
+}
+
+/* Borrador clínico */
+.odn-finding-actions {
+    margin-top: 4px;
+    margin-bottom: 14px;
+}
+.odn-finding-btn--eraser {
+    --odn-finding-color: var(--odn-state-existing);
+    width: 100%;
+    justify-content: flex-start;
+    background: #fff;
+    color: var(--odn-text-soft);
+    border-style: dashed;
+}
+.odn-finding-btn--eraser::before { display: none; }
+.odn-finding-btn--eraser .material-symbols-outlined {
+    font-size: 1.1rem;
+    color: var(--odn-text-muted);
+}
+.odn-finding-btn--eraser:hover {
+    color: var(--odn-state-active);
+    border-color: var(--odn-state-active);
+}
+.odn-finding-btn--eraser.odn-active {
+    border-style: solid;
+    color: var(--odn-text);
+}
+
+/* Acciones primarias del panel */
+.odn-tool-action {
+    width: 100%;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border: none;
+    background: var(--odn-accent-deep);
+    color: white; font-weight: 700; font-size: 0.9rem;
+    border-radius: var(--odn-radius-md);
+    cursor: pointer;
+    box-shadow: var(--odn-shadow-sm);
+    transition: background-color var(--odn-dur-fast) var(--odn-easing),
+                transform var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-tool-action:hover  { background: #0f4d80; }
+.odn-tool-action:active { transform: translateY(1px); }
+.odn-tool-action--ghost {
+    background: transparent; color: var(--odn-accent-deep);
+    border: 1px solid var(--odn-border-strong);
+    box-shadow: none;
+}
+.odn-tool-action--ghost:hover { background: var(--odn-bg-panel-alt); }
+.odn-tool-action--danger { background: var(--odn-state-active); }
+.odn-tool-action--danger:hover { background: #b91c1c; }
+
+/* ============================================================
+   6. Canvas central: contenedor del SVG dinámico
+   ============================================================ */
+.odn-canvas {
+    position: relative;
+    background: var(--odn-bg-canvas);
+    border-radius: var(--odn-radius-lg);
+    box-shadow: var(--odn-shadow-md);
+    border: 1px solid var(--odn-border);
+    display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+}
+
+.odn-canvas__header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--odn-divider);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+.odn-canvas__title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--odn-accent-deep);
+    display: flex; align-items: center; gap: 8px;
+}
+.odn-canvas__title .material-symbols-outlined { color: var(--odn-accent); }
+
+/* Controles de zoom/reset */
+.odn-canvas__controls { display: inline-flex; align-items: center; gap: 4px; }
+.odn-canvas__ctrl {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    background: var(--odn-bg-panel-alt);
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-sm);
+    color: var(--odn-text-soft);
+    cursor: pointer;
+    transition: background-color var(--odn-dur-fast) var(--odn-easing),
+                color var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-canvas__ctrl:hover { background: #fff; color: var(--odn-accent-deep); border-color: var(--odn-accent); }
+.odn-canvas__ctrl .material-symbols-outlined { font-size: 1.15rem; }
+
+/* Lienzo donde el JS inyecta el SVG dinámicamente */
+.odn-canvas__stage {
+    flex: 1 1 auto;
+    position: relative;
+    min-height: 320px;
+    background-image:
+        linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: center center;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+
+.odn-svg {
+    width: 100%;
+    height: 100%;
+    max-height: calc(100vh - 220px);
+    display: block;
+    transition: transform var(--odn-dur-slow) var(--odn-easing);
+    touch-action: none;
+}
+
+/* Placeholder visible mientras el JS no ha renderizado nada */
+.odn-canvas__placeholder {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    color: var(--odn-text-muted);
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 24px;
+    pointer-events: none;
+}
+.odn-canvas__placeholder .material-symbols-outlined {
+    display: block; font-size: 3rem; margin: 0 auto 10px;
+    color: var(--odn-border-strong);
+}
+
+/* Leyenda inferior con la cromática semántica */
+.odn-legend {
+    display: flex; flex-wrap: wrap; gap: 10px 18px;
+    padding: 10px 18px;
+    border-top: 1px solid var(--odn-divider);
+    background: #fff;
+    font-size: 0.78rem;
+    color: var(--odn-text-soft);
+}
+.odn-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.odn-legend__dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.15);
+}
+.odn-legend__dot--existing   { background: var(--odn-state-existing); }
+.odn-legend__dot--completed  { background: var(--odn-state-completed); }
+.odn-legend__dot--planned    { background: var(--odn-state-planned); }
+.odn-legend__dot--active     { background: var(--odn-state-active); }
+.odn-legend__dot--control-ok { background: var(--odn-state-control-ok); }
+.odn-legend__dot--review     { background: var(--odn-state-review); }
+.odn-legend__dot--historic   { background: var(--odn-state-historic); }
+
+/* ============================================================
+   7. Sistema de capas del SVG
+   Cada grupo SVG con clase de capa puede ocultarse/atenuarse
+   mediante .hidden / .odn-dimmed. El JS sólo necesita togglear.
+   ============================================================ */
+.odn-layer {
+    transition: opacity var(--odn-dur-base) var(--odn-easing);
+    transform-box: fill-box;
+}
+.odn-layer-anatomical  { z-index: var(--odn-z-layer-anatomical);  opacity: 1; }
+.odn-layer-historic    { z-index: var(--odn-z-layer-historic);    opacity: 0.55; }
+.odn-layer-diagnostic  { z-index: var(--odn-z-layer-diagnostic);  opacity: 1; }
+.odn-layer-therapeutic { z-index: var(--odn-z-layer-therapeutic); opacity: 1; }
+
+.odn-layer.odn-hidden  { display: none !important; }
+.odn-layer.odn-dimmed  { opacity: 0.18; pointer-events: none; }
+.odn-layer.odn-active  { opacity: 1; }
+
+/* Para SVG: estas reglas aplican a <g class="odn-layer ..."> */
+g.odn-layer-anatomical   > * { fill: var(--odn-state-existing); }
+g.odn-layer-historic     > * { fill: var(--odn-state-historic); }
+g.odn-layer-diagnostic   > * { stroke-width: 2; }
+g.odn-layer-therapeutic  > * { stroke-width: 2.5; }
+
+/* ============================================================
+   8. Estados visuales de pieza dentaria (SVG <g class="odn-tooth">)
+   --------------------------------------------------------------
+   ANTI-FLICKER: el contenedor <g> NO escala en hover. El zoom y los
+   eventos cursor están delegados exclusivamente a los <polygon> de
+   superficie. Cualquier elemento decorativo (text, tspan) usa
+   pointer-events: none para no robar focus al cursor.
+   ============================================================ */
+.odn-tooth {
+    /* Sin cursor:pointer ni transform aquí — el cursor lo define la superficie.
+       Esto evita el redondeo de bounding-box que generaba parpadeo en el borde. */
+    pointer-events: none;
+}
+.odn-tooth > polygon.odn-surface {
+    pointer-events: auto;
+}
+.odn-tooth.odn-selected .odn-tooth__label {
+    fill: var(--odn-accent-deep);
+    font-weight: 800;
+}
+.odn-tooth.odn-locked .odn-surface {
+    cursor: not-allowed;
+    filter: grayscale(0.6) opacity(0.75);
+}
+/* Indicador de pieza seleccionada: un sutil halo en el rótulo. */
+.odn-tooth.odn-selected .odn-tooth__label {
+    paint-order: stroke fill;
+    stroke: rgba(0, 168, 255, 0.55);
+    stroke-width: 0.6;
+}
+
+/* Etiqueta FDI fuera del diente — NUNCA recibe eventos del cursor. */
+.odn-tooth__label {
+    font-size: 10px;
+    font-weight: 700;
+    fill: var(--odn-text-soft);
+    text-anchor: middle;
+    pointer-events: none;
+    user-select: none;
+    cursor: default;
+}
+
+/* ------------------------------------------------------------
+   Superficies clicables (5 polígonos por diente).
+   Micro-zoom orgánico al hover/estado-activo. transform-box:
+   fill-box garantiza que el origen sea el centro geométrico de
+   cada polígono y no el del viewport SVG.
+   ------------------------------------------------------------ */
+.odn-surface {
+    cursor: pointer;
+    fill: var(--odn-state-existing-soft);
+    fill-opacity: 0.35;
+    stroke: rgba(15, 23, 42, 0.35);
+    stroke-width: 0.8;
+    stroke-linejoin: round;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    pointer-events: auto;
+    /* will-change ayuda al compositor a anticipar la transformación,
+       eliminando parpadeo perceptible al inicio de la animación.    */
+    will-change: transform, fill, filter;
+}
+
+.odn-surface:hover {
+    fill: rgba(0, 168, 255, 0.45);
+    fill-opacity: 1;
+    stroke: var(--odn-accent);
+    stroke-width: 1.2;
+    transform: scale(1.15);
+    filter: drop-shadow(0 4px 10px rgba(0, 168, 255, 0.35));
+}
+
+/* Cualquier superficie con estado clínico aplicado se "alza" hacia
+   el odontólogo. El reordenamiento en DOM (lo hace el JS) garantiza
+   que la superficie tocada quede sobre sus vecinas en SVG.          */
+.odn-surface.odn-active,
+.odn-surface.odn-completed,
+.odn-surface.odn-planned,
+.odn-surface.odn-control-ok,
+.odn-surface.odn-review,
+.odn-surface.odn-historic {
+    fill-opacity: 1;
+    stroke: rgba(15, 23, 42, 0.55);
+    stroke-width: 1.1;
+    transform: scale(1.12);
+    filter: drop-shadow(0 3px 8px rgba(15, 23, 42, 0.22));
+}
+
+.odn-surface.odn-active     { fill: var(--odn-state-active); }
+.odn-surface.odn-completed  { fill: var(--odn-state-completed); }
+.odn-surface.odn-planned    { fill: var(--odn-state-planned); }
+.odn-surface.odn-control-ok { fill: var(--odn-state-control-ok); }
+.odn-surface.odn-review     { fill: var(--odn-state-review); }
+.odn-surface.odn-historic   { fill: var(--odn-state-historic); }
+
+/* Al combinar hover sobre una superficie ya activa, el zoom se
+   intensifica ligeramente sin compounding inestable.               */
+.odn-surface.odn-active:hover,
+.odn-surface.odn-completed:hover,
+.odn-surface.odn-planned:hover,
+.odn-surface.odn-control-ok:hover,
+.odn-surface.odn-review:hover,
+.odn-surface.odn-historic:hover {
+    transform: scale(1.18);
+    filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.28));
+}
+
+/* Línea media maxilar/mandibular */
+.odn-arch-divider {
+    stroke: rgba(15, 23, 42, 0.2);
+    stroke-width: 1;
+    stroke-dasharray: 4 6;
+    fill: none;
+}
+
+/* ============================================================
+   9. Timeline histórico vertical por pieza
+   ============================================================ */
+.odn-timeline {
+    background: var(--odn-bg-panel);
+    color: var(--odn-text);
+    border-radius: var(--odn-radius-lg);
+    box-shadow: var(--odn-shadow-md);
+    border: 1px solid var(--odn-border);
+    display: flex; flex-direction: column;
+    min-height: 0; overflow: hidden;
+}
+.odn-timeline__header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--odn-divider);
+}
+.odn-timeline__title {
+    margin: 0; font-size: 0.95rem; font-weight: 800;
+    color: var(--odn-accent-deep);
+    display: flex; align-items: center; gap: 8px;
+}
+.odn-timeline__title .material-symbols-outlined { color: var(--odn-accent); font-size: 1.15rem; }
+
+.odn-timeline__chip {
+    background: var(--odn-accent-deep);
+    color: white; padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.4px;
+}
+.odn-timeline__chip[data-empty="true"] {
+    background: var(--odn-bg-panel-alt);
+    color: var(--odn-text-muted);
+}
+
+.odn-timeline__filter {
+    padding: 10px 16px;
+    border-bottom: 1px dashed var(--odn-divider);
+    display: flex; gap: 6px; flex-wrap: wrap;
+}
+.odn-timeline__filter-btn {
+    padding: 5px 10px;
+    font-size: 0.72rem; font-weight: 700;
+    border-radius: 999px;
+    background: var(--odn-bg-panel-alt);
+    border: 1px solid var(--odn-border);
+    color: var(--odn-text-soft);
+    cursor: pointer;
+    transition: background-color var(--odn-dur-fast) var(--odn-easing),
+                color var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-timeline__filter-btn:hover { background: #fff; color: var(--odn-text); }
+.odn-timeline__filter-btn.odn-active { background: var(--odn-accent-deep); color: white; border-color: var(--odn-accent-deep); }
+
+.odn-timeline__scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 16px 16px 20px;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: var(--odn-border-strong) transparent;
+}
+.odn-timeline__scroll::-webkit-scrollbar       { width: 6px; }
+.odn-timeline__scroll::-webkit-scrollbar-thumb { background: var(--odn-border-strong); border-radius: 3px; }
+
+/* La línea vertical del timeline */
+.odn-timeline__rail {
+    position: relative;
+    padding-left: 22px;
+}
+.odn-timeline__rail::before {
+    content: ""; position: absolute;
+    left: 8px; top: 4px; bottom: 4px;
+    width: 2px;
+    background: linear-gradient(180deg,
+        var(--odn-state-historic) 0%,
+        var(--odn-state-completed) 30%,
+        var(--odn-state-planned) 60%,
+        var(--odn-state-active) 100%);
+    opacity: 0.35;
+    border-radius: 2px;
+}
+
+.odn-event {
+    position: relative;
+    margin-bottom: 14px;
+    padding: 12px 12px 12px 14px;
+    background: var(--odn-bg-panel-alt);
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-md);
+    box-shadow: var(--odn-shadow-sm);
+    transition: transform var(--odn-dur-fast) var(--odn-easing),
+                box-shadow var(--odn-dur-fast) var(--odn-easing);
+    cursor: pointer;
+}
+.odn-event:hover { transform: translateX(2px); box-shadow: var(--odn-shadow-md); background: #fff; }
+.odn-event:last-child { margin-bottom: 0; }
+
+/* Marcador circular sobre el rail */
+.odn-event::before {
+    content: ""; position: absolute;
+    left: -22px; top: 14px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--odn-state-existing);
+    border: 3px solid var(--odn-bg-panel);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.1);
+}
+.odn-event[data-state="completed"]::before  { background: var(--odn-state-completed); }
+.odn-event[data-state="planned"]::before    { background: var(--odn-state-planned); }
+.odn-event[data-state="active"]::before     { background: var(--odn-state-active); }
+.odn-event[data-state="control-ok"]::before { background: var(--odn-state-control-ok); }
+.odn-event[data-state="review"]::before     { background: var(--odn-state-review); }
+.odn-event[data-state="historic"]::before   { background: var(--odn-state-historic); }
+
+.odn-event__head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 6px;
+}
+.odn-event__piece {
+    font-size: 0.72rem; font-weight: 800;
+    background: rgba(15, 23, 42, 0.08);
+    color: var(--odn-text);
+    padding: 3px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.4px;
+}
+.odn-event__date {
+    font-size: 0.72rem; font-weight: 700;
+    color: var(--odn-text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.odn-event__title {
+    margin: 0; font-size: 0.88rem; font-weight: 700;
+    color: var(--odn-text); line-height: 1.35;
+}
+.odn-event__meta {
+    margin-top: 6px;
+    font-size: 0.78rem; color: var(--odn-text-soft);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.odn-event__meta .material-symbols-outlined { font-size: 0.95rem; color: var(--odn-text-muted); }
+.odn-event__tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(0, 168, 255, 0.10);
+    color: var(--odn-accent-deep);
+    font-size: 0.7rem; font-weight: 700;
+}
+
+/* Estado vacío del timeline */
+.odn-timeline__empty {
+    padding: 30px 14px;
+    text-align: center;
+    color: var(--odn-text-muted);
+    font-size: 0.88rem;
+}
+.odn-timeline__empty .material-symbols-outlined {
+    display: block; font-size: 2.4rem; margin: 0 auto 8px;
+    color: var(--odn-border-strong);
+}
+
+/* ============================================================
+   10. Tarjeta inferior de detalle de pieza seleccionada (opcional)
+   ============================================================ */
+.odn-detail-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--odn-radius-md);
+    color: var(--odn-text-inverse);
+    font-size: 0.85rem;
+}
+.odn-detail-bar__piece {
+    background: var(--odn-accent);
+    color: #002034;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+.odn-detail-bar__sep { width: 1px; height: 22px; background: rgba(255, 255, 255, 0.12); }
+.odn-detail-bar__field { display: inline-flex; align-items: center; gap: 6px; opacity: 0.85; }
+.odn-detail-bar__field strong { font-weight: 700; opacity: 1; }
+
+/* ============================================================
+   11. Breakpoints responsivos
+   ============================================================ */
+@media (max-width: 1280px) {
+    .odn-workspace { grid-template-columns: 260px minmax(0, 1fr) 300px; }
+    .odn-patient-chip__name { max-width: 180px; }
+}
+
+@media (max-width: 1024px) {
+    .odn-workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 10px;
+    }
+    .odn-toolpanel { max-height: 220px; }
+    .odn-timeline  { max-height: 280px; }
+    .odn-canvas    { min-height: 360px; }
+    .odn-finding-group__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+}
+
+@media (max-width: 768px) {
+    .odn-topbar { grid-template-columns: 1fr auto; gap: 10px; padding: 10px 14px; min-height: 56px; }
+    .odn-topbar__title { display: none; }
+    .odn-patient-chip__name { max-width: 140px; }
+    .odn-canvas__header { padding: 10px 14px; }
+    .odn-canvas__title  { font-size: 0.85rem; }
+    .odn-canvas__ctrl   { width: 30px; height: 30px; }
+    .odn-toolpanel__scroll, .odn-timeline__scroll { padding: 10px 12px 14px; }
+    .odn-finding-group__body { gap: 4px; }
+    .odn-legend { font-size: 0.7rem; padding: 8px 14px; gap: 6px 12px; }
+    .odn-launcher-strip {
+        flex-direction: column; align-items: stretch; gap: 12px;
+        padding: 14px 16px; text-align: center;
+    }
+    .odn-launcher { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 540px) {
+    .odn-shell { border-radius: 0; }
+    .odn-workspace { padding: 8px; gap: 8px; }
+    .odn-canvas__title span:not(.material-symbols-outlined) { display: none; }
+    .odn-toolpanel__header h3 { font-size: 0.85rem; }
+    .odn-event__title { font-size: 0.82rem; }
+    .odn-patient-chip__meta { display: none; }
+    .odn-patient-chip__name { max-width: 110px; font-size: 0.85rem; }
+}
+
+/* ============================================================
+   12. Modo impresión: simplifica el odontograma para PDF/papel
+   ============================================================ */
+@media print {
+    .odn-modal { position: static; background: white; backdrop-filter: none; }
+    .odn-shell { background: white; color: black; }
+    .odn-topbar, .odn-toolpanel, .odn-timeline,
+    .odn-canvas__controls, .odn-canvas__header,
+    .odn-launcher, .odn-launcher-strip { display: none !important; }
+    .odn-workspace { grid-template-columns: 1fr; padding: 0; background: white; }
+    .odn-canvas { box-shadow: none; border: none; }
+    .odn-svg { max-height: none; }
+    .odn-tooth { filter: none !important; }
+}

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/odontograma.css">
     <style>
         /* 1. LAYOUT RESPONSIVO */
         .ficha-layout { display: flex; flex-direction: column; gap: 20px; }
@@ -84,6 +85,45 @@
                     <h1 style="font-size: 1.6rem;">Ficha Clínica: <span id="headerNombrePaciente" style="color: var(--pixar-cyan);">Cargando...</span></h1>
                 </div>
             </header>
+
+            <!-- ============================================================== -->
+            <!-- ODONTOGRAMA · CTA con contadores en vivo (atajo: Alt+O)          -->
+            <!-- ============================================================== -->
+            <section class="odn-launcher-strip" aria-label="Acceso al odontograma clínico">
+                <div class="odn-launcher-strip__info">
+                    <p class="odn-launcher-strip__title">
+                        <span class="material-symbols-outlined" aria-hidden="true">dentistry</span>
+                        Odontograma Clínico
+                    </p>
+                    <p class="odn-launcher-strip__subtitle">
+                        Diagnóstico por superficie · planificación · timeline por pieza  ·  <kbd style="background:rgba(255,255,255,0.12);padding:1px 6px;border-radius:4px;font-size:0.72rem;">Alt + O</kbd>
+                    </p>
+                </div>
+
+                <div class="odn-launcher-strip__stats" aria-live="polite" aria-label="Resumen del odontograma">
+                    <span class="odn-stat-chip" data-state="active" title="Patologías activas registradas">
+                        <span class="odn-stat-chip__dot" aria-hidden="true"></span>
+                        <span class="odn-stat-chip__num" id="odnStatPatologia">0</span>
+                        <span class="odn-stat-chip__label">patología</span>
+                    </span>
+                    <span class="odn-stat-chip" data-state="planned" title="Tratamientos planificados">
+                        <span class="odn-stat-chip__dot" aria-hidden="true"></span>
+                        <span class="odn-stat-chip__num" id="odnStatPlan">0</span>
+                        <span class="odn-stat-chip__label">plan</span>
+                    </span>
+                    <span class="odn-stat-chip" data-state="completed" title="Estados existentes registrados">
+                        <span class="odn-stat-chip__dot" aria-hidden="true"></span>
+                        <span class="odn-stat-chip__num" id="odnStatExistente">0</span>
+                        <span class="odn-stat-chip__label">existente</span>
+                    </span>
+                </div>
+
+                <button type="button" class="odn-launcher" id="btnAbrirOdontograma"
+                        onclick="abrirOdontograma()" aria-controls="odontogramaModal" aria-expanded="false">
+                    <span class="material-symbols-outlined" aria-hidden="true">grid_on</span>
+                    Abrir Odontograma
+                </button>
+            </section>
 
             <div class="ficha-layout">
                 <div class="historial-panel">
@@ -289,6 +329,298 @@
             </div>
         </div>
     </div>
+    <!-- ======================================================= -->
+    <!-- MODAL ODONTOGRAMA CLÍNICO A PANTALLA COMPLETA           -->
+    <!-- Layout: tools (3 grupos clínicos) | SVG | timeline      -->
+    <!-- ======================================================= -->
+    <div id="odontogramaModal" class="odn-modal" role="dialog" aria-modal="true" aria-labelledby="odnTitulo">
+        <div class="odn-shell">
+            <header class="odn-topbar">
+                <div class="odn-topbar__left">
+                    <div class="odn-patient-chip">
+                        <div class="odn-patient-chip__avatar" id="odnAvatar">--</div>
+                        <div style="display:flex;flex-direction:column;min-width:0;">
+                            <span class="odn-patient-chip__name" id="odnNombrePaciente">Paciente</span>
+                            <span class="odn-patient-chip__meta" id="odnRutPaciente">RUT: --</span>
+                        </div>
+                    </div>
+                    <select class="odn-select" id="odnDenticionSelect" aria-label="Tipo de dentición">
+                        <option value="permanent">Dentición permanente</option>
+                        <option value="temporary">Dentición temporal</option>
+                        <option value="mixed">Dentición mixta</option>
+                    </select>
+                </div>
+
+                <div class="odn-topbar__title" id="odnTitulo">
+                    <span class="material-symbols-outlined" aria-hidden="true">dentistry</span>
+                    Odontograma Clínico
+                </div>
+
+                <div class="odn-topbar__right">
+                    <button type="button" class="odn-btn-icon" id="odnBtnExport" title="Exportar historial del odontograma a PDF">
+                        <span class="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span>
+                    </button>
+                    <button type="button" class="odn-btn-icon" id="odnBtnSave" title="Guardar snapshot local">
+                        <span class="material-symbols-outlined" aria-hidden="true">save</span>
+                    </button>
+                    <button type="button" class="odn-btn-cta" id="odnBtnAplicarPresupuesto"
+                            title="Llevar hallazgos planificados / patología al presupuesto de la ficha">
+                        <span class="material-symbols-outlined" aria-hidden="true">paid</span>
+                        <span class="odn-btn-cta__label">Llevar a presupuesto</span>
+                    </button>
+                    <button type="button" class="odn-btn-icon" id="odnBtnLock" title="Firmar y bloquear odontograma">
+                        <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+                    </button>
+                    <button type="button" class="odn-btn-icon odn-btn-icon--danger" onclick="cerrarOdontograma()" title="Cerrar (Esc)">
+                        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="odn-workspace">
+                <!-- ============== PANEL CLÍNICO IZQUIERDO ============== -->
+                <aside class="odn-toolpanel" aria-label="Panel de hallazgos clínicos">
+                    <div class="odn-toolpanel__header">
+                        <span class="material-symbols-outlined" aria-hidden="true">build</span>
+                        <h3>Hallazgos clínicos</h3>
+                    </div>
+                    <div class="odn-toolpanel__scroll">
+
+                        <!-- ▸ Grupo Patología (rojo) -->
+                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
+                                <span class="odn-finding-group__name">Patología</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
+                            </button>
+                            <div class="odn-finding-group__body">
+                                <button type="button" class="odn-finding-btn odn-active"
+                                        data-state="active" data-scope="surface"
+                                        data-code="caries-superficial" data-label="Caries superficial">Caries superficial</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="active" data-scope="surface"
+                                        data-code="caries-dentinaria" data-label="Caries dentinaria">Caries dentinaria</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="active" data-scope="surface"
+                                        data-code="caries-profunda" data-label="Caries profunda">Caries profunda</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="active" data-scope="whole-tooth"
+                                        data-code="cp-reversible" data-label="Compromiso pulpar reversible">Comp. pulpar reversible</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="active" data-scope="whole-tooth"
+                                        data-code="cp-irreversible" data-label="Compromiso pulpar irreversible">Comp. pulpar irreversible</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="active" data-scope="whole-tooth"
+                                        data-code="cp-necrosis" data-label="Compromiso pulpar — necrosis">Comp. pulpar · necrosis</button>
+                            </div>
+                        </section>
+
+                        <!-- ▸ Grupo Estado Clínico Existente (azul) -->
+                        <section class="odn-finding-group" data-collapsed="false" data-color="completed">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
+                                <span class="odn-finding-group__name">Estado clínico existente</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
+                            </button>
+                            <div class="odn-finding-group__body">
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="completed" data-scope="whole-tooth"
+                                        data-code="endo-existente" data-label="Endodoncia">Endodoncia</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="completed" data-scope="whole-tooth"
+                                        data-code="pfu" data-label="PFU (Prótesis Fija Unitaria)">PFU</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="completed" data-scope="whole-tooth"
+                                        data-code="pilar-ppr" data-label="Pilar PPR">Pilar PPR</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="completed" data-scope="whole-tooth"
+                                        data-code="intermediario-pfp" data-label="Intermediario PFP">Intermediario PFP</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="completed" data-scope="whole-tooth"
+                                        data-code="implante" data-label="Implante">Implante</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="historic" data-scope="whole-tooth"
+                                        data-code="pieza-ausente" data-label="Pieza ausente">Pieza ausente</button>
+                            </div>
+                        </section>
+
+                        <!-- ▸ Grupo Planificación (ámbar) -->
+                        <section class="odn-finding-group" data-collapsed="false" data-color="planned">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
+                                <span class="odn-finding-group__name">Planificación</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
+                            </button>
+                            <div class="odn-finding-group__body">
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="surface"
+                                        data-code="plan-resina" data-label="Resina compuesta (plan)">Resina compuesta</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="surface"
+                                        data-code="plan-recubrimiento" data-label="Recubrimiento pulpar (plan)">Recubrimiento pulpar</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="whole-tooth"
+                                        data-code="plan-trepanacion" data-label="Trepanación">Trepanación</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="whole-tooth"
+                                        data-code="plan-biopulp-convencional"
+                                        data-label="Endodoncia · Biopulpectomía total (convencional)">Biopulpectomía total · convencional</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="whole-tooth"
+                                        data-code="plan-biopulp-mecanizada"
+                                        data-label="Endodoncia · Biopulpectomía total (mecanizada)">Biopulpectomía total · mecanizada</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="whole-tooth"
+                                        data-code="plan-indirecta" data-label="Restauración indirecta (Incrustación / PFU)">Rest. indirecta / PFU</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="planned" data-scope="whole-tooth"
+                                        data-code="plan-implante" data-label="Indicación de implante">Indicación implante</button>
+                            </div>
+                        </section>
+
+                        <!-- ▸ Borrador clínico -->
+                        <div class="odn-finding-actions">
+                            <button type="button" class="odn-finding-btn odn-finding-btn--eraser"
+                                    data-state="existing" data-scope="surface"
+                                    data-code="borrar" data-label="Borrar marcado">
+                                <span class="material-symbols-outlined" aria-hidden="true">ink_eraser</span>
+                                Borrador (limpiar superficie)
+                            </button>
+                        </div>
+
+                        <!-- ▸ Grupo Tratamiento Realizado / Finalizado (verde) -->
+                        <section class="odn-finding-group" data-collapsed="false" data-color="control-ok">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
+                                <span class="odn-finding-group__name">Tratamiento realizado / finalizado</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
+                            </button>
+                            <div class="odn-finding-group__body">
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="surface"
+                                        data-code="done-resina" data-label="Resina compuesta realizada">Resina compuesta</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="surface"
+                                        data-code="done-recubrimiento" data-label="Recubrimiento pulpar realizado">Recubrimiento pulpar</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="whole-tooth"
+                                        data-code="done-trepanacion" data-label="Trepanación realizada">Trepanación</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="whole-tooth"
+                                        data-code="done-biopulp-convencional"
+                                        data-label="Biopulpectomía total convencional realizada">Biopulpectomía total · convencional</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="whole-tooth"
+                                        data-code="done-biopulp-mecanizada"
+                                        data-label="Biopulpectomía total mecanizada realizada">Biopulpectomía total · mecanizada</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="whole-tooth"
+                                        data-code="done-indirecta"
+                                        data-label="Restauración indirecta realizada (Incrustación / PFU)">Rest. indirecta / PFU</button>
+                                <button type="button" class="odn-finding-btn"
+                                        data-state="control-ok" data-scope="whole-tooth"
+                                        data-code="done-implante" data-label="Implante realizado">Implante</button>
+                            </div>
+                        </section>
+
+                        <!-- ▸ Acciones de pieza seleccionada -->
+                        <div class="odn-tool-group">
+                            <p class="odn-tool-group__title">Pieza seleccionada</p>
+                            <button class="odn-tool-action" id="odnBtnRegistrarHallazgo" type="button">
+                                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
+                                Aplicar a pieza
+                            </button>
+                            <button class="odn-tool-action odn-tool-action--ghost" id="odnBtnAgregarPlan" type="button" style="margin-top:8px;">
+                                <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
+                                Marcar plan completo
+                            </button>
+                            <button class="odn-tool-action odn-tool-action--danger" id="odnBtnResolverHallazgo" type="button" style="margin-top:8px;">
+                                <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
+                                Resolver patología
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- ============== CANVAS SVG CENTRAL ============== -->
+                <section class="odn-canvas" aria-label="Lienzo del odontograma">
+                    <header class="odn-canvas__header">
+                        <h3 class="odn-canvas__title">
+                            <span class="material-symbols-outlined" aria-hidden="true">grid_on</span>
+                            <span>Mapa dental — Notación FDI</span>
+                        </h3>
+                        <div class="odn-canvas__controls" role="group" aria-label="Controles del lienzo">
+                            <button class="odn-canvas__ctrl" id="odnZoomOut" type="button" title="Reducir zoom">
+                                <span class="material-symbols-outlined" aria-hidden="true">remove</span>
+                            </button>
+                            <button class="odn-canvas__ctrl" id="odnZoomReset" type="button" title="Restablecer vista">
+                                <span class="material-symbols-outlined" aria-hidden="true">center_focus_strong</span>
+                            </button>
+                            <button class="odn-canvas__ctrl" id="odnZoomIn" type="button" title="Aumentar zoom">
+                                <span class="material-symbols-outlined" aria-hidden="true">add</span>
+                            </button>
+                            <button class="odn-canvas__ctrl" id="odnFullscreen" type="button" title="Pantalla completa">
+                                <span class="material-symbols-outlined" aria-hidden="true">fullscreen</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="odn-canvas__stage" id="odontogramaStage">
+                        <svg id="odontogramaSVG" class="odn-svg" viewBox="0 0 1000 520"
+                             preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"
+                             role="img" aria-label="Odontograma — notación FDI">
+                            <line class="odn-arch-divider" x1="40" y1="260" x2="960" y2="260" />
+                            <g class="odn-layer odn-layer-anatomical"  id="odnLayerAnatomical"></g>
+                            <g class="odn-layer odn-layer-historic    odn-hidden" id="odnLayerHistoric"></g>
+                            <g class="odn-layer odn-layer-diagnostic"  id="odnLayerDiagnostic"></g>
+                            <g class="odn-layer odn-layer-therapeutic" id="odnLayerTherapeutic"></g>
+                        </svg>
+                        <div class="odn-canvas__placeholder" id="odnPlaceholder">
+                            <span class="material-symbols-outlined" aria-hidden="true">dentistry</span>
+                            Cargando odontograma del paciente...
+                        </div>
+                    </div>
+
+                    <div class="odn-legend" aria-label="Leyenda de estados clínicos">
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--existing"></span>Existente</span>
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--completed"></span>Estado actual</span>
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--planned"></span>Planificado</span>
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--active"></span>Patología</span>
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--control-ok"></span>Realizado / finalizado</span>
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--review"></span>Revisión</span>
+                        <span class="odn-legend__item"><span class="odn-legend__dot odn-legend__dot--historic"></span>Histórico / ausente</span>
+                    </div>
+                </section>
+
+                <!-- ============== TIMELINE HISTÓRICO DERECHO ============== -->
+                <aside class="odn-timeline" aria-label="Timeline histórico por pieza">
+                    <header class="odn-timeline__header">
+                        <h3 class="odn-timeline__title">
+                            <span class="material-symbols-outlined" aria-hidden="true">timeline</span>
+                            Historial clínico
+                        </h3>
+                        <span class="odn-timeline__chip" id="odnTimelineChip" data-empty="true">0 evento(s)</span>
+                    </header>
+                    <div class="odn-timeline__filter" role="group" aria-label="Filtros de eventos">
+                        <button class="odn-timeline__filter-btn odn-active" data-filter="all"       type="button">Todos</button>
+                        <button class="odn-timeline__filter-btn"            data-filter="active"    type="button">Patología</button>
+                        <button class="odn-timeline__filter-btn"            data-filter="planned"   type="button">Plan</button>
+                        <button class="odn-timeline__filter-btn"            data-filter="completed" type="button">Existente</button>
+                        <button class="odn-timeline__filter-btn"            data-filter="historic"  type="button">Histórico</button>
+                    </div>
+                    <div class="odn-timeline__scroll">
+                        <div class="odn-timeline__rail" id="odontogramaTimelineRail">
+                            <div class="odn-timeline__empty" id="odnTimelineEmpty">
+                                <span class="material-symbols-outlined" aria-hidden="true">touch_app</span>
+                                Selecciona una pieza dental en el lienzo para ver su historial clínico completo.
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
     <!-- ======================================================= -->
     <!-- MODAL RECETA MÉDICA Y VADEMÉCUM -->
     <!-- ======================================================= -->
@@ -1413,6 +1745,374 @@
                 btn.disabled = false;
             }
         }
+
+        // =====================================================================
+        // ODONTOGRAMA · puente con la ficha clínica
+        // - Apertura / cierre del modal sincronizando datos del paciente
+        // - Contadores en vivo en el launcher strip (Patología/Plan/Existente)
+        // - "Llevar a presupuesto": auto-inserta filas en la tabla a partir
+        //   de los hallazgos planificados o de patología registrados.
+        // - Atajo de teclado Alt+O para abrir sin levantar la mano del mouse.
+        // =====================================================================
+
+        function abrirOdontograma() {
+            const modal = document.getElementById('odontogramaModal');
+            if (!modal) return;
+            const nombre = (pacienteActual && pacienteActual.nombre) ? pacienteActual.nombre : 'Paciente';
+            const rut    = (pacienteActual && pacienteActual.rut)    ? pacienteActual.rut    : '--';
+            document.getElementById('odnNombrePaciente').innerText = nombre;
+            document.getElementById('odnRutPaciente').innerText    = 'RUT: ' + rut;
+            document.getElementById('odnAvatar').innerText         = (nombre.charAt(0) || '?').toUpperCase();
+
+            modal.classList.add('odn-active');
+            document.getElementById('btnAbrirOdontograma').setAttribute('aria-expanded', 'true');
+            document.body.style.overflow = 'hidden';
+
+            document.dispatchEvent(new CustomEvent('odontograma:open', {
+                detail: { pacienteId: pacienteIdURL, isLocal: isLocal, paciente: pacienteActual }
+            }));
+        }
+
+        function cerrarOdontograma() {
+            const modal = document.getElementById('odontogramaModal');
+            if (!modal) return;
+            modal.classList.remove('odn-active');
+            const btn = document.getElementById('btnAbrirOdontograma');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+            document.dispatchEvent(new CustomEvent('odontograma:close'));
+            actualizarContadoresOdontograma();
+        }
+
+        // ---------- Contadores en vivo del launcher strip ----------
+        function actualizarContadoresOdontograma() {
+            if (!window.MiDentalOdontograma) return;
+            const eventos = window.MiDentalOdontograma.getEvents();
+            // Sólo contamos el último evento por (fdi+surface o fdi+TOOTH) para no inflar.
+            const ultimos = new Map();
+            // Recorremos en reverso para conservar el más reciente.
+            for (let i = eventos.length - 1; i >= 0; i--) {
+                const e = eventos[i];
+                const k = e.scope === 'whole-tooth' ? `${e.fdi}|TOOTH` : `${e.fdi}|${e.surface}`;
+                if (!ultimos.has(k)) ultimos.set(k, e);
+            }
+            let nPat = 0, nPlan = 0, nExist = 0;
+            ultimos.forEach(e => {
+                if (e.state === 'active')                                    nPat++;
+                else if (e.state === 'planned')                              nPlan++;
+                else if (e.state === 'completed' || e.state === 'historic')  nExist++;
+            });
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = String(v); };
+            set('odnStatPatologia', nPat);
+            set('odnStatPlan',      nPlan);
+            set('odnStatExistente', nExist);
+        }
+
+        // ---------- "Llevar a presupuesto": auto-fill de filas de la tabla ----------
+        function llevarHallazgosAPresupuesto() {
+            if (!window.MiDentalOdontograma) {
+                alert("Motor del odontograma no disponible.");
+                return;
+            }
+            const eventos = window.MiDentalOdontograma.getEvents();
+            if (!eventos.length) {
+                alert("No hay hallazgos registrados en el odontograma todavía.");
+                return;
+            }
+
+            // Agrupamos por pieza + finding code, quedándonos con el último (state vigente).
+            const map = new Map();   // key: fdi|code → evento
+            // Iteramos del más antiguo al más reciente para que el último sobreescriba.
+            for (let i = eventos.length - 1; i >= 0; i--) {
+                const e = eventos[i];
+                if (e.state !== 'planned' && e.state !== 'active') continue;
+                const k = `${e.fdi}|${e.findingCode || e.findingLabel}`;
+                map.set(k, e);
+            }
+
+            if (map.size === 0) {
+                alert("Sólo hay hallazgos históricos / existentes. Marca patología o planificación para llevarlos al presupuesto.");
+                return;
+            }
+
+            const tbody = document.getElementById('tbodyPresupuesto');
+
+            // Recolectamos piezas que ya están en filas existentes para no duplicar.
+            const piezasYa = new Set();
+            tbody.querySelectorAll('tr').forEach(tr => {
+                const d = tr.querySelector('.input-diente');
+                const g = tr.querySelector('.input-diag');
+                if (d && d.value.trim()) piezasYa.add(`${d.value.trim()}|${(g.value || '').trim().toLowerCase()}`);
+            });
+
+            // Si la única fila es la vacía de plantilla, la limpiamos.
+            const rows = tbody.querySelectorAll('tr');
+            if (rows.length === 1) {
+                const r = rows[0];
+                const empty = !r.querySelector('.input-diente').value &&
+                              !r.querySelector('.input-diag').value &&
+                              !r.querySelector('.input-tratamiento').value &&
+                              !r.querySelector('.input-ref').value;
+                if (empty) tbody.innerHTML = '';
+            }
+
+            let agregadas = 0;
+            map.forEach(e => {
+                const piezaFmt = `${e.fdi.charAt(0)}.${e.fdi.charAt(1)}`;
+                // Multi-superficie agrupada: anexa el código compuesto (ej. "OMD") a la pieza.
+                const surfaces = e.surfaces && e.surfaces.length
+                    ? e.surfaces
+                    : (e.surface ? [e.surface] : []);
+                const surfCode = (e.scope === 'whole-tooth' || surfaces.length === 0) ? '' : surfaces.join('');
+                const piezaCol = surfCode ? `${piezaFmt} ${surfCode}` : piezaFmt;
+                const diag = e.findingLabel || 'Hallazgo clínico';
+                const key  = `${piezaCol}|${diag.toLowerCase()}`;
+                if (piezasYa.has(key)) return;
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td><input type="text" class="input-diente" value="${piezaCol}" placeholder="Ej: 1.4"></td>
+                        <td><input type="text" class="input-diag" value="${diag.replace(/"/g, '&quot;')}" placeholder="Diagnóstico"></td>
+                        <td><input type="text" class="input-tratamiento" placeholder="Prestación a definir"></td>
+                        <td><input type="number" class="input-ref" placeholder="0" oninput="calcularFila(this)"></td>
+                        <td><input type="number" class="input-desc" placeholder="0" oninput="calcularFila(this)"></td>
+                        <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
+                    </tr>
+                `);
+                piezasYa.add(key);
+                agregadas++;
+            });
+
+            calcularGranTotal();
+            cerrarOdontograma();
+
+            // Feedback no bloqueante: scroll a la tabla y aviso temporal.
+            const tabla = document.querySelector('.presupuesto-table-wrapper');
+            if (tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            mostrarToastFicha(agregadas > 0
+                ? `✓ ${agregadas} fila(s) agregada(s) al presupuesto desde el odontograma.`
+                : 'Sin filas nuevas: las piezas ya estaban en el presupuesto.');
+        }
+
+        function mostrarToastFicha(msg) {
+            let t = document.getElementById('odnFichaToast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'odnFichaToast';
+                t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#0f172a;color:white;padding:12px 22px;border-radius:12px;font-weight:600;font-size:0.92rem;box-shadow:0 12px 30px rgba(0,0,0,0.35);z-index:9500;opacity:0;transition:opacity 200ms ease;pointer-events:none;';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.style.opacity = '1';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2400);
+        }
+
+        // ---------- Cableado global ----------
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('odontogramaModal');
+            const open  = modal && modal.classList.contains('odn-active');
+            if (e.key === 'Escape' && open) cerrarOdontograma();
+            if (e.altKey && (e.key === 'o' || e.key === 'O') && !open) {
+                e.preventDefault();
+                abrirOdontograma();
+            }
+        });
+
+        document.addEventListener('odontograma:event-registered', actualizarContadoresOdontograma);
+        document.addEventListener('odontograma:open',              actualizarContadoresOdontograma);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Botón "Llevar a presupuesto" del topbar del modal.
+            const btnPpto = document.getElementById('odnBtnAplicarPresupuesto');
+            if (btnPpto) btnPpto.addEventListener('click', llevarHallazgosAPresupuesto);
+            actualizarContadoresOdontograma();
+        });
+
+        // -----------------------------------------------------------------
+        // PDF · Historial completo del Odontograma
+        // Sustituye al antiguo "copiar historial JSON". Genera un PDF
+        // imprimible con encabezado profesional, datos del paciente y una
+        // tabla cronológica de hallazgos por pieza (multi-superficie
+        // colapsada en una sola fila).
+        // -----------------------------------------------------------------
+        async function exportarHistorialOdontogramaPDF() {
+            if (!window.MiDentalOdontograma) {
+                alert("Motor del odontograma no disponible.");
+                return;
+            }
+            const eventos = window.MiDentalOdontograma.getEvents();
+            if (!eventos || eventos.length === 0) {
+                alert("Aún no hay registros en el odontograma para exportar.");
+                return;
+            }
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                alert("Generador PDF no disponible.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const dentistaId = localStorage.getItem('midental_user_id');
+
+            // Datos del dentista (best-effort, no bloqueante si no hay sesión).
+            let drName = '—', drRut = '—', drSis = '—';
+            try {
+                if (dentistaId) {
+                    const { data: dr } = await window.midental.from('perfiles_dentistas')
+                        .select('prefijo, nombre_completo, rut, registro_sis')
+                        .eq('id', dentistaId).single();
+                    if (dr) {
+                        drName = `${dr.prefijo || 'Dr.'} ${dr.nombre_completo || ''}`.trim();
+                        drRut  = dr.rut || '—';
+                        drSis  = dr.registro_sis || '—';
+                    }
+                }
+            } catch (_) { /* silencioso */ }
+
+            // ============ CABECERA ============
+            doc.setFontSize(22);
+            doc.setTextColor(0, 168, 255);
+            doc.text("MiDental", 14, 20);
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text("Red de Salud Digital", 14, 26);
+
+            doc.setFontSize(16);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Historial del Odontograma", 200, 20, { align: "right" });
+            doc.setFontSize(10);
+            doc.setTextColor(85, 85, 85);
+            doc.text(`Fecha emisión: ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}`,
+                     200, 26, { align: "right" });
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(14, 30, 200, 30);
+
+            // ============ DATOS DEL PACIENTE Y DENTISTA ============
+            doc.setFontSize(12);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Paciente", 14, 40);
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Nombre: ${pacienteActual.nombre || '—'}`, 14, 47);
+            doc.text(`RUT: ${pacienteActual.rut || '—'}`,       14, 53);
+
+            doc.setFontSize(12);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Profesional tratante", 110, 40);
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+            doc.text(`Dentista: ${drName}`, 110, 47);
+            doc.text(`RUT: ${drRut} · Registro SIS: ${drSis}`, 110, 53);
+
+            // ============ RESUMEN DE CONTADORES ============
+            const resumen = { active: 0, planned: 0, completed: 0, 'control-ok': 0, historic: 0 };
+            eventos.forEach(e => { if (resumen[e.state] !== undefined) resumen[e.state]++; });
+
+            doc.setFontSize(12);
+            doc.setTextColor(30, 58, 138);
+            doc.text("Resumen clínico", 14, 66);
+            doc.setFontSize(9);
+            doc.setTextColor(50, 50, 50);
+            const linRes = `Patologías: ${resumen.active}    ·    Plan: ${resumen.planned}    `
+                         + `·    Realizados: ${resumen['control-ok']}    `
+                         + `·    Estado existente: ${resumen.completed}    `
+                         + `·    Histórico/ausente: ${resumen.historic}    `
+                         + `·    Total eventos: ${eventos.length}`;
+            doc.text(linRes, 14, 73);
+
+            // ============ TABLA CRONOLÓGICA ============
+            const STATE_ES = {
+                'active':     'Patología',
+                'planned':    'Plan',
+                'completed':  'Existente',
+                'control-ok': 'Realizado',
+                'review':     'Revisión',
+                'historic':   'Histórico'
+            };
+            const SURF_FULL = { V:'Vestibular', P:'Palatina', L:'Lingual', M:'Mesial', D:'Distal', O:'Oclusal', I:'Incisal' };
+
+            const filas = [];
+            // Ordenamos por timestamp ascendente (más antiguo arriba) para lectura clínica.
+            const eventosOrdenados = eventos.slice().sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            eventosOrdenados.forEach(e => {
+                const pieza = `${e.fdi.charAt(0)}.${e.fdi.charAt(1)}`;
+                const surfaces = e.surfaces && e.surfaces.length ? e.surfaces : (e.surface ? [e.surface] : []);
+                let zona;
+                if (e.scope === 'whole-tooth') {
+                    zona = 'Pieza completa';
+                } else if (surfaces.length > 1) {
+                    zona = `${surfaces.join('')}  (${surfaces.map(s => SURF_FULL[s] || s).join(', ')})`;
+                } else if (surfaces.length === 1) {
+                    zona = `${surfaces[0]} · ${SURF_FULL[surfaces[0]] || ''}`;
+                } else {
+                    zona = '—';
+                }
+                const ts = new Date(e.timestamp);
+                const fecha = ts.toLocaleDateString('es-CL') + ' ' + ts.toLocaleTimeString('es-CL', { hour:'2-digit', minute:'2-digit' });
+                filas.push([fecha, pieza, zona, e.findingLabel || '—', STATE_ES[e.state] || e.state]);
+            });
+
+            doc.autoTable({
+                startY: 82,
+                head:   [['Fecha / Hora', 'Pieza', 'Zona', 'Hallazgo / Procedimiento', 'Estado']],
+                body:   filas,
+                theme:  'grid',
+                headStyles: { fillColor: [30, 58, 138], textColor: 255, fontSize: 9 },
+                bodyStyles: { fontSize: 8.5, textColor: 30 },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                columnStyles: {
+                    0: { cellWidth: 32 },
+                    1: { cellWidth: 16, halign: 'center' },
+                    2: { cellWidth: 48 },
+                    3: { cellWidth: 60 },
+                    4: { cellWidth: 24, halign: 'center' }
+                },
+                styles: { lineColor: [226, 232, 240], lineWidth: 0.2 }
+            });
+
+            // ============ FIRMA ============
+            const finalPageY = doc.internal.pageSize.height;
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.line(30, finalPageY - 30, 90, finalPageY - 30);
+            doc.text("Firma Paciente", 45, finalPageY - 25);
+            doc.line(120, finalPageY - 30, 180, finalPageY - 30);
+            doc.text("Firma Profesional", 135, finalPageY - 25);
+
+            // ============ DESCARGA Y ALMACENAMIENTO OPCIONAL ============
+            const nombrePuro = (pacienteActual.nombre || 'Paciente').replace(/[^a-zA-Z0-9]/g, '_');
+            const nombreArchivo = `Odontograma_${nombrePuro}_${Date.now()}.pdf`;
+            doc.save(nombreArchivo);
+
+            // Si el paciente está registrado oficialmente, sube copia a Storage + indexa.
+            try {
+                if (!isLocal && pacienteIdURL) {
+                    const blob = doc.output('blob');
+                    const { error: upErr } = await window.midental.storage
+                        .from('documentos_clinicos')
+                        .upload(nombreArchivo, blob, { contentType: 'application/pdf' });
+                    if (!upErr) {
+                        await window.midental.from('documentos_pacientes').insert([{
+                            paciente_id:   pacienteIdURL,
+                            dentista_id:   dentistaId,
+                            nombre_archivo:`Odontograma ${new Date().toLocaleDateString('es-CL')}.pdf`,
+                            tipo:          'pdf',
+                            archivo_url:   nombreArchivo
+                        }]);
+                        if (typeof cargarDocumentosPaciente === 'function') cargarDocumentosPaciente();
+                        mostrarToastFicha('✓ Historial PDF descargado y archivado en la ficha del paciente.');
+                        return;
+                    }
+                }
+            } catch (_) { /* nube opcional */ }
+            mostrarToastFicha('✓ Historial del odontograma descargado en PDF.');
+        }
+
+        // Engancha el evento que dispara el motor cuando se pulsa el botón
+        // con icono picture_as_pdf en el topbar del modal.
+        document.addEventListener('odontograma:export-pdf', exportarHistorialOdontogramaPDF);
     </script>
+    <script src="js/odontograma.js"></script>
 </body>
 </html>
