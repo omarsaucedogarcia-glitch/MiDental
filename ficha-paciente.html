@@ -56,6 +56,70 @@
         /* Estilo input file oculto para el botón */
         .btn-upload-doc { cursor: pointer; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; color: var(--blue-elegant); font-size: 0.8rem; font-weight: bold; border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-upload-doc:hover { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); }
+   /* =========================================================
+           INTERACCIÓN DE CARAS DEL ODONTOGRAMA (SVG)
+           ========================================================= */
+        #odontogramaSVG polygon, 
+        #odontogramaSVG path,
+        .odn-surface, 
+        .odn-tooth { 
+            transition: fill 0.2s, stroke 0.2s; 
+            cursor: pointer; 
+        }
+        
+        /* Efecto al pasar el mouse por encima (Celeste claro) */
+        #odontogramaSVG polygon:hover, 
+        #odontogramaSVG path:hover { 
+            fill: #bae6fd !important; 
+            stroke: #0284c7; 
+        }
+        
+        /* Efecto al hacer clic / Selección activa (Cyan corporativo) */
+        #odontogramaSVG polygon.selected, 
+        #odontogramaSVG path.selected,
+        .odn-surface.selected { 
+            fill: var(--pixar-cyan) !important; 
+            stroke: #0369a1 !important; 
+            stroke-width: 2px; 
+        }
+        /* =========================================================
+           MOTOR DE INTELIGENCIA CLÍNICA (PREMIUM)
+           ========================================================= */
+        .premium-ai-card { background: linear-gradient(145deg, #ffffff, #f8fafc); border: 1px solid #e2e8f0; border-left: 6px solid #8b5cf6; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.1); display: none; position: relative; overflow: hidden; }
+        .premium-ai-card::before { content: "PREMIUM"; position: absolute; top: 15px; right: -25px; background: #8b5cf6; color: white; font-size: 0.65rem; font-weight: 900; padding: 4px 30px; transform: rotate(45deg); letter-spacing: 2px; }
+        .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .ai-header h3 { margin: 0; color: #1e293b; font-size: 1.15rem; font-weight: 900; }
+        .ai-risk-badge { padding: 5px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; color: white; }
+        .ai-content p { margin: 0 0 8px 0; font-size: 0.9rem; color: #475569; line-height: 1.5; }
+        .ai-content strong { color: #1e293b; }
+        .btn-premium-action { background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: 0.2s; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3); margin-top: 10px; }
+        .btn-premium-action:hover { background: #7c3aed; transform: translateY(-2px); }
+    /* =========================================================
+           ASISTENTE CLÍNICO INTELIGENTE (ODONTOGRAMA PREMIUM)
+           ========================================================= */
+        .odn-smart-panel { background: white; padding: 15px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        /* Modificadores para su nueva ubicación en la columna derecha */
+        .odn-smart-panel.right-side-panel {
+            margin: 15px 15px 0 15px; 
+            border-top: 4px solid var(--pixar-cyan); 
+            border-radius: 12px;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .smart-panel-title { color: var(--blue-elegant); font-size: 1rem; margin: 0 0 10px 0; font-weight: 900; display: flex; align-items: center; gap: 5px; }
+        .smart-recommendation { background: #f0fdfa; border: 1px solid #ccfbf1; color: #0f766e; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; margin-bottom: 15px; font-weight: 500; }
+        .smart-recommendation.alert { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+        .smart-recommendation.warning { background: #fff7ed; border-color: #fde68a; color: #b45309; }
+        
+        .smart-options-title { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; margin-bottom: 8px; }
+        .smart-plan-btn { display: block; width: 100%; text-align: left; background: white; border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; color: #334155; font-size: 0.85rem; transition: 0.2s; }
+        .smart-plan-btn:hover { border-color: var(--pixar-cyan); background: #f8fafc; transform: translateX(3px); }
+        .smart-plan-btn span { color: var(--pixar-cyan); font-weight: bold; margin-right: 5px; }
     </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -124,6 +188,21 @@
                     Abrir Odontograma
                 </button>
             </section>
+            <div class="premium-ai-card" id="tarjetaInteligenciaClinica">
+                <div class="ai-header">
+                    <span class="material-symbols-outlined" style="color: #8b5cf6; font-size: 2rem;">psychology</span>
+                    <h3>Análisis de Riesgo Clínico</h3>
+                    <span class="ai-risk-badge" id="aiNivelRiesgo">Calculando...</span>
+                </div>
+                <div class="ai-content">
+                    <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">lightbulb</span> Recomendación de Manejo:</strong> <span id="aiRecomendacion"></span></p>
+                    <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">event_upcoming</span> Próximo Control Sugerido:</strong> En <span id="aiMesesControl"></span> meses (<span id="aiFechaControl"></span>).</p>
+                    
+                    <button class="btn-premium-action" onclick="programarRecallPremium()">
+                        <span class="material-symbols-outlined">schedule_send</span> Programar Mensaje Automático
+                    </button>
+                </div>
+            </div>
 
             <div class="ficha-layout">
                 <div class="historial-panel">
@@ -378,165 +457,94 @@
             </header>
 
             <div class="odn-workspace">
-                <!-- ============== PANEL CLÍNICO IZQUIERDO ============== -->
+                <!-- ============== PANEL CLÍNICO INTELIGENTE ============== -->
                 <aside class="odn-toolpanel" aria-label="Panel de hallazgos clínicos">
                     <div class="odn-toolpanel__header">
-                        <span class="material-symbols-outlined" aria-hidden="true">build</span>
-                        <h3>Hallazgos clínicos</h3>
+                        <span class="material-symbols-outlined" aria-hidden="true">psychology</span>
+                        <h3>Asistente Clínico AI</h3>
                     </div>
                     <div class="odn-toolpanel__scroll">
 
-                        <!-- ▸ Grupo Patología (rojo) -->
-                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
-                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
-                                <span class="odn-finding-group__name">Patología</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
-                            </button>
-                            <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn odn-active"
-                                        data-state="active" data-scope="surface"
-                                        data-code="caries-superficial" data-label="Caries superficial">Caries superficial</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="active" data-scope="surface"
-                                        data-code="caries-dentinaria" data-label="Caries dentinaria">Caries dentinaria</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="active" data-scope="surface"
-                                        data-code="caries-profunda" data-label="Caries profunda">Caries profunda</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="active" data-scope="whole-tooth"
-                                        data-code="cp-reversible" data-label="Compromiso pulpar reversible">Comp. pulpar reversible</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="active" data-scope="whole-tooth"
-                                        data-code="cp-irreversible" data-label="Compromiso pulpar irreversible">Comp. pulpar irreversible</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="active" data-scope="whole-tooth"
-                                        data-code="cp-necrosis" data-label="Compromiso pulpar — necrosis">Comp. pulpar · necrosis</button>
-                            </div>
-                        </section>
-
-                        <!-- ▸ Grupo Estado Clínico Existente (azul) -->
                         <section class="odn-finding-group" data-collapsed="false" data-color="completed">
                             <button type="button" class="odn-finding-group__head" aria-expanded="true">
                                 <span class="odn-finding-group__dot" aria-hidden="true"></span>
-                                <span class="odn-finding-group__name">Estado clínico existente</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
+                                <span class="odn-finding-group__name">Condición Base & Preventiva</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
                             <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="completed" data-scope="whole-tooth"
-                                        data-code="endo-existente" data-label="Endodoncia">Endodoncia</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="completed" data-scope="whole-tooth"
-                                        data-code="pfu" data-label="PFU (Prótesis Fija Unitaria)">PFU</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="completed" data-scope="whole-tooth"
-                                        data-code="pilar-ppr" data-label="Pilar PPR">Pilar PPR</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="completed" data-scope="whole-tooth"
-                                        data-code="intermediario-pfp" data-label="Intermediario PFP">Intermediario PFP</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="completed" data-scope="whole-tooth"
-                                        data-code="implante" data-label="Implante">Implante</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="historic" data-scope="whole-tooth"
-                                        data-code="pieza-ausente" data-label="Pieza ausente">Pieza ausente</button>
+                                <button type="button" class="odn-finding-btn" data-state="control-ok" data-scope="surface" data-code="sano" data-label="Sano / Preventivo" onclick="lanzarAsistenteClinico('sano')">Sano / Preventivo</button>
+                                <button type="button" class="odn-finding-btn" data-state="historic" data-scope="whole-tooth" data-code="ausente" data-label="Pieza Ausente" onclick="lanzarAsistenteClinico('ausente')">Pieza Ausente</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="surface" data-code="restauracion" data-label="Restauración Existente" onclick="lanzarAsistenteClinico('restauracion')">Restauración Existente</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="rehabilitacion" data-label="Rehabilitación Protésica" onclick="lanzarAsistenteClinico('rehabilitacion')">Rehabilitación Protésica</button>
                             </div>
                         </section>
 
-                        <!-- ▸ Grupo Planificación (ámbar) -->
-                        <section class="odn-finding-group" data-collapsed="false" data-color="planned">
+                        <section class="odn-finding-group" data-collapsed="true" data-color="planned">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
+                                <span class="odn-finding-group__dot" aria-hidden="true" style="background:#f59e0b;"></span>
+                                <span class="odn-finding-group__name">Riesgo Biomecánico</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
+                            </button>
+                            <div class="odn-finding-group__body" style="display:none;">
+                                <button type="button" class="odn-finding-btn" data-state="planned" data-scope="whole-tooth" data-code="fractura" data-label="Fractura Coronal" onclick="lanzarAsistenteClinico('fractura')">Fractura Coronal</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="movilidad" data-label="Movilidad Dental" onclick="lanzarAsistenteClinico('movilidad')">Movilidad Dental</button>
+                            </div>
+                        </section>
+
+                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
                             <button type="button" class="odn-finding-group__head" aria-expanded="true">
                                 <span class="odn-finding-group__dot" aria-hidden="true"></span>
-                                <span class="odn-finding-group__name">Planificación</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
+                                <span class="odn-finding-group__name">Cariología (ICCMS)</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
                             <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="surface"
-                                        data-code="plan-resina" data-label="Resina compuesta (plan)">Resina compuesta</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="surface"
-                                        data-code="plan-recubrimiento" data-label="Recubrimiento pulpar (plan)">Recubrimiento pulpar</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="whole-tooth"
-                                        data-code="plan-trepanacion" data-label="Trepanación">Trepanación</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="whole-tooth"
-                                        data-code="plan-biopulp-convencional"
-                                        data-label="Endodoncia · Biopulpectomía total (convencional)">Biopulpectomía total · convencional</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="whole-tooth"
-                                        data-code="plan-biopulp-mecanizada"
-                                        data-label="Endodoncia · Biopulpectomía total (mecanizada)">Biopulpectomía total · mecanizada</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="whole-tooth"
-                                        data-code="plan-indirecta" data-label="Restauración indirecta (Incrustación / PFU)">Rest. indirecta / PFU</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="planned" data-scope="whole-tooth"
-                                        data-code="plan-implante" data-label="Indicación de implante">Indicación implante</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="surface" data-code="iccms_1" data-label="Mancha Blanca" onclick="lanzarAsistenteClinico('iccms_1')">Mancha Blanca (Código 1)</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="surface" data-code="iccms_3" data-label="Caries Superficial" onclick="lanzarAsistenteClinico('iccms_3')">Caries Superficial (Código 3)</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="surface" data-code="iccms_5" data-label="Caries Dentinaria" onclick="lanzarAsistenteClinico('iccms_5')">Caries Dentinaria (Código 5)</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="iccms_6" data-label="Caries Profunda" onclick="lanzarAsistenteClinico('iccms_6')">Caries Profunda (Código 6)</button>
                             </div>
                         </section>
 
-                        <!-- ▸ Borrador clínico -->
-                        <div class="odn-finding-actions">
-                            <button type="button" class="odn-finding-btn odn-finding-btn--eraser"
-                                    data-state="existing" data-scope="surface"
-                                    data-code="borrar" data-label="Borrar marcado">
-                                <span class="material-symbols-outlined" aria-hidden="true">ink_eraser</span>
-                                Borrador (limpiar superficie)
+                        <section class="odn-finding-group" data-collapsed="true" data-color="active">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
+                                <span class="odn-finding-group__dot" aria-hidden="true" style="background:#991b1b;"></span>
+                                <span class="odn-finding-group__name">Endodoncia / AAE</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
-                        </div>
-
-                        <!-- ▸ Grupo Tratamiento Realizado / Finalizado (verde) -->
-                        <section class="odn-finding-group" data-collapsed="false" data-color="control-ok">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
-                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
-                                <span class="odn-finding-group__name">Tratamiento realizado / finalizado</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron" aria-hidden="true">expand_more</span>
-                            </button>
-                            <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="surface"
-                                        data-code="done-resina" data-label="Resina compuesta realizada">Resina compuesta</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="surface"
-                                        data-code="done-recubrimiento" data-label="Recubrimiento pulpar realizado">Recubrimiento pulpar</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="whole-tooth"
-                                        data-code="done-trepanacion" data-label="Trepanación realizada">Trepanación</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="whole-tooth"
-                                        data-code="done-biopulp-convencional"
-                                        data-label="Biopulpectomía total convencional realizada">Biopulpectomía total · convencional</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="whole-tooth"
-                                        data-code="done-biopulp-mecanizada"
-                                        data-label="Biopulpectomía total mecanizada realizada">Biopulpectomía total · mecanizada</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="whole-tooth"
-                                        data-code="done-indirecta"
-                                        data-label="Restauración indirecta realizada (Incrustación / PFU)">Rest. indirecta / PFU</button>
-                                <button type="button" class="odn-finding-btn"
-                                        data-state="control-ok" data-scope="whole-tooth"
-                                        data-code="done-implante" data-label="Implante realizado">Implante</button>
+                            <div class="odn-finding-group__body" style="display:none;">
+                                <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; margin: 5px 10px;">PATOLOGÍA PULPAR</div>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cp-reversible" data-label="Pulpitis Reversible" onclick="lanzarAsistenteClinico('pulpitis_rev')">Pulpitis Reversible</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cp-irreversible-sint" data-label="Pulpitis Irreversible Sintomática" onclick="lanzarAsistenteClinico('pulpitis_irrev_sint')">Pulp. Irreversible Sintomática</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cp-irreversible-asint" data-label="Pulpitis Irreversible Asintomática" onclick="lanzarAsistenteClinico('pulpitis_irrev_asint')">Pulp. Irreversible Asintomática</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cp-necrosis" data-label="Necrosis Pulpar" onclick="lanzarAsistenteClinico('necrosis')">Necrosis Pulpar</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="pre-iniciado" data-label="Previamente Iniciado" onclick="lanzarAsistenteClinico('pre_iniciado')">Previamente Iniciado</button>
+                                
+                                <div style="font-size:0.75rem; color:#94a3b8; font-weight:bold; margin: 15px 10px 5px;">PATOLOGÍA PERIAPICAL</div>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="perio-apical-sint" data-label="Periodontitis Apical Sintomática" onclick="lanzarAsistenteClinico('perio_apical_sint')">Periodontitis Apical Sintomática</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="perio-apical-asint" data-label="Periodontitis Apical Asintomática" onclick="lanzarAsistenteClinico('perio_apical_asint')">Periodontitis Apical Asintomática</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="absceso-agudo" data-label="Absceso Alveolar Agudo" onclick="lanzarAsistenteClinico('absceso_agudo')">Absceso Alveolar Agudo</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="absceso-cronico" data-label="Absceso Alveolar Crónico" onclick="lanzarAsistenteClinico('absceso_cronico')">Absceso Alveolar Crónico</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="osteitis" data-label="Osteítis Condensante" onclick="lanzarAsistenteClinico('osteitis')">Osteítis Condensante</button>
                             </div>
                         </section>
 
-                        <!-- ▸ Acciones de pieza seleccionada -->
-                        <div class="odn-tool-group">
-                            <p class="odn-tool-group__title">Pieza seleccionada</p>
-                            <button class="odn-tool-action" id="odnBtnRegistrarHallazgo" type="button">
-                                <span class="material-symbols-outlined" aria-hidden="true">add_circle</span>
-                                Aplicar a pieza
+                        <section class="odn-finding-group" data-collapsed="true" data-color="completed">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
+                                <span class="odn-finding-group__dot" aria-hidden="true" style="background:#3b82f6;"></span>
+                                <span class="odn-finding-group__name">Aparatología Clínica</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
-                            <button class="odn-tool-action odn-tool-action--ghost" id="odnBtnAgregarPlan" type="button" style="margin-top:8px;">
-                                <span class="material-symbols-outlined" aria-hidden="true">event_available</span>
-                                Marcar plan completo
-                            </button>
-                            <button class="odn-tool-action odn-tool-action--danger" id="odnBtnResolverHallazgo" type="button" style="margin-top:8px;">
-                                <span class="material-symbols-outlined" aria-hidden="true">task_alt</span>
-                                Resolver patología
+                            <div class="odn-finding-group__body" style="display:none;">
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="removible" data-label="Prótesis Removible" onclick="lanzarAsistenteClinico('aparato_removible')">Portador Prótesis Removible</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="ortodoncia" data-label="Aparato Ortodóntico" onclick="lanzarAsistenteClinico('aparato_ortodoncia')">Portador Aparato Ortodóntico</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="contensor" data-label="Contensor Post-Orto" onclick="lanzarAsistenteClinico('aparato_contensor')">Portador Contensor Post-Orto</button>
+                            </div>
+                        </section>
+
+                    
+                        <div class="odn-finding-actions" style="margin-top:20px;">
+                            <button type="button" class="odn-finding-btn odn-finding-btn--eraser" data-state="existing" data-scope="surface" data-code="borrar" data-label="Borrar marcado">
+                                <span class="material-symbols-outlined" aria-hidden="true">ink_eraser</span> Borrar marcado en pieza
                             </button>
                         </div>
                     </div>
@@ -608,6 +616,10 @@
                         <button class="odn-timeline__filter-btn"            data-filter="completed" type="button">Existente</button>
                         <button class="odn-timeline__filter-btn"            data-filter="historic"  type="button">Histórico</button>
                     </div>
+
+                    <div id="smartPanelContainer" class="odn-smart-panel right-side-panel"></div>
+
+
                     <div class="odn-timeline__scroll">
                         <div class="odn-timeline__rail" id="odontogramaTimelineRail">
                             <div class="odn-timeline__empty" id="odnTimelineEmpty">
@@ -1708,33 +1720,7 @@
                         cargarDocumentosPaciente(); // Refresca la lista de archivos
                     }
                 }
-                async function subirDocumentoAPaciente(blobPdf, nombreArchivo, tipo) {
-    const pacienteId = obtenerIdPacienteDeUrl(); // Tu función existente
-    const fileName = `${pacienteId}/${Date.now()}_${nombreArchivo}`;
-    
-    // 1. Subir al Storage de Supabase
-    const { data, error } = await window.midental.storage
-        .from('documentos_clinicos')
-        .upload(fileName, blobPdf);
-
-    if (error) throw error;
-
-    // 2. Obtener la URL pública
-    const { data: urlData } = window.midental.storage
-        .from('documentos_clinicos')
-        .getPublicUrl(fileName);
-
-    // 3. Registrar en la base de datos
-    await window.midental.from('documentos_clinicos').insert([{
-        paciente_id: pacienteId,
-        nombre_archivo: nombreArchivo,
-        tipo_documento: tipo,
-        url_publica: urlData.publicUrl
-    }]);
-
-    console.log("Documento guardado exitosamente en la ficha.");
-}
-
+                
                 alert("✅ Receta emitida exitosamente. Se ha guardado en los documentos del paciente.");
                 document.getElementById('modalRecetaMedica').style.display = 'none';
 
@@ -1781,7 +1767,96 @@
             if (btn) btn.setAttribute('aria-expanded', 'false');
             document.body.style.overflow = '';
             document.dispatchEvent(new CustomEvent('odontograma:close'));
+            
             actualizarContadoresOdontograma();
+            
+            // NUEVO: Ejecutar la IA de perfilamiento al cerrar el odontograma
+            analizarPerfilClinicoPaciente();
+        }
+
+        // ==========================================
+        // MOTOR DE INTELIGENCIA Y RECALL PREMIUM
+        // ==========================================
+        let recallCalculadoPara = null;
+
+        function analizarPerfilClinicoPaciente() {
+            if (!window.MiDentalOdontograma) return;
+            const eventos = window.MiDentalOdontograma.getEvents();
+            
+            // Si el odontograma está en blanco, ocultamos la tarjeta
+            if (eventos.length === 0) {
+                document.getElementById('tarjetaInteligenciaClinica').style.display = 'none';
+                return;
+            }
+
+            let cariesActivas = 0;
+            let compromisoSevero = 0;
+
+            // Evaluamos la gravedad de los hallazgos activos
+            eventos.forEach(e => {
+                if (e.state === 'active') {
+                    cariesActivas++;
+                    // Si el código incluye 'cp' (compromiso pulpar irreversible, necrosis, etc)
+                    if(e.findingCode && e.findingCode.includes('cp-')) compromisoSevero++;
+                }
+            });
+
+            // Variables por defecto (Bajo Riesgo)
+            let nivel = "Bajo Riesgo / Mantenimiento";
+            let colorBadge = "#10b981"; // Verde
+            let mesesRecall = 6;
+            let recomendacion = "El paciente presenta estabilidad oral. Indicar uso de pasta dental estándar (1450 ppm flúor) y mantener técnica de cepillado actual.";
+
+            // Algoritmo de Perfilamiento
+            if (compromisoSevero > 0 || cariesActivas >= 4) {
+                nivel = "Alto Riesgo Cariogénico";
+                colorBadge = "#ef4444"; // Rojo
+                mesesRecall = 1; // Control al mes
+                recomendacion = "ALERTA: Paciente con alta actividad patológica. Iniciar terapia de choque con barniz de flúor 5%. Indicar pasta de 5000 ppm flúor. Realizar asesoramiento dietético estricto (diario dietético de 3 días) e instrucción de higiene intensiva.";
+            } 
+            else if (cariesActivas > 0 || eventos.some(e => e.state === 'planned')) {
+                nivel = "Riesgo Moderado";
+                colorBadge = "#f59e0b"; // Naranja
+                mesesRecall = 3; // Control a los 3 meses
+                recomendacion = "Paciente con lesiones incipientes o tratamientos en curso. Considerar aplicación de sellantes en fosas y fisuras profundas. Reforzar uso de seda dental y control de azúcares entre comidas.";
+            }
+
+            // Calcular la fecha exacta del próximo control
+            const fechaControl = new Date();
+            fechaControl.setMonth(fechaControl.getMonth() + mesesRecall);
+            recallCalculadoPara = fechaControl.toISOString(); // Lo guardamos en memoria para Supabase
+
+            // Actualizar el DOM
+            document.getElementById('aiNivelRiesgo').innerText = nivel;
+            document.getElementById('aiNivelRiesgo').style.background = colorBadge;
+            document.getElementById('aiRecomendacion').innerText = recomendacion;
+            document.getElementById('aiMesesControl').innerText = mesesRecall;
+            document.getElementById('aiFechaControl').innerText = fechaControl.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            // Mostrar la tarjeta
+            document.getElementById('tarjetaInteligenciaClinica').style.display = 'block';
+        }
+
+        async function programarRecallPremium() {
+            if (!recallCalculadoPara) return;
+            
+            // Aquí entra la realidad técnica del envío futuro:
+            alert("Esta acción guardará el 'Recall' en la base de datos de MiDental. Un servidor automatizado enviará un mensaje de WhatsApp al paciente 3 días antes de la fecha límite para invitarlo a agendar su control.");
+            
+            /* LÓGICA DE INSERCIÓN PARA SUPABASE (Se asume que crearás la tabla 'recalls_premium')
+            try {
+                const { error } = await window.midental.from('recalls_premium').insert([{
+                    paciente_id: pacienteIdURL,
+                    dentista_id: localStorage.getItem('midental_user_id'),
+                    fecha_disparo: recallCalculadoPara,
+                    estado: 'pendiente'
+                }]);
+                if (error) throw error;
+                alert("✅ Recordatorio automático programado con éxito.");
+            } catch (err) {
+                alert("Error al programar el Recall: " + err.message);
+            }
+            */
         }
 
         // ---------- Contadores en vivo del launcher strip ----------
@@ -2114,5 +2189,321 @@
         document.addEventListener('odontograma:export-pdf', exportarHistorialOdontogramaPDF);
     </script>
     <script src="js/odontograma.js"></script>
+<script>
+    // ==========================================
+    // DICCIONARIO DEL SISTEMA DE SOPORTE A LA DECISIÓN CLÍNICA (CDSS)
+    // ==========================================
+    const arbolClinico = {
+        'sano': {
+            titulo: 'Pieza Sana',
+            claseAlerta: 'smart-recommendation', icon: 'health_and_safety',
+            rec: 'Manejo Preventivo: Indicar pasta dental fluorada (1.450 ppm ion flúor). Control clínico sugerido en 6 meses.',
+            opciones: []
+        },
+        'restauracion': {
+            titulo: 'Restauración Existente',
+            claseAlerta: 'smart-recommendation', icon: 'info',
+            rec: 'Control radiográfico preventivo y control clínico en 6 meses.',
+            opciones: ['Restauración en Resina', 'Restauración en Amalgama']
+        },
+        'ausente': {
+            titulo: 'Pieza Ausente',
+            claseAlerta: 'smart-recommendation warning', icon: 'visibility_off',
+            rec: 'Determine la causa de la pérdida para evaluar la biomecánica oral.',
+            opciones: ['Pérdida por Caries', 'Indicación de Ortodoncia', 'Agenesia']
+        },
+        'rehabilitacion': {
+            titulo: 'Rehabilitación Protésica',
+            claseAlerta: 'smart-recommendation warning', icon: 'architecture',
+            rec: 'Evaluar estado de los pilares y ajustar periodicidad de control a 3 meses si existe compromiso.',
+            opciones: ['PFU sobre Espiga', 'PFU sobre Implante', 'Pilar PPR: Con restauraciones', 'Pilar PPR: Con caries', 'Pilar PPR: Sano (Control 3 meses)']
+        },
+        'fractura': {
+            titulo: 'Fractura Coronal',
+            claseAlerta: 'smart-recommendation alert', icon: 'personal_injury',
+            rec: 'Evaluar compromiso pulpar y estado radicular previo a la planificación restauradora.',
+            opciones: ['Fractura Parcial', 'Fractura Compleja', 'Fractura Total (Estado Raíz)']
+        },
+        'movilidad': {
+            titulo: 'Movilidad Dental',
+            claseAlerta: 'smart-recommendation alert', icon: 'air',
+            rec: 'Evaluar estado periodontal exhaustivamente. Si selecciona Grado 3, se sugiere planificar Exodoncia.',
+            opciones: ['Movilidad Grado 1', 'Movilidad Grado 2', 'Movilidad Grado 3 (Sugerencia: Exodoncia)']
+        },
+        'iccms_1': {
+            titulo: 'Mancha Blanca (ICCMS 1)',
+            claseAlerta: 'smart-recommendation warning', icon: 'water_drop',
+            rec: 'Recetar pasta con 5.000 ppm de ión flúor. Recomendar aplicación de flúor barniz cada 3 meses.',
+            opciones: ['Aplicación de Sellantes', 'Remineralización con Flúor Barniz']
+        },
+        'iccms_3': {
+            titulo: 'Caries Superficial (ICCMS 3)',
+            claseAlerta: 'smart-recommendation warning', icon: 'radio_button_checked',
+            rec: 'Solicitar Radiografía Bite Wing para descartar compromiso proximal oculto.',
+            opciones: ['Aplicación de Sellantes', 'Remineralización con Flúor Barniz']
+        },
+        'iccms_5': {
+            titulo: 'Caries Dentinaria (ICCMS 5)',
+            claseAlerta: 'smart-recommendation alert', icon: 'coronavirus',
+            rec: 'Solicitar Radiografía Bite Wing obligatoria para evaluar profundidad de la lesión.',
+            opciones: ['Restauración Directa Resina Simple (1 cara)', 'Restauración Directa Resina Compleja (2 caras)']
+        },
+        'iccms_6': {
+            titulo: 'Caries Profunda (ICCMS 6)',
+            claseAlerta: 'smart-recommendation alert', icon: 'warning',
+            rec: 'Evaluación de vitalidad pulpar urgente. Solicitar Radiografía Periapical de la pieza.',
+            opciones: ['Solicitar Radiografía Periapical', 'Recubrimiento Pulpar Indirecto', 'Recubrimiento Pulpar Directo', 'Restauración Directa Resina Simple (1 cara)', 'Restauración Directa Resina Compleja (2 caras)']
+        },
+        'pulpitis_rev': {
+            titulo: 'Pulpitis Reversible',
+            claseAlerta: 'smart-recommendation warning', icon: 'thermostat',
+            rec: 'Evaluar posible sensibilidad dental. Si opta por protección pulpar, lanzar alerta de reevaluación en 4 a 6 semanas.',
+            opciones: ['Protección Pulpar Indirecta (Reevaluar 4-6 sem)', 'Protección Pulpar Directa (Reevaluar 4-6 sem)', 'Restauración Provisoria', 'Restauración Directa Resina Simple (1 cara)', 'Restauración Directa Resina Compleja (2 caras)']
+        },
+        'pulpitis_irrev_sint': {
+            titulo: 'Pulpitis Irrev. Sintomática',
+            claseAlerta: 'smart-recommendation alert', icon: 'emergency',
+            rec: 'Cuadro de dolor agudo. Requiere descompresión o abordaje endodóntico inmediato.',
+            opciones: ['Trepanación de Urgencia', 'Endodoncia Convencional', 'Endodoncia Mecanizada', 'Pulpotomía Cameral/Parcial']
+        },
+        'pulpitis_irrev_asint': {
+            titulo: 'Pulpitis Irrev. Asintomática',
+            claseAlerta: 'smart-recommendation alert', icon: 'healing',
+            rec: 'Posible hallazgo radiográfico o clínico. Riesgo de reagudización.',
+            opciones: ['Trepanación', 'Pulpotomía Cameral/Parcial', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
+        },
+        'necrosis': {
+            titulo: 'Necrosis Pulpar',
+            claseAlerta: 'smart-recommendation alert', icon: 'skull',
+            rec: 'Pérdida de vitalidad. Alto riesgo de complicación periapical si no se interviene.',
+            opciones: ['Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
+        },
+        'pre_iniciado': {
+            titulo: 'Previamente Iniciado',
+            claseAlerta: 'smart-recommendation warning', icon: 'construction',
+            rec: 'Tratamiento endodóntico en curso o abandonado. Retomar protocolo de instrumentación.',
+            opciones: ['Endodoncia Convencional', 'Endodoncia Mecanizada']
+        },
+        'perio_apical_sint': {
+            titulo: 'Periodontitis Apical Sint.',
+            claseAlerta: 'smart-recommendation alert', icon: 'bolt',
+            rec: 'Evaluar posible Trauma Oclusal asociado. Si evalúa necrosis pulpar, planificar Trepanación o Endodoncia.',
+            opciones: ['Desgaste Oclusal Selectivo', 'Evaluar Necrosis Pulpar (Indicación Endo)']
+        },
+        'perio_apical_asint': {
+            titulo: 'Periodontitis Apical Asint.',
+            claseAlerta: 'smart-recommendation alert', icon: 'radio_button_unchecked',
+            rec: 'Hallazgo radiográfico de lesión periapical silenciosa. Intervenir para evitar reagudización.',
+            opciones: ['Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
+        },
+        'absceso_agudo': {
+            titulo: 'Absceso Alveolar Agudo',
+            claseAlerta: 'smart-recommendation alert', icon: 'medication',
+            rec: 'URGENCIA INFECCIOSA: Iniciar Terapia Antibiótica inmediata (Revisar Vademécum).',
+            opciones: ['Trepanación de Urgencia', 'Drenaje de Urgencia']
+        },
+        'absceso_cronico': {
+            titulo: 'Absceso Alveolar Crónico',
+            claseAlerta: 'smart-recommendation warning', icon: 'medication',
+            rec: 'Posible presencia de fístula. Considerar Terapia Antibiótica coadyuvante.',
+            opciones: ['Fistulografía', 'Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
+        },
+        'osteitis': {
+            titulo: 'Osteítis Condensante',
+            claseAlerta: 'smart-recommendation warning', icon: 'lens_blur',
+            rec: 'Reacción ósea a inflamación pulpar crónica. Resolver causa endodóntica.',
+            opciones: ['Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
+        },
+        'aparato_removible': {
+            titulo: 'Prótesis Removible',
+            claseAlerta: 'smart-recommendation', icon: 'check_box',
+            rec: 'Paciente portador activo. Establecer controles cada 3 meses y sugerir uso de pasta dental 5.000 ppm flúor para pilares.',
+            opciones: []
+        },
+        'aparato_ortodoncia': {
+            titulo: 'Aparato Ortodóntico',
+            claseAlerta: 'smart-recommendation', icon: 'check_box',
+            rec: 'Paciente portador activo. Establecer controles cada 3 meses y sugerir uso de pasta dental 5.000 ppm flúor.',
+            opciones: []
+        },
+        'aparato_contensor': {
+            titulo: 'Contensor Post-Orto',
+            claseAlerta: 'smart-recommendation', icon: 'check_box',
+            rec: 'Paciente portador activo. Establecer controles cada 3 meses y revisar integridad de la ferulización.',
+            opciones: []
+        }
+    };
+
+    // ==========================================
+    // FUNCIÓN DE DISPARO Y CONEXIÓN CON PRESUPUESTO
+    // ==========================================
+    let hallazgoActivoSeleccionado = null;
+
+    function lanzarAsistenteClinico(codigoKey) {
+        const data = arbolClinico[codigoKey];
+        if (!data) return;
+        
+        hallazgoActivoSeleccionado = data.titulo;
+        const panel = document.getElementById('smartPanelContainer');
+        
+        // Armamos los botones de opciones de tratamiento dinámicamente
+        let htmlOpciones = '';
+        if (data.opciones.length > 0) {
+            htmlOpciones = `<div class="smart-options-title">Planes de Tratamiento sugeridos:</div>`;
+            data.opciones.forEach(op => {
+                // Al hacer clic, enviamos la opción seleccionada directo a la tabla de presupuesto
+                htmlOpciones += `<button class="smart-plan-btn" onclick="agregarPlanAlPresupuesto('${op}', this)"><span>+</span> ${op}</button>`;
+            });
+        } else {
+            htmlOpciones = `<div class="smart-options-title" style="color:var(--green-success);">✓ Condición auto-gestionable. No requiere plan adicional.</div>`;
+        }
+
+        panel.innerHTML = `
+            <h4 class="smart-panel-title"><span class="material-symbols-outlined">${data.icon}</span> ${data.titulo}</h4>
+            <div class="${data.claseAlerta}">
+                <strong>Recomendación Clínica:</strong><br>${data.rec}
+            </div>
+            ${htmlOpciones}
+        `;
+        
+        panel.style.display = 'block';
+    }
+
+    function agregarPlanAlPresupuesto(prestacionSeleccionada, btnElement) {
+        let piezaNum = "Pieza ?";
+        
+        // Extraer la pieza del SVG activo
+        const activeTooth = document.querySelector('g[data-fdi].selected'); 
+        if (activeTooth && activeTooth.dataset.fdi) {
+            piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
+        }
+
+        const tbody = document.getElementById('tbodyPresupuesto');
+        const filas = tbody.querySelectorAll('tr');
+        let insertada = false;
+        
+        if (filas.length === 1) {
+            const r = filas[0];
+            const empty = !r.querySelector('.input-diente').value && !r.querySelector('.input-diag').value && !r.querySelector('.input-tratamiento').value;
+            if (empty) {
+                r.querySelector('.input-diente').value = piezaNum;
+                r.querySelector('.input-diag').value = hallazgoActivoSeleccionado;
+                r.querySelector('.input-tratamiento').value = prestacionSeleccionada;
+                insertada = true;
+            }
+        }
+
+        if (!insertada) {
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr>
+                    <td><input type="text" class="input-diente" value="${piezaNum}" placeholder="Ej: 1.4"></td>
+                    <td><input type="text" class="input-diag" value="${hallazgoActivoSeleccionado}" placeholder="Diagnóstico"></td>
+                    <td><input type="text" class="input-tratamiento" value="${prestacionSeleccionada}" placeholder="Prestación"></td>
+                    <td><input type="number" class="input-ref" placeholder="0" oninput="calcularFila(this)"></td>
+                    <td><input type="number" class="input-desc" placeholder="0" oninput="calcularFila(this)"></td>
+                    <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
+                </tr>
+            `);
+        }
+
+        // =========================================================
+        // NUEVO: REGISTRO AUTOMÁTICO EN EL TIMELINE (HISTORIAL DERECHO)
+        // =========================================================
+        const timelineRail = document.getElementById('odontogramaTimelineRail');
+        const emptyMsg = document.getElementById('odnTimelineEmpty');
+        if (emptyMsg) emptyMsg.style.display = 'none'; // Ocultamos el mensaje de "Vacío"
+
+        const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+        
+        // Lógica de colores según gravedad
+        let colorBadge = "var(--pixar-cyan)";
+        if (hallazgoActivoSeleccionado.includes('Caries') || hallazgoActivoSeleccionado.includes('Pulpitis') || hallazgoActivoSeleccionado.includes('Necrosis')) {
+            colorBadge = "#ef4444"; // Alerta Roja
+        } else if (hallazgoActivoSeleccionado.includes('Sano') || prestacionSeleccionada.includes('Preventivo')) {
+            colorBadge = "#10b981"; // Verde Estable
+        } else if (hallazgoActivoSeleccionado.includes('Mancha') || hallazgoActivoSeleccionado.includes('Rehabilitación')) {
+            colorBadge = "#f59e0b"; // Naranja Advertencia
+        }
+
+        // Recuperamos la recomendación actual de la IA que está en pantalla
+        const aiRecomendacion = document.querySelector('.smart-recommendation').innerText;
+
+        // Inyectamos la tarjeta al inicio del historial
+        const cardTimelineHTML = `
+            <div style="background: white; border: 1px solid #e2e8f0; border-left: 5px solid ${colorBadge}; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease;">
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
+                </div>
+                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${hallazgoActivoSeleccionado}</div>
+                <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle; color: ${colorBadge};">medical_services</span> ${prestacionSeleccionada}</div>
+                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                    ${aiRecomendacion}
+                </div>
+            </div>
+        `;
+        timelineRail.insertAdjacentHTML('afterbegin', cardTimelineHTML);
+
+        // Feedback visual seguro cross-browser
+        if (btnElement) {
+            btnElement.style.background = "var(--green-success)";
+            btnElement.style.color = "white";
+            btnElement.style.borderColor = "var(--green-success)";
+            btnElement.innerHTML = `<span>✓</span> Agregado y Registrado`;
+        }
+        
+        setTimeout(() => {
+            document.getElementById('smartPanelContainer').style.display = 'none';
+        }, 800);
+    }
+
+    // =========================================================
+    // NUEVO: ACTIVADOR DE SELECCIÓN DE CARAS EN EL SVG
+    // =========================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        const svgContenedor = document.getElementById('odontogramaSVG');
+        if (svgContenedor) {
+            svgContenedor.addEventListener('click', (e) => {
+                // Buscamos si el clic fue en un polígono o ruta del diente
+                const targetCara = e.target.closest('polygon, path');
+                if (targetCara) {
+                    // Alternar color de la cara clicleada
+                    targetCara.classList.toggle('selected');
+                    
+                    // Identificamos a qué grupo (diente completo) pertenece esa cara
+                    const grupoPieza = targetCara.closest('g[data-fdi]');
+                    if (grupoPieza) {
+                        // Limpiamos la selección del diente anterior para no confundir al sistema
+                        document.querySelectorAll('g[data-fdi].selected').forEach(el => {
+                            if(el !== grupoPieza) el.classList.remove('selected');
+                        });
+                        // Marcamos el diente actual como "Diente Activo" para que la tabla lea su número
+                        grupoPieza.classList.add('selected');
+                    }
+                }
+            });
+        }
+    });
+
+    // Pequeño script para manejar los menús desplegables del nuevo panel (Acordeones)
+    document.querySelectorAll('.odn-finding-group__head').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const body = this.nextElementSibling;
+            const icon = this.querySelector('.odn-finding-group__chevron');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            this.setAttribute('aria-expanded', !isExpanded);
+            if(isExpanded) {
+                body.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                body.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+            }
+            // Al cambiar de categoría, ocultamos el panel inteligente si estaba abierto
+            document.getElementById('smartPanelContainer').style.display = 'none';
+        });
+    });
+</script>
 </body>
 </html>
