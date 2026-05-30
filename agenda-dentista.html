@@ -335,6 +335,47 @@
             </div>
     </div>
 
+    <!-- ======================================================= -->
+    <!-- MODAL REGISTRO DE PAGO AL FINALIZAR CITA (MÓDULO SALDO) -->
+    <!-- ======================================================= -->
+    <div id="modalRegistrarPago" class="modal-overlay" style="display:none; z-index: 1100;">
+        <div class="modal-content" style="max-width: 480px; border-radius: 20px;">
+            <button class="btn-close" onclick="cerrarModal('modalRegistrarPago')"><span class="material-symbols-outlined">close</span></button>
+            <h2 class="modal-title" style="color: var(--green-success); display: flex; align-items: center; gap: 10px; margin-top: 0;">
+                <span class="material-symbols-outlined" style="font-size: 2rem;">payments</span> Registrar Pago
+            </h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin: 0 0 5px;">Paciente: <strong id="pagoNombrePaciente" style="color: var(--blue-elegant);">--</strong></p>
+            <p style="color: #94a3b8; font-size: 0.8rem; margin: 0 0 20px;">Este pago quedará registrado en el saldo corriente del paciente.</p>
+
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Monto Recibido ($)</label>
+                <input type="number" id="pagoMonto" class="apple-input-modal" placeholder="Ej: 25000" min="0" step="500">
+            </div>
+
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Medio de Pago</label>
+                <select id="pagoMedio" class="apple-input-modal" style="background: white;">
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Débito">Débito</option>
+                    <option value="Crédito">Crédito</option>
+                    <option value="Transferencia">Transferencia</option>
+                </select>
+            </div>
+
+            <div class="input-group-modal">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Notas (opcional)</label>
+                <input type="text" id="pagoNotas" class="apple-input-modal" placeholder="Ej: Abono inicial">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button class="btn-login-outline btn-full" onclick="finalizarSinPago()" style="margin:0; font-size: 0.85rem;">Finalizar sin pago</button>
+                <button class="btn-pixar btn-full" id="btnGuardarPago" onclick="guardarPagoYFinalizar()" style="margin:0; font-size: 0.95rem; background: var(--green-success);">
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">save</span> Guardar y Finalizar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
@@ -735,7 +776,7 @@
 
                 contenedorAcciones.innerHTML = `
                     ${btnFicha}
-                    <button class="btn-login-outline btn-full" onclick="actualizarEstadoCita('completada')">Finalizar Atención</button>
+                    <button class="btn-login-outline btn-full" onclick="abrirModalPagoFinalizar()">Finalizar Atención</button>
                 `;
             }
             // Si está COMPLETADA
@@ -967,6 +1008,78 @@
                 if(lista) lista.style.display = 'none';
             }
         });
+
+        // =========================================================
+        // MÓDULO SALDO CORRIENTE: REGISTRO DE PAGO AL FINALIZAR CITA
+        // =========================================================
+        function abrirModalPagoFinalizar() {
+            if (!citaEnCursoData) return;
+            document.getElementById('pagoNombrePaciente').innerText = citaEnCursoData.nombre || 'Paciente';
+            document.getElementById('pagoMonto').value = '';
+            document.getElementById('pagoMedio').value = 'Efectivo';
+            document.getElementById('pagoNotas').value = '';
+            // Ocultamos el modal de detalle para evitar superposición visual
+            document.getElementById('modalDetallePaciente').style.display = 'none';
+            document.getElementById('modalRegistrarPago').style.display = 'flex';
+        }
+
+        async function guardarPagoYFinalizar() {
+            if (!citaEnCursoData || !citaEnCursoData.cita_id) return;
+
+            const monto = parseFloat(document.getElementById('pagoMonto').value);
+            const medio = document.getElementById('pagoMedio').value;
+            const notas = document.getElementById('pagoNotas').value.trim();
+
+            if (isNaN(monto) || monto < 0) {
+                return alert("Ingresa un monto válido. Si no hay cobro, usa el botón 'Finalizar sin pago'.");
+            }
+
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const btn = document.getElementById('btnGuardarPago');
+            btn.disabled = true;
+            btn.innerText = "Guardando...";
+
+            try {
+                // 1) Solo registramos el pago si el monto es > 0 y la cita está vinculada a un paciente
+                if (monto > 0) {
+                    if (!citaEnCursoData.paciente_id) {
+                        alert("⚠️ Esta cita no está vinculada a un paciente registrado. El pago no se podrá asociar al saldo del paciente.");
+                    } else {
+                        const { error: errPago } = await window.midental.from('pagos').insert([{
+                            cita_id: citaEnCursoData.cita_id,
+                            paciente_id: citaEnCursoData.paciente_id,
+                            dentista_id: dentistaId,
+                            monto: monto,
+                            medio_pago: medio,
+                            notas: notas || null
+                        }]);
+                        if (errPago) throw errPago;
+                    }
+                }
+
+                // 2) Cerramos la atención clínica
+                const { error: errEstado } = await window.midental.from('citas_agenda')
+                    .update({ estado: 'completada' })
+                    .eq('id', citaEnCursoData.cita_id);
+                if (errEstado) throw errEstado;
+
+                alert("✅ Atención finalizada" + (monto > 0 ? ` y pago de $${monto.toLocaleString('es-CL')} registrado.` : "."));
+                cerrarModal('modalRegistrarPago');
+                renderizarSemanaActual();
+            } catch (err) {
+                console.error("Error al guardar pago:", err);
+                alert("Error al registrar el pago: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">save</span> Guardar y Finalizar';
+            }
+        }
+
+        async function finalizarSinPago() {
+            if (!citaEnCursoData) return;
+            cerrarModal('modalRegistrarPago');
+            await actualizarEstadoCita('completada');
+        }
     </script>
 </body>
 </html>
