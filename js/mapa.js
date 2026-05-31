@@ -326,7 +326,8 @@ window.confirmarAgendamientoPaciente = async function() {
             dentista_id: dentistaIdSeleccionado,
             fecha_hora_formato_slot: slotSeleccionadoGlobal,
             estado: 'pendiente',
-            motivo: 'Evaluación General'
+            motivo: 'Evaluación General',
+            duracion_minutos: 60
         }]);
 
         if (error) throw error;

@@ -601,7 +601,12 @@ document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.no
 
             document.getElementById('lblSemanaCita').innerText = `Semana del ${lunes.getDate()} ${mesesCortos[lunes.getMonth()]} al ${domingo.getDate()} ${mesesCortos[domingo.getMonth()]}`;
 
-            const horasTrabajo = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+            // Granularidad 30 min (coherente con perfil-dentista y agenda)
+            const horasTrabajo = [];
+            for (let h = 8; h <= 20; h++) {
+                horasTrabajo.push(`${h.toString().padStart(2,'0')}:00`);
+                horasTrabajo.push(`${h.toString().padStart(2,'0')}:30`);
+            }
 
             for (let i = 0; i < 7; i++) {
                 let fCol = new Date(lunes);
@@ -633,7 +638,8 @@ document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.no
                     btn.innerText = estaOcupado ? "Ocupado" : horaStr; // Cambia el texto
                     
                     const ahora = new Date();
-                    const fechaBloque = new Date(fCol.getFullYear(), fCol.getMonth(), fCol.getDate(), parseInt(horaStr.split(':')[0]), 0);
+                    const [hhStr, mmStr] = horaStr.split(':');
+                    const fechaBloque = new Date(fCol.getFullYear(), fCol.getMonth(), fCol.getDate(), parseInt(hhStr, 10), parseInt(mmStr, 10));
                     
                     // Desactivar si la hora ya pasó o si ya está ocupada
                     if(fechaBloque < ahora || estaOcupado) {
@@ -698,7 +704,8 @@ document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.no
                     dentista_id: dentistaSeleccionado.id,
                     fecha_hora_formato_slot: bloqueAgendamientoSeleccionado.formato_db,
                     estado: 'pendiente',
-                    motivo: 'Evaluación General (Vía Mapa)'
+                    motivo: 'Evaluación General (Vía Mapa)',
+                    duracion_minutos: 60
                 }]);
 
                 if(dbError) throw dbError;
