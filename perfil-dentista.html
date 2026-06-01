@@ -153,10 +153,13 @@
                                         <input type="text" id="dentistaNombre" class="apple-input-modal" placeholder="Tu nombre">
                                     </div>
                                     <div>
-                                        <label class="input-label">Fecha de Nacimiento</label><span id="labelEdad" style="color:var(--pixar-cyan); font-weight:bold; margin-left:10px;"></span></label>
-<input type="date" id="pInputNacimiento" class="apple-input" onchange="calcularYMostrarEdad(this.value, 'labelEdad')">
-                                        <input type="date" id="dentistaNacimiento" class="apple-input-modal">
-                                    </div>
+                                       <div style="margin-bottom: 15px;">
+    <label class="input-label" style="display: flex; align-items: center;">
+        Fecha de Nacimiento
+        <span id="labelEdad" style="color:var(--pixar-cyan); font-weight:bold; margin-left:10px;"></span>
+    </label>
+    <input type="date" id="dentistaNacimiento" class="apple-input-modal" onchange="calcularYMostrarEdad(this.value, 'labelEdad')">
+</div>
                                 </div>
                                 <div style="grid-column: 1 / -1;">
                                     <label class="input-label">Especialidad Principal</label>

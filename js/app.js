@@ -133,35 +133,74 @@ async function iniciarSesion(tipo) {
     const btn = document.querySelector(`#modalLogin${tipo.charAt(0).toUpperCase() + tipo.slice(1)} .btn-pixar`);
 
     if (!rutInput || !password) return alert("⚠️ Ingresa RUT y Contraseña.");
-    const textoOriginal = btn.innerHTML; 
+    const textoOriginal = btn.innerHTML;
     btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite; vertical-align: middle;">sync</span> Verificando...';
 
     try {
         const rutLimpio = formatearRutEstricto(rutInput);
+        const rutSinPuntos = rutLimpio.replace(/\./g, ''); // compatibilidad con registros antiguos
         const tabla = tipo === 'dentista' ? 'perfiles_dentistas' : 'perfiles_pacientes';
+        let email = null;
 
-        // 1. Buscamos el correo asociado a ese RUT específico
-        const { data: perfil } = await window.midental.from(tabla).select('email').eq('rut', rutLimpio).maybeSingle();
-        if (!perfil || !perfil.email) throw new Error("RUT no registrado en nuestra red.");
+        // 1A. Intento preferente: RPC `buscar_email_por_rut` (bypass-RLS controlado vía SECURITY DEFINER)
+        try {
+            const { data: rpcData, error: rpcError } = await window.midental.rpc('buscar_email_por_rut', {
+                p_rut: rutLimpio,
+                p_tipo: tipo
+            });
+            if (rpcError) {
+                console.warn("[login] RPC buscar_email_por_rut respondió error:", rpcError.message);
+            } else if (rpcData) {
+                email = rpcData;
+            }
+        } catch (rpcException) {
+            console.warn("[login] RPC buscar_email_por_rut no disponible:", rpcException.message);
+        }
+
+        // 1B. Fallback: consulta directa (requiere policy RLS de SELECT para el rol anon)
+        if (!email) {
+            const { data: perfil, error: queryError } = await window.midental
+                .from(tabla).select('email').eq('rut', rutLimpio).maybeSingle();
+
+            if (queryError) {
+                console.error("[login] Error consultando", tabla, "por RUT:", queryError);
+            }
+
+            if (perfil && perfil.email) {
+                email = perfil.email;
+            } else {
+                // Reintento con RUT sin puntos (registros antiguos / formato alterno)
+                const { data: perfilAlt, error: queryAltError } = await window.midental
+                    .from(tabla).select('email').eq('rut', rutSinPuntos).maybeSingle();
+                if (queryAltError) {
+                    console.error("[login] Error en reintento sin puntos:", queryAltError);
+                }
+                if (perfilAlt && perfilAlt.email) email = perfilAlt.email;
+            }
+        }
+
+        if (!email) {
+            throw new Error("RUT no registrado en nuestra red. Si tu cuenta existe, revisa los permisos RLS de la tabla en Supabase o despliega la RPC buscar_email_por_rut.");
+        }
 
         // 2. Iniciamos sesión en la Cuenta Maestra
-        const { data: session, error: authError } = await window.midental.auth.signInWithPassword({ 
-            email: perfil.email, 
-            password: password 
+        const { data: session, error: authError } = await window.midental.auth.signInWithPassword({
+            email: email,
+            password: password
         });
         if (authError) throw new Error("Contraseña incorrecta.");
 
         // 3. Guardamos los datos de sesión (¡Incluyendo el RUT!)
         localStorage.setItem('midental_user_id', session.user.id);
         localStorage.setItem('midental_user_tipo', tipo);
-        
+
         if (tipo === 'paciente') {
             localStorage.setItem('midental_paciente_rut', rutLimpio);
             window.location.href = 'dashboard-paciente.html';
         } else {
             window.location.href = 'dashboard-dentista.html';
         }
-        
+
     } catch (err) {
         alert("Acceso denegado: " + err.message);
         btn.innerHTML = textoOriginal;
