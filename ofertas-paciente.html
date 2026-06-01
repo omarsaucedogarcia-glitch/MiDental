@@ -39,6 +39,70 @@
         .reel-info { padding: 15px; }
         .reel-dr { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .reel-dr img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--pixar-cyan); object-fit: cover;}
+
+        /* ============================================== */
+        /* LIGHTBOX · Visor de imágenes                   */
+        /* ============================================== */
+        .lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+            animation: lbFade 0.18s ease-out;
+        }
+        .lightbox-overlay.is-open { display: flex; }
+        @keyframes lbFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes lbZoom { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .lightbox-stage {
+            position: relative;
+            max-width: 96vw;
+            max-height: 92vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: lbZoom 0.22s ease-out;
+        }
+        .lightbox-image {
+            max-width: 96vw;
+            max-height: 92vh;
+            border-radius: 14px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            object-fit: contain;
+            background: #0f172a;
+            display: block;
+        }
+        .lightbox-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #0f172a;
+            font-size: 1.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+            transition: transform 0.15s, background 0.15s;
+            z-index: 2;
+        }
+        .lightbox-close:hover { transform: scale(1.08); background: #ef4444; color: white; }
+
+        @media (max-width: 480px) {
+            .lightbox-close { top: -8px; right: -8px; width: 38px; height: 38px; }
+        }
     </style>
 </head>
 <body>
@@ -74,6 +138,14 @@
         </div>
     </div>
 
+    <!-- LIGHTBOX · Visor de imágenes de ofertas -->
+    <div class="lightbox-overlay" id="lightboxOverlay" onclick="cerrarLightbox(event)" role="dialog" aria-modal="true" aria-label="Vista ampliada de la oferta">
+        <div class="lightbox-stage" onclick="event.stopPropagation()">
+            <button type="button" class="lightbox-close" onclick="cerrarLightbox()" aria-label="Cerrar">&times;</button>
+            <img src="" alt="Imagen de la oferta" class="lightbox-image" id="lightboxImage">
+        </div>
+    </div>
+
     <nav class="bottom-nav">
         <a href="dashboard-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">home</span>Inicio</a>
         <a href="mapa-paciente.html" class="nav-item-bottom"><span class="material-symbols-outlined">search</span>Buscar</a>
@@ -90,30 +162,78 @@
     <script>
         let cronometroGlobalInterval;
 
+        // Registro global de ofertas renderizadas (id -> oferta enriquecida).
+        // Evita inyectar JSON crudo en atributos onclick.
+        window.__OFERTAS_RENDERIZADAS = window.__OFERTAS_RENDERIZADAS || {};
+
         document.addEventListener('DOMContentLoaded', () => {
             cargarOfertas();
             cargarReels();
+            // Cerrar lightbox con tecla ESC
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') cerrarLightbox();
+            });
         });
 
         // 1. SISTEMA DE PESTAÑAS (TABS)
         function cambiarPestana(pestana) {
             document.getElementById('btnTabOfertas').classList.toggle('active', pestana === 'ofertas');
             document.getElementById('btnTabReels').classList.toggle('active', pestana === 'reels');
-            
+
             document.getElementById('areaOfertas').style.display = pestana === 'ofertas' ? 'flex' : 'none';
             document.getElementById('areaReels').style.display = pestana === 'reels' ? 'flex' : 'none';
         }
 
-        // 2. CARGAR OFERTAS FLASH
+        // ==========================================================
+        // LIGHTBOX · Visor de imágenes
+        // ==========================================================
+        function abrirLightbox(url) {
+            try {
+                if (!url) return;
+                const overlay = document.getElementById('lightboxOverlay');
+                const img = document.getElementById('lightboxImage');
+                img.src = url;
+                overlay.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            } catch (err) {
+                console.error("[abrirLightbox] Error:", err);
+            }
+        }
+
+        function cerrarLightbox(event) {
+            try {
+                // Si se invoca por clic en overlay, sólo cerrar si el target es el overlay
+                if (event && event.type === 'click' && event.target.id !== 'lightboxOverlay') return;
+                const overlay = document.getElementById('lightboxOverlay');
+                overlay.classList.remove('is-open');
+                document.getElementById('lightboxImage').src = '';
+                document.body.style.overflow = '';
+            } catch (err) {
+                console.error("[cerrarLightbox] Error:", err);
+            }
+        }
+
+        // ==========================================================
+        // 2. CARGAR OFERTAS FLASH (con contexto profesional y sede)
+        // ==========================================================
         async function cargarOfertas() {
             const contenedor = document.getElementById('ofertasFlashContenedor');
             try {
                 const { data: ofertas, error } = await window.midental
                     .from('ofertas_flash')
-                    .select('*, perfiles_dentistas(prefijo, nombre_completo)')
-                    .lte('inicio_at', new Date().toISOString()) 
-                    .gte('expira_at', new Date().toISOString()) 
-                    .eq('activa', true) 
+                    .select(`
+                        *,
+                        perfiles_dentistas (
+                            id,
+                            prefijo,
+                            nombre_completo,
+                            telefono,
+                            sedes_dentistas ( nombre_sede, direccion, comuna )
+                        )
+                    `)
+                    .lte('inicio_at', new Date().toISOString())
+                    .gte('expira_at', new Date().toISOString())
+                    .eq('activa', true)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
@@ -123,42 +243,75 @@
                     return;
                 }
 
+                window.__OFERTAS_RENDERIZADAS = {};
                 contenedor.innerHTML = "";
+
                 ofertas.forEach(oferta => {
                     const dr = oferta.perfiles_dentistas || {};
                     const nombreBase = dr.nombre_completo || '';
                     if (!nombreBase) return; // Evita mostrar ofertas de doctores eliminados
 
-                    const drName = `${dr.prefijo || 'Dr.'} ${nombreBase}`;
+                    const prefijo = dr.prefijo || 'Dr.';
+                    const drName = `${prefijo} ${nombreBase}`;
+
+                    // Resolver sede principal (puede venir como array por la relación 1:N)
+                    let nombreCentro = 'su consulta';
+                    const sedes = dr.sedes_dentistas;
+                    if (Array.isArray(sedes) && sedes.length > 0 && sedes[0].nombre_sede) {
+                        nombreCentro = sedes[0].nombre_sede;
+                    } else if (sedes && typeof sedes === 'object' && sedes.nombre_sede) {
+                        nombreCentro = sedes.nombre_sede;
+                    }
+
+                    // Persistimos el dataset enriquecido para que agendarOferta() lo reuse.
+                    window.__OFERTAS_RENDERIZADAS[oferta.id] = {
+                        id: oferta.id,
+                        servicio_nombre: oferta.servicio_nombre,
+                        precio_oferta: oferta.precio_oferta,
+                        precio_real: oferta.precio_real,
+                        nombre_centro: nombreCentro,
+                        dentista_nombre: nombreBase,
+                        dentista_prefijo: prefijo,
+                        dentista_telefono: dr.telefono || ''
+                    };
+
                     const imgUrl = oferta.imagen_url || 'https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial';
-                    
+                    const imgUrlSafe = (imgUrl || '').replace(/'/g, "\\'");
+
                     let porcentajeDesc = 0;
-                    if(oferta.precio_real > 0) {
+                    if (oferta.precio_real > 0) {
                         porcentajeDesc = Math.round(((oferta.precio_real - oferta.precio_oferta) / oferta.precio_real) * 100);
                     }
 
                     contenedor.innerHTML += `
                         <div class="offer-card" style="position: relative; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:15px; overflow:hidden; margin-bottom:15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
-                            
+
                             <div style="position: absolute; top: 15px; right: 15px; background: #ef4444; color: white; padding: 8px 15px; border-radius: 20px; font-weight: 900; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 10;">
                                 -${porcentajeDesc}%
                             </div>
 
-                            <img src="${imgUrl}" style="width:100%; height:180px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial'">
-                            
+                            <img src="${imgUrl}"
+                                 style="width:100%; height:180px; object-fit:cover; cursor: pointer;"
+                                 title="Toca para ampliar"
+                                 onclick="abrirLightbox('${imgUrlSafe}')"
+                                 onerror="this.src='https://via.placeholder.com/400x200/1e293b/00b4d8?text=Promo+Especial'">
+
                             <div style="padding:15px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center;">
                                     <span style="background:var(--pixar-orange); color:white; padding:3px 8px; border-radius:10px; font-size:0.7rem; font-weight:bold;">DESTACADO</span>
-                                    
+
                                     <div class="timer-container" data-expira="${oferta.expira_at}" style="display:flex; align-items:center; gap:5px; color:var(--pixar-orange); font-size:0.85rem; font-weight:bold; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px;">
                                         <span class="material-symbols-outlined reloj-urgencia" style="font-size:1.1rem;">timer</span>
                                         <span class="tiempo-restante">Calculando...</span>
                                     </div>
                                 </div>
-                                
+
                                 <h3 style="margin:12px 0 5px 0; color:white; font-size:1.2rem;">${oferta.servicio_nombre}</h3>
-                                <p style="margin:0 0 15px 0; color:#94a3b8; font-size:0.9rem;">Por ${drName}</p>
-                                
+                                <p style="margin:0 0 4px 0; color:#94a3b8; font-size:0.9rem;">Por ${drName}</p>
+                                <p style="margin:0 0 15px 0; color:#64748b; font-size:0.8rem; display:flex; align-items:center; gap:4px;">
+                                    <span class="material-symbols-outlined" style="font-size:1rem;">location_on</span> ${nombreCentro}
+                                </p>
+
                                 <div style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.2); padding: 10px 15px; border-radius: 12px;">
                                     <div style="display:flex; flex-direction:column;">
                                         <span style="font-size:0.75rem; color:#888;">Precio Normal</span>
@@ -169,8 +322,8 @@
                                         <span style="color:var(--pixar-orange); font-size:1.5rem; font-weight:900;">$${(oferta.precio_oferta || 0).toLocaleString('es-CL')}</span>
                                     </div>
                                 </div>
-                                
-                                <button class="btn-pixar btn-outline mt-15" style="width:100%; border-radius:12px; padding: 12px; font-size: 1rem; border-width: 2px;" onclick="window.location.href='mapa-paciente.html?doctor=${encodeURIComponent(nombreBase)}'">
+
+                                <button class="btn-pixar btn-outline mt-15" style="width:100%; border-radius:12px; padding: 12px; font-size: 1rem; border-width: 2px;" onclick="agendarOferta('${oferta.id}')">
                                     Agendar con este precio
                                 </button>
                             </div>
@@ -184,6 +337,70 @@
             } catch (err) {
                 console.error("Error al cargar ofertas:", err);
                 contenedor.innerHTML = `<p style="color:red; text-align:center;">Ocurrió un error al cargar las promociones.</p>`;
+            }
+        }
+
+        // ==========================================================
+        // 3. AGENDAMIENTO DUAL · WhatsApp + redirección a la agenda
+        // ==========================================================
+        function formatearPrecioCLP(monto) {
+            const n = Number(monto) || 0;
+            try {
+                return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n);
+            } catch (_) {
+                return `$${Math.round(n).toLocaleString('es-CL')}`;
+            }
+        }
+
+        /**
+         * Normaliza un número chileno a formato internacional 569XXXXXXXX.
+         * - Quita espacios, guiones, puntos y paréntesis.
+         * - Conserva el código de país si ya viene (56...).
+         * - Agrega 56 cuando el número parte con 9 y tiene 9 dígitos (móvil CL).
+         */
+        function normalizarTelefonoCL(telefonoRaw) {
+            if (!telefonoRaw) return '';
+            let tel = String(telefonoRaw).replace(/[^\d+]/g, '').replace(/^\+/, '');
+            if (!tel) return '';
+            if (tel.startsWith('56')) return tel;
+            if (tel.startsWith('9') && tel.length === 9) return `56${tel}`;
+            if (tel.length === 8) return `569${tel}`; // móvil sin el 9 inicial
+            return tel; // último recurso: lo dejamos como vino
+        }
+
+        function agendarOferta(ofertaId) {
+            try {
+                const oferta = window.__OFERTAS_RENDERIZADAS?.[ofertaId];
+                if (!oferta) {
+                    console.error("[agendarOferta] Oferta no encontrada en el registro:", ofertaId);
+                    alert("No pudimos preparar el mensaje para esta oferta.");
+                    return;
+                }
+
+                const servicio        = oferta.servicio_nombre || 'el servicio promocionado';
+                const precioFormat    = formatearPrecioCLP(oferta.precio_oferta);
+                const nombreCentro    = oferta.nombre_centro || 'su consulta';
+                const prefijo         = oferta.dentista_prefijo || 'Dr.';
+                const nombreCompleto  = oferta.dentista_nombre || '';
+                const telefono        = normalizarTelefonoCL(oferta.dentista_telefono);
+
+                const mensaje = `Hola, vi la oferta de ${servicio} al valor de ${precioFormat} y quiero agendar una hora en el centro ${nombreCentro} con el ${prefijo} ${nombreCompleto}.`;
+                const mensajeEnc = encodeURIComponent(mensaje);
+
+                // 1) Abrir WhatsApp en nueva pestaña (si hay teléfono válido)
+                if (telefono) {
+                    window.open(`https://wa.me/${telefono}?text=${mensajeEnc}`, '_blank', 'noopener,noreferrer');
+                } else {
+                    // Fallback: abrir WhatsApp sin número específico (selector de contacto)
+                    window.open(`https://wa.me/?text=${mensajeEnc}`, '_blank', 'noopener,noreferrer');
+                    console.warn("[agendarOferta] El profesional no tiene teléfono registrado.");
+                }
+
+                // 2) Redirigir la pestaña actual a la agenda/perfil del dentista
+                window.location.href = `mapa-paciente.html?busqueda=${encodeURIComponent(nombreCompleto)}`;
+            } catch (err) {
+                console.error("[agendarOferta] Error:", err);
+                alert("No pudimos iniciar el agendamiento. Intenta nuevamente.");
             }
         }
 

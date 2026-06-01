@@ -3,76 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiDental - Mis Documentos</title>
+    <title>MiDental - Finanzas y Documentos</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <style>
         body { background-color: #f8fafc; padding-bottom: 90px; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .docs-container { padding: 20px; max-width: 800px; margin: 0 auto; }
-        .section-title { font-size: 1.1rem; color: var(--blue-elegant); margin: 20px 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        
-        /* Tarjeta de Resumen Clínico */
-        .summary-card { background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%); border-radius: 15px; padding: 20px; border: 1px solid #ccfbf1; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px; }
-        .summary-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
-        .summary-header h3 { margin: 0; color: #1e293b; font-size: 1.1rem; }
-        .summary-header p { margin: 3px 0 0 0; font-size: 0.85rem; color: #64748b; }
-        .summary-body { font-size: 0.95rem; color: #475569; line-height: 1.5; }
-        
-        /* Zona de Subida de Archivos */
-        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 15px; padding: 30px 20px; text-align: center; background: white; cursor: pointer; transition: 0.3s; margin-bottom: 25px; position: relative; }
+        .section-title { font-size: 1.1rem; color: var(--blue-elegant); margin: 25px 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+
+        /* ============================================== */
+        /* RESUMEN FINANCIERO · 3 TARJETAS                */
+        /* ============================================== */
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .finance-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+            min-height: 110px;
+        }
+        .finance-card .finance-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+            font-size: 1rem;
+            background: var(--pixar-cyan);
+        }
+        .finance-card .finance-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+        }
+        .finance-card .finance-amount {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--blue-elegant);
+            line-height: 1.1;
+            word-break: break-word;
+        }
+        .finance-card.is-budget   { background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); border-color: #bfdbfe; }
+        .finance-card.is-paid     { background: linear-gradient(135deg, #ffffff 0%, #ecfeff 100%); border-color: #a5f3fc; }
+        .finance-card.is-paid .finance-icon { background: var(--pixar-cyan); }
+
+        .finance-card.is-alert    { background: linear-gradient(135deg, #fff7ed 0%, #fee2e2 100%); border-color: #fca5a5; }
+        .finance-card.is-alert .finance-icon { background: #ef4444; }
+        .finance-card.is-alert .finance-amount { color: #b91c1c; }
+
+        .finance-card.is-success  { background: linear-gradient(135deg, #ffffff 0%, #dcfce7 100%); border-color: #86efac; }
+        .finance-card.is-success .finance-icon { background: #16a34a; }
+        .finance-card.is-success .finance-amount { color: #166534; }
+
+        .finance-foot {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .finance-cta {
+            background: white;
+            border-radius: 14px;
+            padding: 12px 16px;
+            border: 1px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #475569;
+            margin-bottom: 25px;
+            margin-top: 12px;
+        }
+        .finance-cta .material-symbols-outlined { color: var(--pixar-cyan); }
+
+        /* ============================================== */
+        /* ZONA DE SUBIDA DE ARCHIVOS                     */
+        /* ============================================== */
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 15px; padding: 26px 20px; text-align: center; background: white; cursor: pointer; transition: 0.3s; margin-bottom: 25px; position: relative; }
         .upload-zone:hover { border-color: var(--pixar-cyan); background: #f0fdfa; }
         .upload-zone input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-        .upload-btn { background: var(--pixar-cyan); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: inline-block; margin-top: 10px; pointer-events: none; }
-        
-        /* Lista de Documentos */
-        .doc-item { background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 15px; transition: 0.2s; }
-        .doc-item:active { transform: scale(0.98); }
-        .doc-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;}
+        .upload-btn { background: var(--pixar-cyan); color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: inline-block; margin-top: 8px; pointer-events: none; }
+
+        /* ============================================== */
+        /* LISTADO DE DOCUMENTOS                          */
+        /* ============================================== */
+        .doc-item {
+            background: white;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+            transition: 0.2s;
+        }
+        .doc-item:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); }
+        .doc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .doc-icon.pdf { background: #fee2e2; color: #ef4444; }
         .doc-icon.img { background: #e0f2fe; color: #0ea5e9; }
-        .doc-info { flex: 1; overflow: hidden; }
-        .doc-info h4 { margin: 0; font-size: 0.95rem; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .doc-info p { margin: 3px 0 0 0; font-size: 0.8rem; color: #94a3b8; }
-        .doc-action { color: var(--pixar-cyan); background: #f0fdfa; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0;}
+        .doc-icon.presupuesto { background: var(--pixar-cyan); color: white; }
+        .doc-icon.receta { background: #ede9fe; color: #7c3aed; }
 
-        .empty-state { text-align: center; padding: 30px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px solid #e2e8f0; }
-        
+        .doc-info { flex: 1; min-width: 0; }
+        .doc-info h4 { margin: 0 0 3px 0; font-size: 0.95rem; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .doc-info p { margin: 0; font-size: 0.78rem; color: #94a3b8; }
+
+        .btn-pixar.btn-ver-doc {
+            background: var(--pixar-cyan);
+            box-shadow: 0 4px 0 var(--pixar-cyan-shadow, #0086CC);
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-pixar.btn-ver-doc:active { transform: translateY(4px); box-shadow: 0 0 0 transparent !important; }
+        .btn-pixar.btn-ver-doc[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+        /* ============================================== */
+        /* EMPTY STATE                                    */
+        /* ============================================== */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #64748b;
+            background: white;
+            border-radius: 15px;
+            border: 1px dashed #cbd5e1;
+        }
+        .empty-state span.material-symbols-outlined { font-size: 2.6rem; color: #94a3b8; display: block; margin-bottom: 6px; }
+        .empty-state p { margin: 3px 0; font-size: 0.9rem; }
+        .empty-state .empty-sub { font-size: 0.78rem; color: #94a3b8; }
+
         .bottom-nav { background: white; border-top: none; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spin { animation: spin 1.2s linear infinite; display: inline-block; }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            .financial-grid { grid-template-columns: 1fr; }
+            .finance-card { min-height: auto; flex-direction: row; align-items: center; gap: 14px; }
+            .finance-card .finance-icon { width: 42px; height: 42px; }
+            .finance-card > div.finance-body { display: flex; flex-direction: column; flex: 1; }
+            .finance-card .finance-amount { font-size: 1.4rem; }
+            .docs-container { padding: 14px; }
+        }
     </style>
 </head>
 <body>
 
     <header style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-        <h2 style="margin: 0; font-size: 1.3rem; color: var(--blue-elegant);">Mis Documentos</h2>
+        <h2 style="margin: 0; font-size: 1.3rem; color: var(--blue-elegant);">Finanzas y Documentos</h2>
     </header>
 
     <div class="docs-container">
-        
+
+        <!-- RESUMEN FINANCIERO -->
         <div class="section-title">
-            <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">medical_information</span>
-            Mi Última Atención
+            <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">payments</span>
+            Resumen Financiero
         </div>
-        <div id="contenedorUltimaAtencion">
-            <div class="empty-state"><span class="material-symbols-outlined" style="animation: spin 2s linear infinite;">sync</span><p>Cargando información...</p></div>
+        <div class="financial-grid" id="financialGrid">
+            <div class="finance-card is-budget">
+                <div class="finance-icon"><span class="material-symbols-outlined spin">sync</span></div>
+                <div class="finance-body">
+                    <span class="finance-label">Total Presupuestado</span>
+                    <span class="finance-amount">—</span>
+                </div>
+            </div>
+            <div class="finance-card is-paid">
+                <div class="finance-icon"><span class="material-symbols-outlined spin">sync</span></div>
+                <div class="finance-body">
+                    <span class="finance-label">Total Pagado</span>
+                    <span class="finance-amount">—</span>
+                </div>
+            </div>
+            <div class="finance-card">
+                <div class="finance-icon"><span class="material-symbols-outlined spin">sync</span></div>
+                <div class="finance-body">
+                    <span class="finance-label">Saldo Pendiente</span>
+                    <span class="finance-amount">—</span>
+                </div>
+            </div>
+        </div>
+        <div class="finance-cta" id="financeCta">
+            <span class="material-symbols-outlined">info</span>
+            <span>Tu balance financiero se actualiza en tiempo real con tus pagos y presupuestos.</span>
         </div>
 
-        <div class="section-title" style="margin-top: 30px;">
+        <!-- ZONA DE SUBIDA -->
+        <div class="section-title">
             <span class="material-symbols-outlined" style="color: var(--blue-elegant);">upload_file</span>
             Subir Exámenes o Radiografías
         </div>
         <div class="upload-zone" id="zonaSubida">
-            <span class="material-symbols-outlined" style="font-size: 3rem; color: #94a3b8;">cloud_upload</span>
-            <p style="color: #64748b; margin: 10px 0;">Toca aquí para subir fotos o PDFs<br><small>(Máx. 5MB)</small></p>
+            <span class="material-symbols-outlined" style="font-size: 2.8rem; color: #94a3b8;">cloud_upload</span>
+            <p style="color: #64748b; margin: 8px 0;">Toca aquí para subir fotos o PDFs<br><small>(Máx. 5MB)</small></p>
             <div class="upload-btn" id="textoBotonSubida">Seleccionar Archivo</div>
             <input type="file" id="inputSubirDoc" accept="image/*,.pdf" onchange="procesarSubidaDocumento(event)">
         </div>
 
+        <!-- PRESUPUESTOS EMITIDOS -->
         <div class="section-title">
-            <span class="material-symbols-outlined" style="color: #64748b;">folder_open</span>
-            Mis Archivos Guardados
+            <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">request_quote</span>
+            Presupuestos Emitidos
         </div>
-        <div id="listaDocumentos">
-            <div class="empty-state"><p>Cargando tus documentos...</p></div>
+        <div id="listaPresupuestos">
+            <div class="empty-state"><span class="material-symbols-outlined spin">sync</span><p>Cargando presupuestos...</p></div>
+        </div>
+
+        <!-- RECETAS Y EXÁMENES -->
+        <div class="section-title">
+            <span class="material-symbols-outlined" style="color: #7c3aed;">prescriptions</span>
+            Recetas Médicas / Exámenes
+        </div>
+        <div id="listaRecetas">
+            <div class="empty-state"><span class="material-symbols-outlined spin">sync</span><p>Cargando documentos...</p></div>
         </div>
 
     </div>
@@ -90,139 +253,287 @@
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const userId = localStorage.getItem('midental_user_id');
-            const tipoUser = localStorage.getItem('midental_user_tipo');
+        // ==========================================================
+        // BOOT · Identidad clínica
+        // ==========================================================
+        let PACIENTE_ID = null;
+        const BUCKET = 'documentos_clinicos';
 
-            // Guardián de Sesión
-            if (!userId || tipoUser !== 'paciente') {
-                alert("Debes iniciar sesión como paciente para ver tus documentos médicos.");
-                window.location.href = 'index.html';
-                return;
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                PACIENTE_ID = await resolverPacienteId();
+                if (!PACIENTE_ID) {
+                    alert("Debes iniciar sesión como paciente para ver tus documentos.");
+                    window.location.href = 'index.html';
+                    return;
+                }
+                await Promise.all([
+                    cargarResumenFinanciero(PACIENTE_ID),
+                    cargarDocumentos(PACIENTE_ID)
+                ]);
+            } catch (err) {
+                console.error("[BOOT] Error inicializando portal de documentos:", err);
+                alert("No pudimos cargar tu portal financiero. Intenta nuevamente.");
             }
-            
-            cargarUltimaAtencion(userId);
-            cargarDocumentos(userId);
         });
 
-        // 1. OBTENER LA ÚLTIMA ATENCIÓN FINALIZADA
-        async function cargarUltimaAtencion(userId) {
-            const contenedor = document.getElementById('contenedorUltimaAtencion');
+        async function resolverPacienteId() {
             try {
+                let authUid = null;
+                try {
+                    const { data: sessionData } = await window.midental.auth.getUser();
+                    authUid = sessionData?.user?.id || null;
+                } catch (e) {
+                    console.warn("[Auth] No se pudo obtener auth.getUser():", e);
+                }
+                if (!authUid) authUid = localStorage.getItem('midental_user_id');
+
+                const tipoUser = localStorage.getItem('midental_user_tipo');
+                if (!authUid || (tipoUser && tipoUser !== 'paciente')) return null;
+
                 const { data, error } = await window.midental
-                    .from('fichas_clinicas')
-                    .select('*, perfiles_dentistas(nombre_completo)')
-                    .eq('paciente_id', userId)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single(); 
+                    .from('perfiles_pacientes')
+                    .select('id, user_id')
+                    .eq('user_id', authUid)
+                    .maybeSingle();
 
                 if (error) throw error;
+                if (data?.id) return data.id;
 
-                if (data) {
-                    const drName = data.perfiles_dentistas ? data.perfiles_dentistas.nombre_completo : 'Especialista';
-                    const fechaAtencion = new Date(data.ultima_atencion || data.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
-
-                    contenedor.innerHTML = `
-                        <div class="summary-card">
-                            <div class="summary-header">
-                                <div style="background:var(--pixar-cyan); color:white; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-                                    <span class="material-symbols-outlined">check_circle</span>
-                                </div>
-                                <div>
-                                    <h3>Dr/a. ${drName}</h3>
-                                    <p>${fechaAtencion}</p>
-                                </div>
-                            </div>
-                            <div class="summary-body">
-                                <strong>Diagnóstico:</strong> ${data.motivo_consulta || 'Evaluación General'}<br><br>
-                                <strong>Procedimiento:</strong> ${data.accion_realizada || 'Atención de rutina'}<br><br>
-                                <span style="color:#94a3b8; font-style:italic;">* El historial completo está resguardado por tu especialista. Los presupuestos oficiales emitidos están en tus archivos guardados abajo.</span>
-                            </div>
-                        </div>
-                    `;
-                }
+                return authUid;
             } catch (err) {
-                contenedor.innerHTML = `<div class="empty-state"><p style="margin:0;">No tienes atenciones clínicas registradas aún.</p></div>`;
+                console.error("[resolverPacienteId] Error:", err);
+                return localStorage.getItem('midental_user_id');
             }
         }
 
-        // 2. OBTENER LISTA DE DOCUMENTOS (Exámenes y Presupuestos) - SEGURO CON SIGNED URLS
-        async function cargarDocumentos(userId) {
-            const contenedor = document.getElementById('listaDocumentos');
+        // ==========================================================
+        // RESUMEN FINANCIERO · vista_balance_paciente
+        // ==========================================================
+        async function cargarResumenFinanciero(pacienteId) {
+            const grid = document.getElementById('financialGrid');
+            const cta = document.getElementById('financeCta');
+
+            try {
+                const { data, error } = await window.midental
+                    .from('vista_balance_paciente')
+                    .select('presupuesto_integral, total_pagado, saldo_restante')
+                    .eq('paciente_id', pacienteId)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                const presupuesto = Number(data?.presupuesto_integral ?? 0);
+                const pagado      = Number(data?.total_pagado ?? 0);
+                const saldo       = Number(data?.saldo_restante ?? (presupuesto - pagado));
+
+                const saldoEsAlerta = saldo > 0;
+                const saldoEsExito  = saldo <= 0;
+
+                grid.innerHTML = `
+                    <div class="finance-card is-budget">
+                        <div class="finance-icon"><span class="material-symbols-outlined">description</span></div>
+                        <div class="finance-body">
+                            <span class="finance-label">Total Presupuestado</span>
+                            <span class="finance-amount">${formatoCLP(presupuesto)}</span>
+                        </div>
+                    </div>
+                    <div class="finance-card is-paid">
+                        <div class="finance-icon"><span class="material-symbols-outlined">paid</span></div>
+                        <div class="finance-body">
+                            <span class="finance-label">Total Pagado</span>
+                            <span class="finance-amount">${formatoCLP(pagado)}</span>
+                        </div>
+                    </div>
+                    <div class="finance-card ${saldoEsAlerta ? 'is-alert' : 'is-success'}">
+                        <div class="finance-icon">
+                            <span class="material-symbols-outlined">${saldoEsAlerta ? 'warning' : 'task_alt'}</span>
+                        </div>
+                        <div class="finance-body">
+                            <span class="finance-label">Saldo Pendiente</span>
+                            <span class="finance-amount">${formatoCLP(Math.max(saldo, 0))}</span>
+                        </div>
+                    </div>
+                `;
+
+                if (saldoEsExito) {
+                    cta.innerHTML = `
+                        <span class="material-symbols-outlined" style="color:#16a34a;">verified</span>
+                        <span><strong style="color:#166534;">¡Estás al día!</strong> No registras saldo pendiente con tu especialista.</span>
+                    `;
+                } else {
+                    cta.innerHTML = `
+                        <span class="material-symbols-outlined" style="color:#ef4444;">priority_high</span>
+                        <span>Tienes un saldo pendiente de <strong style="color:#b91c1c;">${formatoCLP(saldo)}</strong>. Coordina el pago con tu especialista.</span>
+                    `;
+                }
+            } catch (err) {
+                console.error("[cargarResumenFinanciero] Error:", err);
+                grid.innerHTML = `
+                    <div class="finance-card" style="grid-column: 1 / -1;">
+                        <div class="finance-icon" style="background:#94a3b8;"><span class="material-symbols-outlined">error</span></div>
+                        <div class="finance-body">
+                            <span class="finance-label">Resumen financiero</span>
+                            <span class="finance-amount" style="font-size:1rem;">No disponible</span>
+                            <span class="finance-foot">No pudimos cargar tu balance. Reintenta más tarde.</span>
+                        </div>
+                    </div>
+                `;
+                cta.style.display = 'none';
+            }
+        }
+
+        function formatoCLP(monto) {
+            try {
+                return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(monto);
+            } catch (_) {
+                return `$${Math.round(monto).toLocaleString('es-CL')}`;
+            }
+        }
+
+        // ==========================================================
+        // REPOSITORIO DE DOCUMENTOS · Presupuestos vs Recetas
+        // ==========================================================
+        async function cargarDocumentos(pacienteId) {
+            const contPresupuestos = document.getElementById('listaPresupuestos');
+            const contRecetas      = document.getElementById('listaRecetas');
+
             try {
                 const { data, error } = await window.midental
                     .from('documentos_pacientes')
-                    .select('*')
-                    .eq('paciente_id', userId)
+                    .select('*, perfiles_dentistas(nombre_completo)')
+                    .eq('paciente_id', pacienteId)
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
-                contenedor.innerHTML = "";
-                if (!data || data.length === 0) {
-                    contenedor.innerHTML = `<div class="empty-state"><p>No tienes documentos ni presupuestos guardados.</p></div>`;
-                    return;
-                }
+                const docs = data || [];
+                const presupuestos = [];
+                const recetas      = [];
 
-                // Generar URLs Firmadas en tiempo real para privacidad
-                for (const doc of data) {
-                    let urlSegura = '';
-                    const archivoRef = doc.archivo_url || doc.file_url;
-                    
-                    if (!archivoRef) continue;
+                docs.forEach(d => {
+                    if (esPresupuesto(d)) presupuestos.push(d);
+                    else recetas.push(d);
+                });
 
-                    // Si es una URL pública antigua la usamos, si es nombre de archivo generamos Signed URL
-                    if (archivoRef.startsWith('http')) {
-                        urlSegura = archivoRef;
-                    } else {
-                        // CORREGIDO: Minúsculas para coincidir exactamente con Supabase
-                        const { data: signedData } = await window.midental.storage
-                            .from('documentos_clinicos')
-                            .createSignedUrl(archivoRef, 3600); // 1 hora
-                        urlSegura = signedData?.signedUrl || '#';
-                    }
+                contPresupuestos.innerHTML = presupuestos.length
+                    ? presupuestos.map((d, i) => renderDocItem(d, `presu_${i}`, 'presupuesto')).join('')
+                    : renderEmptyState('request_quote', 'Aún no hay presupuestos emitidos', 'Cuando tu especialista emita un presupuesto, aparecerá aquí.');
 
-                    const nombreDoc = doc.nombre_archivo || doc.titulo || 'Documento sin nombre';
-                    const esPDF = nombreDoc.toLowerCase().includes('.pdf');
-                    const esPresupuesto = nombreDoc.toLowerCase().includes('presupuesto');
-                    
-                    const iconClass = esPDF ? 'pdf' : 'img';
-                    const iconSymbol = esPresupuesto ? 'request_quote' : (esPDF ? 'picture_as_pdf' : 'image');
-                    const fecha = new Date(doc.created_at).toLocaleDateString('es-CL');
-
-                    contenedor.innerHTML += `
-                        <div class="doc-item" style="${esPresupuesto ? 'border-color: var(--pixar-cyan); background: #f0fdfa;' : ''}">
-                            <div class="doc-icon ${iconClass}" style="${esPresupuesto ? 'background: var(--pixar-cyan); color: white;' : ''}">
-                                <span class="material-symbols-outlined">${iconSymbol}</span>
-                            </div>
-                            <div class="doc-info">
-                                <h4>${nombreDoc}</h4>
-                                <p>${esPresupuesto ? 'Generado por tu Dentista el ' : 'Subido el '}${fecha}</p>
-                            </div>
-                            <a href="${urlSegura}" target="_blank" class="doc-action" title="Abrir Documento">
-                                <span class="material-symbols-outlined">download</span>
-                            </a>
-                        </div>
-                    `;
-                }
-
+                contRecetas.innerHTML = recetas.length
+                    ? recetas.map((d, i) => renderDocItem(d, `rec_${i}`, 'receta')).join('')
+                    : renderEmptyState('prescriptions', 'Sin recetas ni exámenes', 'Sube tus radiografías, exámenes o recetas para mantenerlos a mano.');
             } catch (err) {
-                console.error(err);
-                contenedor.innerHTML = `<p style="color:red; text-align:center;">Error al cargar documentos.</p>`;
+                console.error("[cargarDocumentos] Error:", err);
+                contPresupuestos.innerHTML = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus presupuestos.');
+                contRecetas.innerHTML = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus documentos.');
             }
         }
 
-        // 3. LOGICA PARA SUBIR DOCUMENTO (CORRECCIÓN BUCKET EN MINÚSCULAS)
+        function esPresupuesto(doc) {
+            const nombre = (doc.nombre_archivo || '').toLowerCase();
+            const tipo   = (doc.tipo || '').toLowerCase();
+            return nombre.includes('presupuesto') || tipo.includes('presupuesto') || tipo === 'budget';
+        }
+
+        function renderDocItem(doc, refId, categoria) {
+            const nombre   = doc.nombre_archivo || doc.titulo || 'Documento sin nombre';
+            const esPDF    = nombre.toLowerCase().includes('.pdf') || (doc.tipo || '').toLowerCase().includes('pdf');
+            const fecha    = doc.created_at ? new Date(doc.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const drNombre = doc.perfiles_dentistas?.nombre_completo ? `Dr/a. ${doc.perfiles_dentistas.nombre_completo}` : '';
+
+            let iconClass = esPDF ? 'pdf' : 'img';
+            let iconSymbol = esPDF ? 'picture_as_pdf' : 'image';
+            if (categoria === 'presupuesto') { iconClass = 'presupuesto'; iconSymbol = 'request_quote'; }
+            else if (categoria === 'receta') { iconClass = 'receta'; iconSymbol = esPDF ? 'description' : 'prescriptions'; }
+
+            const archivoRef = doc.archivo_url || doc.file_url || '';
+            const refSafe = encodeURIComponent(archivoRef);
+
+            return `
+                <div class="doc-item">
+                    <div class="doc-icon ${iconClass}">
+                        <span class="material-symbols-outlined">${iconSymbol}</span>
+                    </div>
+                    <div class="doc-info">
+                        <h4>${nombre}</h4>
+                        <p>${drNombre ? drNombre + ' · ' : ''}${fecha}</p>
+                    </div>
+                    <button class="btn-pixar btn-ver-doc" id="btn-${refId}" onclick="verDocumentoSeguro('${refSafe}', '${refId}')">
+                        <span class="material-symbols-outlined" style="font-size:1rem;">visibility</span> Ver Documento
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderEmptyState(icono, titulo, subtitulo) {
+            return `
+                <div class="empty-state">
+                    <span class="material-symbols-outlined">${icono}</span>
+                    <p>${titulo}</p>
+                    <p class="empty-sub">${subtitulo}</p>
+                </div>
+            `;
+        }
+
+        // ==========================================================
+        // SEGURIDAD · Signed URL bajo demanda (bucket privado)
+        // ==========================================================
+        async function verDocumentoSeguro(archivoRefEncoded, refId) {
+            const btn = document.getElementById(`btn-${refId}`);
+            const archivoRef = decodeURIComponent(archivoRefEncoded || '');
+            if (!archivoRef) {
+                console.error("[verDocumentoSeguro] archivo_url vacío");
+                alert("Este documento no tiene un archivo asociado.");
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<span class="material-symbols-outlined spin" style="font-size:1rem;">sync</span> Abriendo...`;
+            }
+
+            try {
+                // Si por compatibilidad fuese una URL pública absoluta, la abrimos directo.
+                if (/^https?:\/\//i.test(archivoRef)) {
+                    window.open(archivoRef, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+
+                const { data: signedData, error } = await window.midental
+                    .storage
+                    .from(BUCKET)
+                    .createSignedUrl(archivoRef, 3600);
+
+                if (error) throw error;
+                if (!signedData?.signedUrl) throw new Error("No se generó la URL temporal.");
+
+                window.open(signedData.signedUrl, '_blank', 'noopener,noreferrer');
+            } catch (err) {
+                console.error("[verDocumentoSeguro] Error generando Signed URL:", err);
+                alert("No pudimos abrir el documento. Intenta nuevamente.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">visibility</span> Ver Documento`;
+                }
+            }
+        }
+
+        // ==========================================================
+        // SUBIDA DE DOCUMENTOS
+        // ==========================================================
         async function procesarSubidaDocumento(event) {
             const file = event.target.files[0];
             if (!file) return;
+            if (!PACIENTE_ID) {
+                alert("Sesión no válida. Vuelve a iniciar sesión.");
+                return;
+            }
 
-            const userId = localStorage.getItem('midental_user_id');
             const botonTxt = document.getElementById('textoBotonSubida');
-            const input = document.getElementById('inputSubirDoc');
+            const input    = document.getElementById('inputSubirDoc');
 
-            // Validar tamaño (Máx 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 alert("El archivo es muy pesado. Máximo 5MB.");
                 input.value = "";
@@ -233,37 +544,35 @@
             input.disabled = true;
 
             try {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `Pct_${userId}_${Date.now()}.${fileExt}`;
+                const fileExt  = file.name.split('.').pop();
+                const fileName = `Pct_${PACIENTE_ID}_${Date.now()}.${fileExt}`;
 
-                // CORREGIDO: Minúsculas para coincidir exactamente con Supabase
                 const { error: uploadError } = await window.midental.storage
-                    .from('documentos_clinicos')
+                    .from(BUCKET)
                     .upload(fileName, file);
 
                 if (uploadError) throw uploadError;
 
-                // Guardamos solo el nombre interno en la BD (la URL segura se genera al leer)
                 const { error: dbError } = await window.midental
                     .from('documentos_pacientes')
                     .insert([{
-                        paciente_id: userId,
+                        paciente_id: PACIENTE_ID,
                         nombre_archivo: file.name,
                         tipo: file.type.includes('pdf') ? 'pdf' : 'imagen',
-                        archivo_url: fileName 
+                        archivo_url: fileName
                     }]);
 
                 if (dbError) throw dbError;
 
                 alert("✅ ¡Documento guardado de forma privada y segura!");
-                cargarDocumentos(userId); 
-
+                cargarDocumentos(PACIENTE_ID);
             } catch (err) {
-                alert("Hubo un error al subir: " + err.message);
+                console.error("[procesarSubidaDocumento] Error:", err);
+                alert("Hubo un error al subir el documento. Intenta nuevamente.");
             } finally {
                 botonTxt.innerText = "Seleccionar Archivo";
                 input.disabled = false;
-                input.value = ""; 
+                input.value = "";
             }
         }
     </script>

@@ -10,39 +10,148 @@
         body { background-color: #f8fafc; padding-bottom: 90px; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .citas-container { padding: 20px; max-width: 800px; margin: 0 auto; }
         .section-title { font-size: 1.1rem; color: var(--blue-elegant); margin: 25px 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 8px; }
-        
-        /* Tarjeta Base */
+
+        /* ============================================== */
+        /* TARJETA PREMIUM · ANÁLISIS DE RIESGO CLÍNICO   */
+        /* ============================================== */
+        .premium-ai-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ffffff 0%, #f8faff 60%, #eef2ff 100%);
+            border-radius: 18px;
+            padding: 22px 22px 20px 22px;
+            border: 1px solid #e0e7ff;
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.08), 0 4px 10px rgba(0,0,0,0.03);
+            margin-bottom: 25px;
+        }
+        .premium-ai-card::before {
+            content: "PREMIUM";
+            position: absolute;
+            top: 14px;
+            right: -38px;
+            background: #8b5cf6;
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            padding: 4px 44px;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
+            z-index: 2;
+        }
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #e0e7ff;
+        }
+        .ai-header-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            flex-shrink: 0;
+        }
+        .ai-header h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            color: var(--blue-elegant);
+            font-weight: 700;
+        }
+        .ai-header h3 small { display: block; font-size: 0.7rem; color: #94a3b8; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; margin-top: 2px; }
+        .ai-risk-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1.5px solid transparent;
+            margin-left: auto;
+        }
+        .ai-risk-badge.bajo     { background: #dcfce7; color: #166534; border-color: #86efac; }
+        .ai-risk-badge.moderado { background: #ffedd5; color: #9a3412; border-color: #fdba74; }
+        .ai-risk-badge.alto     { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+        .ai-risk-badge.sin_datos{ background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+        .ai-insight-row {
+            display: flex; gap: 12px; align-items: flex-start;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            color: #334155;
+            line-height: 1.5;
+        }
+        .ai-insight-row .material-symbols-outlined { color: #6366f1; flex-shrink: 0; font-size: 1.4rem; }
+        .ai-insight-row strong { color: var(--blue-elegant); display: block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+
+        /* ============================================== */
+        /* TARJETAS DE CITAS                              */
+        /* ============================================== */
         .appointment-card { border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.3s; background-color: white; }
-        
-        /* COLORES DINÁMICOS (Alineados con la Base de Datos) */
-        .card-confirmada { background-color: #f0fdf4; border-color: #bbf7d0; } 
-        .card-cancelada { background-color: #fef2f2; border-color: #fecaca; } 
-        .card-pendiente { background-color: #fffbeb; border-color: #fde68a; } 
-        .card-en_atencion { background-color: #eef2ff; border-color: #c7d2fe; } 
-        .card-ficha-clinica { background-color: white; border-left: 5px solid var(--pixar-cyan); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+
+        .card-confirmada { background-color: #f0fdf4; border-color: #bbf7d0; }
+        .card-confirmado { background-color: #f0fdf4; border-color: #bbf7d0; }
+        .card-cancelada { background-color: #fef2f2; border-color: #fecaca; }
+        .card-pendiente { background-color: #fffbeb; border-color: #fde68a; }
+        .card-en_atencion { background-color: #eef2ff; border-color: #c7d2fe; }
+        .card-completada { background-color: white; border-left: 5px solid var(--pixar-cyan); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
 
         .doc-avatar-mini { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: white; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;}
-        .appt-info { flex: 1; }
+        .appt-info { flex: 1; min-width: 0; }
         .appt-info h4 { margin: 0 0 5px 0; color: #334155; font-size: 1.05rem; }
+        .appt-info .especialidad { font-size: 0.78rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         .appt-info p { margin: 3px 0; font-size: 0.85rem; color: #64748b; display: flex; align-items: flex-start; gap: 5px; line-height: 1.4;}
-        
-        /* Pills de estado (Alineados con la Base de Datos) */
+
         .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
         .status-pendiente { background: #fef3c7; color: #92400e; }
-        .status-confirmada { background: #dcfce7; color: #166534; }
+        .status-confirmada, .status-confirmado { background: #dcfce7; color: #166534; }
         .status-en_atencion { background: #e0e7ff; color: #3730a3; }
         .status-cancelada { background: #fee2e2; color: #991b1b; }
         .status-completada { background: #e0f2fe; color: #0369a1; }
 
         .btn-whatsapp-small { background: #25d366; color: white; border: none; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3); flex-shrink: 0;}
-        
+
         .btn-cancelar-cita { background: transparent; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 4px;}
         .btn-cancelar-cita:hover { background: #fef2f2; }
 
-        .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; background: white; border-radius: 15px; border: 1px dashed #cbd5e1; }
-        .empty-state span { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; color: var(--pixar-cyan); }
+        /* ============================================== */
+        /* EMPTY STATE PREMIUM                            */
+        /* ============================================== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            background: white;
+            border-radius: 15px;
+            border: 1px dashed #cbd5e1;
+        }
+        .empty-state span.material-symbols-outlined { font-size: 3rem; color: #94a3b8; display: block; margin-bottom: 8px; }
+        .empty-state p { margin: 4px 0; font-size: 0.95rem; }
+        .empty-state .empty-sub { font-size: 0.8rem; color: #94a3b8; }
 
         .bottom-nav { background: white; border-top: none; }
+
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spin { animation: spin 1.2s linear infinite; display: inline-block; }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .citas-container { padding: 14px; }
+            .premium-ai-card { padding: 18px 16px; }
+            .ai-header h3 { font-size: 1rem; }
+            .ai-risk-badge { margin-left: 0; font-size: 0.7rem; }
+            .appointment-card { padding: 12px; gap: 10px; }
+            .doc-avatar-mini { width: 48px; height: 48px; }
+            .premium-ai-card::before { top: 10px; right: -42px; font-size: 0.6rem; padding: 3px 44px; }
+        }
     </style>
 </head>
 <body>
@@ -52,13 +161,44 @@
     </header>
 
     <div class="citas-container">
+
+        <!-- TARJETA PREMIUM · ANÁLISIS DE RIESGO CLÍNICO -->
+        <div class="premium-ai-card" id="premiumRiskCard">
+            <div class="ai-header">
+                <div class="ai-header-icon">
+                    <span class="material-symbols-outlined">neurology</span>
+                </div>
+                <h3>
+                    Análisis de Riesgo Clínico
+                    <small>Estimación basada en tu última ficha</small>
+                </h3>
+                <span class="ai-risk-badge sin_datos" id="riskBadge">
+                    <span class="material-symbols-outlined spin" style="font-size:1rem;">sync</span> Analizando
+                </span>
+            </div>
+            <div class="ai-insight-row">
+                <span class="material-symbols-outlined">lightbulb</span>
+                <div>
+                    <strong>Diagnóstico de referencia</strong>
+                    <span id="riskDiagnostico">Cargando información clínica...</span>
+                </div>
+            </div>
+            <div class="ai-insight-row">
+                <span class="material-symbols-outlined">event_upcoming</span>
+                <div>
+                    <strong>Próximo control sugerido</strong>
+                    <span id="riskNextControl">—</span>
+                </div>
+            </div>
+        </div>
+
         <div class="section-title">
             <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">event_upcoming</span>
-            Próximas Atenciones
+            Próximas Atenciones y Gestiones
         </div>
         <div id="listaProximas">
             <div class="empty-state">
-                <span class="material-symbols-outlined" style="animation: spin 2s linear infinite;">sync</span>
+                <span class="material-symbols-outlined spin">sync</span>
                 <p>Cargando tus citas...</p>
             </div>
         </div>
@@ -87,154 +227,291 @@
     <script src="js/supabase-config.js"></script>
     <script src="js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const pacienteId = localStorage.getItem('midental_user_id');
-            const tipoUser = localStorage.getItem('midental_user_tipo');
+        // ==========================================================
+        // BOOT · Resolución de identidad clínica del paciente
+        // ==========================================================
+        let PACIENTE_ID = null;
 
-            if (!pacienteId || tipoUser !== 'paciente') {
-                alert("Debes iniciar sesión como paciente para ver tus citas.");
-                window.location.href = 'index.html';
-                return;
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                PACIENTE_ID = await resolverPacienteId();
+                if (!PACIENTE_ID) {
+                    alert("Debes iniciar sesión como paciente para ver tus citas.");
+                    window.location.href = 'index.html';
+                    return;
+                }
+                await Promise.all([
+                    cargarAnalisisRiesgo(PACIENTE_ID),
+                    cargarMisCitas(PACIENTE_ID)
+                ]);
+            } catch (err) {
+                console.error("[BOOT] Error inicializando portal del paciente:", err);
+                alert("No pudimos cargar tu portal clínico. Intenta nuevamente.");
             }
-            
-            cargarMisCitas();
         });
 
-        async function cargarMisCitas() {
-            const pacienteId = localStorage.getItem('midental_user_id');
+        /**
+         * Resuelve el paciente_id REAL consultando perfiles_pacientes
+         * a partir del auth.uid() del usuario autenticado.
+         */
+        async function resolverPacienteId() {
+            try {
+                let authUid = null;
+                try {
+                    const { data: sessionData } = await window.midental.auth.getUser();
+                    authUid = sessionData?.user?.id || null;
+                } catch (e) {
+                    console.warn("[Auth] No se pudo obtener auth.getUser():", e);
+                }
+
+                // Fallback al user_id almacenado en localStorage (legacy)
+                if (!authUid) authUid = localStorage.getItem('midental_user_id');
+
+                const tipoUser = localStorage.getItem('midental_user_tipo');
+                if (!authUid || (tipoUser && tipoUser !== 'paciente')) return null;
+
+                const { data, error } = await window.midental
+                    .from('perfiles_pacientes')
+                    .select('id, user_id')
+                    .eq('user_id', authUid)
+                    .maybeSingle();
+
+                if (error) throw error;
+                if (data?.id) return data.id;
+
+                // Último recurso: el id legacy en localStorage YA era paciente_id
+                return authUid;
+            } catch (err) {
+                console.error("[resolverPacienteId] Error:", err);
+                return localStorage.getItem('midental_user_id');
+            }
+        }
+
+        // ==========================================================
+        // ANÁLISIS DE RIESGO CLÍNICO (PREMIUM)
+        // ==========================================================
+        async function cargarAnalisisRiesgo(pacienteId) {
+            const badge = document.getElementById('riskBadge');
+            const diagEl = document.getElementById('riskDiagnostico');
+            const nextCtrlEl = document.getElementById('riskNextControl');
+
+            try {
+                const { data: ficha, error } = await window.midental
+                    .from('fichas_clinicas')
+                    .select('motivo_consulta, accion_realizada, historial_json, created_at')
+                    .eq('paciente_id', pacienteId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!ficha) {
+                    setBadge(badge, 'sin_datos', 'shield_person', 'Sin datos');
+                    diagEl.textContent = 'Aún no tienes una ficha clínica registrada. Tu Análisis de Riesgo se activará tras tu primera atención.';
+                    nextCtrlEl.textContent = 'Agenda una evaluación inicial con un especialista.';
+                    return;
+                }
+
+                // Extracción de texto evaluable: historial_json.diagnostico o motivo_consulta
+                let diagnosticoTexto = '';
+                if (ficha.historial_json && typeof ficha.historial_json === 'object') {
+                    diagnosticoTexto = ficha.historial_json.diagnostico || '';
+                } else if (typeof ficha.historial_json === 'string') {
+                    try {
+                        const parsed = JSON.parse(ficha.historial_json);
+                        diagnosticoTexto = parsed?.diagnostico || '';
+                    } catch (_) { /* ignorar */ }
+                }
+                if (!diagnosticoTexto) diagnosticoTexto = ficha.motivo_consulta || '';
+
+                const evaluado = inferirRiesgo(diagnosticoTexto, ficha.accion_realizada || '');
+                setBadge(badge, evaluado.nivel, evaluado.icono, evaluado.etiqueta);
+
+                diagEl.textContent = diagnosticoTexto
+                    ? diagnosticoTexto
+                    : 'Sin diagnóstico textual registrado. Evaluación basada en tu última atención.';
+
+                const fechaControl = calcularProximoControl(ficha.created_at, evaluado.mesesControl);
+                nextCtrlEl.innerHTML = `${evaluado.mensajeControl} · <strong style="color:var(--blue-elegant);">${fechaControl}</strong>`;
+            } catch (err) {
+                console.error("[cargarAnalisisRiesgo] Error:", err);
+                setBadge(badge, 'sin_datos', 'error', 'No disponible');
+                diagEl.textContent = 'No pudimos cargar tu análisis clínico en este momento.';
+                nextCtrlEl.textContent = '—';
+            }
+        }
+
+        function setBadge(el, nivel, icono, etiqueta) {
+            el.className = `ai-risk-badge ${nivel}`;
+            el.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">${icono}</span> ${etiqueta}`;
+        }
+
+        function inferirRiesgo(diagnostico, accion) {
+            const fuente = `${diagnostico} ${accion}`.toLowerCase();
+
+            const palabrasAlto     = ['caries profunda', 'pulpitis', 'necrosis'];
+            const palabrasModerado = ['mancha blanca', 'superficial', 'restauracion', 'restauración'];
+
+            if (palabrasAlto.some(p => fuente.includes(p))) {
+                return {
+                    nivel: 'alto',
+                    etiqueta: 'Alto Riesgo',
+                    icono: 'warning',
+                    mesesControl: 1,
+                    mensajeControl: 'Control clínico en 1 mes'
+                };
+            }
+            if (palabrasModerado.some(p => fuente.includes(p))) {
+                return {
+                    nivel: 'moderado',
+                    etiqueta: 'Riesgo Moderado',
+                    icono: 'monitor_heart',
+                    mesesControl: 3,
+                    mensajeControl: 'Control clínico en 3 meses'
+                };
+            }
+            return {
+                nivel: 'bajo',
+                etiqueta: 'Bajo Riesgo / Preventivo',
+                icono: 'verified_user',
+                mesesControl: 6,
+                mensajeControl: 'Control preventivo en 6 meses'
+            };
+        }
+
+        function calcularProximoControl(fechaBaseIso, mesesControl) {
+            const base = fechaBaseIso ? new Date(fechaBaseIso) : new Date();
+            const destino = new Date(base.getTime());
+            destino.setMonth(destino.getMonth() + mesesControl);
+            return destino.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        // ==========================================================
+        // CITAS · PRÓXIMAS Y HISTORIAL
+        // ==========================================================
+        async function cargarMisCitas(pacienteId) {
             const proximasCont = document.getElementById('listaProximas');
             const historialCont = document.getElementById('listaHistorial');
 
             try {
-                // 1. TRAER CITAS FUTURAS (Agenda)
-                const { data: citas, error: errorCitas } = await window.midental
+                const { data: citas, error } = await window.midental
                     .from('citas_agenda')
-                    .select('*, perfiles_dentistas(nombre_completo, avatar_url, telefono)')
-                    .eq('paciente_id', pacienteId)
-                    .order('id', { ascending: false });
-
-                // 2. TRAER ATENCIONES REALIZADAS (Fichas Clínicas Oficiales)
-                const { data: fichas, error: errorFichas } = await window.midental
-                    .from('fichas_clinicas')
-                    .select('*, perfiles_dentistas(nombre_completo, avatar_url)')
+                    .select('*, perfiles_dentistas(nombre_completo, especialidad, avatar_url, telefono)')
                     .eq('paciente_id', pacienteId)
                     .order('created_at', { ascending: false });
 
-                proximasCont.innerHTML = "";
-                historialCont.innerHTML = "";
+                if (error) throw error;
 
-                // PROCESAR CITAS FUTURAS O CANCELADAS
+                proximasCont.innerHTML = '';
+                historialCont.innerHTML = '';
+
+                const estadosFuturos = ['pendiente', 'confirmado', 'confirmada', 'en_atencion'];
+                const estadosPasados = ['completada', 'cancelada'];
+
                 let hayProximas = false;
-                if (citas) {
-                    citas.forEach(cita => {
-                        const dr = cita.perfiles_dentistas || {};
-                        const drNombre = dr.nombre_completo || 'Especialista';
-                        const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
-                        const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g,'') : '';
-                        
-                        // Estado siempre en minúsculas y con guion bajo en vez de espacios para CSS
-                        const estadoOriginal = cita.estado || 'pendiente';
-                        const estadoLimpio = estadoOriginal.toLowerCase().replace(' ', '_');
-
-                        // Si la cita ya fue completada, la ignoramos porque la Ficha Clínica Oficial la reemplazará en el historial
-                        if (estadoLimpio === 'completada' || estadoLimpio === 'finalizado') return;
-
-                        // Solo mostramos botón de cancelar si está pendiente o confirmada
-                        let btnCancelarHtml = '';
-                        if (estadoLimpio === 'pendiente' || estadoLimpio === 'confirmada') {
-                            btnCancelarHtml = `
-                                <button class="btn-cancelar-cita" onclick="cancelarMiCita(${cita.id})">
-                                    <span class="material-symbols-outlined" style="font-size: 1rem;">cancel</span> Cancelar Hora
-                                </button>
-                            `;
-                        }
-
-                        const cardHTML = `
-                            <div class="appointment-card card-${estadoLimpio}">
-                                <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar">
-                                <div class="appt-info">
-                                    <span class="status-pill status-${estadoLimpio}">${estadoOriginal.toUpperCase()}</span>
-                                    <h4>Dr. ${drNombre}</h4>
-                                    <p style="font-weight:bold; color:var(--blue-elegant);"><span class="material-symbols-outlined icon-small">calendar_month</span> ${cita.fecha_hora_formato_slot}</p>
-                                    <p><span class="material-symbols-outlined icon-small">medical_services</span> ${cita.motivo || 'Evaluación'}</p>
-                                    ${btnCancelarHtml}
-                                </div>
-                                ${(estadoLimpio !== 'cancelada') && drTelefono ? `
-                                    <a href="https://wa.me/${drTelefono}" target="_blank" class="btn-whatsapp-small" title="Hablar con la clínica">
-                                        <span class="material-symbols-outlined">chat</span>
-                                    </a>
-                                ` : ''}
-                            </div>
-                        `;
-
-                        if (estadoLimpio === 'cancelada') {
-                            historialCont.innerHTML += cardHTML; // Las canceladas van al historial
-                        } else {
-                            proximasCont.innerHTML += cardHTML;
-                            hayProximas = true;
-                        }
-                    });
-                }
-
-                // PROCESAR FICHAS CLÍNICAS (Historial Oficial)
                 let hayHistorial = false;
-                if (fichas) {
-                    fichas.forEach(ficha => {
-                        const dr = ficha.perfiles_dentistas || {};
-                        const drNombre = dr.nombre_completo || 'Especialista';
-                        const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
-                        const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
 
-                        historialCont.innerHTML += `
-                            <div class="appointment-card card-ficha-clinica">
-                                <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar">
-                                <div class="appt-info">
-                                    <span class="status-pill status-completada">Atención Realizada</span>
-                                    <h4>Dr. ${drNombre}</h4>
-                                    <p style="font-weight:bold; color:var(--pixar-cyan); margin-bottom: 10px; text-transform: capitalize;"><span class="material-symbols-outlined icon-small">calendar_today</span> ${fechaAtencion}</p>
-                                    
-                                    <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                        <p style="margin-bottom: 5px;"><strong style="color:var(--blue-elegant);">Diagnóstico:</strong><br>${ficha.motivo_consulta || 'Evaluación General'}</p>
-                                        <p><strong style="color:var(--blue-elegant);">Procedimiento:</strong><br>${ficha.accion_realizada || 'Sin detalles'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                (citas || []).forEach(cita => {
+                    const estadoOriginal = (cita.estado || 'pendiente').toString();
+                    const estadoLimpio = estadoOriginal.toLowerCase().replace(/\s+/g, '_');
+
+                    if (estadosFuturos.includes(estadoLimpio)) {
+                        proximasCont.innerHTML += renderCitaCard(cita, estadoOriginal, estadoLimpio, /*esFutura*/ true);
+                        hayProximas = true;
+                    } else if (estadosPasados.includes(estadoLimpio)) {
+                        historialCont.innerHTML += renderCitaCard(cita, estadoOriginal, estadoLimpio, /*esFutura*/ false);
                         hayHistorial = true;
-                    });
+                    }
+                });
+
+                if (!hayProximas) {
+                    proximasCont.innerHTML = renderEmptyState(
+                        'event_busy',
+                        'No tienes citas futuras agendadas',
+                        'Cuando agendes una hora con un especialista aparecerá aquí.'
+                    );
                 }
-
-                // Validaciones visuales si están vacíos
-                if (!hayProximas) proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">event_busy</span><p>No tienes citas futuras agendadas.</p></div>`;
-                if (!hayHistorial && historialCont.innerHTML === "") historialCont.innerHTML = `<div class="empty-state" style="padding: 20px;"><p style="margin:0;">No hay atenciones pasadas en tu historial.</p></div>`;
-
+                if (!hayHistorial) {
+                    historialCont.innerHTML = renderEmptyState(
+                        'history_toggle_off',
+                        'Sin atenciones registradas',
+                        'Tus atenciones completadas y canceladas se mostrarán en este historial.'
+                    );
+                }
             } catch (err) {
-                console.error("Error cargando citas:", err);
-                proximasCont.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined" style="color:red;">error</span><p>Error de conexión al cargar la agenda.</p></div>`;
+                console.error("[cargarMisCitas] Error cargando agenda:", err);
+                proximasCont.innerHTML = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tu agenda. Reintenta en unos segundos.');
+                historialCont.innerHTML = '';
             }
         }
 
-        // ==========================================
-        // FUNCIONALIDAD: CANCELAR CITA
-        // ==========================================
+        function renderCitaCard(cita, estadoOriginal, estadoLimpio, esFutura) {
+            const dr = cita.perfiles_dentistas || {};
+            const drNombre = dr.nombre_completo || 'Especialista';
+            const drEspecialidad = dr.especialidad || 'Odontología General';
+            const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
+            const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g, '') : '';
+
+            const slot = cita.fecha_hora_formato_slot || (cita.fecha_hora ? new Date(cita.fecha_hora).toLocaleString('es-CL') : 'Horario por confirmar');
+            const motivo = cita.motivo || 'Evaluación clínica';
+
+            const puedeCancelar = esFutura && (estadoLimpio === 'pendiente' || estadoLimpio === 'confirmada' || estadoLimpio === 'confirmado');
+            const btnCancelar = puedeCancelar ? `
+                <button class="btn-cancelar-cita" onclick="cancelarMiCita(${cita.id})">
+                    <span class="material-symbols-outlined" style="font-size: 1rem;">cancel</span> Cancelar Hora
+                </button>` : '';
+
+            const whatsappBtn = (esFutura && drTelefono) ? `
+                <a href="https://wa.me/${drTelefono}" target="_blank" class="btn-whatsapp-small" title="Hablar con la clínica">
+                    <span class="material-symbols-outlined">chat</span>
+                </a>` : '';
+
+            return `
+                <div class="appointment-card card-${estadoLimpio}">
+                    <img src="${drAvatar}" class="doc-avatar-mini" alt="Avatar" onerror="this.src='assets/avatar-default-doctor.png'">
+                    <div class="appt-info">
+                        <span class="status-pill status-${estadoLimpio}">${estadoOriginal.toUpperCase()}</span>
+                        <h4>Dr/a. ${drNombre}</h4>
+                        <div class="especialidad">${drEspecialidad}</div>
+                        <p style="font-weight:bold; color:var(--blue-elegant);"><span class="material-symbols-outlined icon-small">calendar_month</span> ${slot}</p>
+                        <p><span class="material-symbols-outlined icon-small">medical_services</span> ${motivo}</p>
+                        ${btnCancelar}
+                    </div>
+                    ${whatsappBtn}
+                </div>
+            `;
+        }
+
+        function renderEmptyState(icono, titulo, subtitulo) {
+            return `
+                <div class="empty-state">
+                    <span class="material-symbols-outlined">${icono}</span>
+                    <p>${titulo}</p>
+                    <p class="empty-sub">${subtitulo}</p>
+                </div>
+            `;
+        }
+
+        // ==========================================================
+        // CANCELAR CITA
+        // ==========================================================
         async function cancelarMiCita(citaId) {
-            if(!confirm("¿Estás seguro que deseas cancelar esta hora? El dentista será notificado.")) return;
-            
+            if (!confirm("¿Estás seguro que deseas cancelar esta hora? El dentista será notificado.")) return;
+
             try {
-                // Actualizamos el estado respetando la regla estricta de la base de datos
                 const { error } = await window.midental
                     .from('citas_agenda')
                     .update({ estado: 'cancelada' })
                     .eq('id', citaId);
 
                 if (error) throw error;
-                
-                alert("La cita ha sido cancelada correctamente.");
-                cargarMisCitas(); // Recargar la interfaz
 
+                alert("La cita ha sido cancelada correctamente.");
+                if (PACIENTE_ID) cargarMisCitas(PACIENTE_ID);
             } catch (err) {
+                console.error("[cancelarMiCita] Error:", err);
                 alert("Error al intentar cancelar la cita. Intenta nuevamente.");
-                console.error(err);
             }
         }
     </script>
