@@ -679,10 +679,12 @@ document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.no
         async function ejecutarAgendamiento() {
             if (!bloqueAgendamientoSeleccionado || !dentistaSeleccionado) return;
 
-            const userId = localStorage.getItem('midental_user_id');
+            // 1. Extraemos las identidades del almacenamiento local
+            const userIdMaestro = localStorage.getItem('midental_user_id');
+            const rutActual = localStorage.getItem('midental_paciente_rut');
             const tipoUser = localStorage.getItem('midental_user_tipo');
 
-            if (!userId || tipoUser !== 'paciente') {
+            if (!userIdMaestro || tipoUser !== 'paciente' || !rutActual) {
                 alert("Debes iniciar sesión con tu cuenta de paciente para poder confirmar esta hora.");
                 window.location.href = 'index.html';
                 return;
@@ -699,30 +701,49 @@ document.getElementById('modalDocDireccion').innerText = dentistaSeleccionado.no
             btnConfirmar.disabled = true;
 
             try {
-                const { error: dbError } = await window.midental.from('citas_agenda').insert([{
-                    paciente_id: userId,
-                    dentista_id: dentistaSeleccionado.id,
-                    fecha_hora_formato_slot: bloqueAgendamientoSeleccionado.formato_db,
-                    estado: 'pendiente',
-                    motivo: 'Evaluación General (Vía Mapa)',
-                    duracion_minutos: 60
-                }]);
+                // 2. Buscamos el ID Clínico EXACTO del familiar que está usando la app
+                const { data: perfilPaciente, error: errorPerfil } = await window.midental
+                    .from('perfiles_pacientes')
+                    .select('id, nombre_completo, telefono')
+                    .eq('user_id', userIdMaestro)
+                    .eq('rut', rutActual)
+                    .single();
 
-                if(dbError) throw dbError;
+                if (errorPerfil || !perfilPaciente) {
+                    throw new Error("No pudimos validar tu perfil clínico. Intenta iniciar sesión nuevamente.");
+                }
 
-            } catch(e) {
-                console.error("Error al registrar intención de cita:", e);
-                alert("Hubo un problema técnico interno, pero abriremos WhatsApp de todas formas para que contactes al doctor.");
+                // 3. Enviamos la cita a Supabase con la llave correcta y los datos de contacto
+                const { error: errorReserva } = await window.midental
+                    .from('citas_agenda')
+                    .insert([{
+                        dentista_id: dentistaSeleccionado.id,
+                        paciente_id: perfilPaciente.id,      // <-- Llave maestra que soluciona el Error 409
+                        fecha_hora_formato_slot: bloqueAgendamientoSeleccionado.formato_db,
+                        motivo: 'Evaluación General (Vía Mapa)',
+                        estado: 'pendiente',
+                        paciente_nombre_manual: perfilPaciente.nombre_completo,
+                        paciente_telefono_manual: perfilPaciente.telefono,
+                        duracion_minutos: 30
+                    }]);
+
+                if (errorReserva) throw errorReserva;
+
+                // 4. Éxito: abrimos WhatsApp para que el paciente notifique al doctor
+                const telLimpio = telefonoDoc.replace(/[^0-9]/g, '');
+                const textoPredefinido = `Hola ${dentistaSeleccionado.nombre}, soy ${perfilPaciente.nombre_completo}. Vi tu disponibilidad en la plataforma de MiDental y me gustaría agendar una hora de atención contigo para el día ${bloqueAgendamientoSeleccionado.formato_wa}. Quedo atento a tu confirmación. ¡Saludos!`;
+                window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(textoPredefinido)}`, '_blank');
+
+                alert("✅ ¡Tu hora ha sido solicitada con éxito! El profesional la confirmará en breve.");
+                cerrarAgendamiento();
+                window.location.href = "citas-paciente.html";
+
+            } catch (err) {
+                console.error("Error al registrar intención de cita:", err);
+                alert("Error al registrar la cita: " + (err.message || "Verifica tu conexión."));
+                btnConfirmar.disabled = false;
+                actualizarEstadoBotonFijo();
             }
-
-            const nombrePaciente = localStorage.getItem('midental_user_name') || 'Paciente';
-            const telLimpio = telefonoDoc.replace(/[^0-9]/g, ''); 
-            
-            const textoPredefinido = `Hola ${dentistaSeleccionado.nombre}, soy ${nombrePaciente}. Vi tu disponibilidad en la plataforma de MiDental y me gustaría agendar una hora de atención contigo para el día ${bloqueAgendamientoSeleccionado.formato_wa}. Quedo atento a tu confirmación. ¡Saludos!`;
-            
-            window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(textoPredefinido)}`, '_blank');
-            
-            cerrarAgendamiento();
         }
     </script>
 </body>
