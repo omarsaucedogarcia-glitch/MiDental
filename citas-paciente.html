@@ -252,7 +252,7 @@
 
         /**
          * Resuelve el paciente_id REAL consultando perfiles_pacientes
-         * a partir del auth.uid() del usuario autenticado.
+         * a partir del auth.uid() de la cuenta maestra + el RUT del familiar.
          */
         async function resolverPacienteId() {
             try {
@@ -264,26 +264,29 @@
                     console.warn("[Auth] No se pudo obtener auth.getUser():", e);
                 }
 
-                // Fallback al user_id almacenado en localStorage (legacy)
+                // Fallback al user_id almacenado
                 if (!authUid) authUid = localStorage.getItem('midental_user_id');
 
                 const tipoUser = localStorage.getItem('midental_user_tipo');
-                if (!authUid || (tipoUser && tipoUser !== 'paciente')) return null;
+                const rutActual = localStorage.getItem('midental_paciente_rut'); // EL DATO CLAVE
 
+                if (!authUid || (tipoUser && tipoUser !== 'paciente') || !rutActual) return null;
+
+                // Buscamos la ficha clínica EXACTA del familiar usando el RUT
                 const { data, error } = await window.midental
                     .from('perfiles_pacientes')
                     .select('id, user_id')
                     .eq('user_id', authUid)
-                    .maybeSingle();
+                    .eq('rut', rutActual) // Puente biométrico
+                    .single(); // Cambiamos a single() porque RUT + Cuenta es una combinación única
 
                 if (error) throw error;
                 if (data?.id) return data.id;
 
-                // Último recurso: el id legacy en localStorage YA era paciente_id
-                return authUid;
+                return null;
             } catch (err) {
                 console.error("[resolverPacienteId] Error:", err);
-                return localStorage.getItem('midental_user_id');
+                return null; 
             }
         }
 
@@ -388,13 +391,18 @@
         }
 
         // ==========================================================
-        // CITAS · PRÓXIMAS Y HISTORIAL
+        // CITAS · PRÓXIMAS Y HISTORIAL (CORREGIDO)
         // ==========================================================
         async function cargarMisCitas(pacienteId) {
             const proximasCont = document.getElementById('listaProximas');
             const historialCont = document.getElementById('listaHistorial');
 
+            // Blindaje: Si no hay ID válido, abortamos antes de hacer enojar a Supabase
+            if (!pacienteId) return; 
+
             try {
+                // SOLUCIÓN AL ERROR 400: Retiramos la búsqueda profunda de sedes_dentistas
+                // para evitar el choque de llaves foráneas en PostgREST.
                 const { data: citas, error } = await window.midental
                     .from('citas_agenda')
                     .select('*, perfiles_dentistas(nombre_completo, especialidad, avatar_url, telefono)')
@@ -417,10 +425,10 @@
                     const estadoLimpio = estadoOriginal.toLowerCase().replace(/\s+/g, '_');
 
                     if (estadosFuturos.includes(estadoLimpio)) {
-                        proximasCont.innerHTML += renderCitaCard(cita, estadoOriginal, estadoLimpio, /*esFutura*/ true);
+                        proximasCont.innerHTML += renderCitaCard(cita, estadoOriginal, estadoLimpio, true);
                         hayProximas = true;
                     } else if (estadosPasados.includes(estadoLimpio)) {
-                        historialCont.innerHTML += renderCitaCard(cita, estadoOriginal, estadoLimpio, /*esFutura*/ false);
+                        historialCont.innerHTML += renderCitaCard(cita, estadoOriginal, estadoLimpio, false);
                         hayHistorial = true;
                     }
                 });
@@ -452,6 +460,10 @@
             const drEspecialidad = dr.especialidad || 'Odontología General';
             const drAvatar = dr.avatar_url || 'assets/avatar-default-doctor.png';
             const drTelefono = dr.telefono ? dr.telefono.replace(/\D/g, '') : '';
+            
+            // Como retiramos la sede de la consulta para evitar el Error 400, 
+            // usamos un texto genérico y limpio.
+            const nombreCentro = 'Consulta Dental';
 
             const slot = cita.fecha_hora_formato_slot || (cita.fecha_hora ? new Date(cita.fecha_hora).toLocaleString('es-CL') : 'Horario por confirmar');
             const motivo = cita.motivo || 'Evaluación clínica';
@@ -475,6 +487,7 @@
                         <h4>Dr/a. ${drNombre}</h4>
                         <div class="especialidad">${drEspecialidad}</div>
                         <p style="font-weight:bold; color:var(--blue-elegant);"><span class="material-symbols-outlined icon-small">calendar_month</span> ${slot}</p>
+                        <p><span class="material-symbols-outlined icon-small">location_on</span> ${nombreCentro}</p>
                         <p><span class="material-symbols-outlined icon-small">medical_services</span> ${motivo}</p>
                         ${btnCancelar}
                     </div>
