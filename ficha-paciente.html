@@ -191,13 +191,36 @@
             <div class="premium-ai-card" id="tarjetaInteligenciaClinica">
                 <div class="ai-header">
                     <span class="material-symbols-outlined" style="color: #8b5cf6; font-size: 2rem;">psychology</span>
-                    <h3>Análisis de Riesgo Clínico</h3>
+                    <h3>Análisis de Riesgo Integral</h3>
                     <span class="ai-risk-badge" id="aiNivelRiesgo">Calculando...</span>
                 </div>
                 <div class="ai-content">
-                    <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">lightbulb</span> Recomendación de Manejo:</strong> <span id="aiRecomendacion"></span></p>
+                    <!-- Desglose por área (Cariología × Periodoncia) -->
+                    <div id="aiDesgloseGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 14px;">
+                        <div class="ai-area-card" id="aiAreaCaries" style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #94a3b8; border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start;">
+                            <span class="material-symbols-outlined" style="color:#0ea5e9; font-size:1.6rem; flex-shrink:0;">dentistry</span>
+                            <div style="min-width:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                                    <strong style="color:#1e293b; font-size:0.85rem;">Cariología</strong>
+                                    <span class="ai-area-badge" id="aiCariesBadge" style="font-size:0.7rem; padding:2px 8px; border-radius:999px; font-weight:bold; color:white; background:#94a3b8;">—</span>
+                                </div>
+                                <p id="aiCariesReco" style="margin:0; font-size:0.82rem; color:#475569; line-height:1.4;">Aún sin datos.</p>
+                            </div>
+                        </div>
+                        <div class="ai-area-card" id="aiAreaPerio" style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #94a3b8; border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start;">
+                            <span class="material-symbols-outlined" style="color:#7c3aed; font-size:1.6rem; flex-shrink:0;">monitor_heart</span>
+                            <div style="min-width:0;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                                    <strong style="color:#1e293b; font-size:0.85rem;">Periodoncia</strong>
+                                    <span class="ai-area-badge" id="aiPerioBadge" style="font-size:0.7rem; padding:2px 8px; border-radius:999px; font-weight:bold; color:white; background:#94a3b8;">—</span>
+                                </div>
+                                <p id="aiPerioReco" style="margin:0; font-size:0.82rem; color:#475569; line-height:1.4;">Aún sin datos.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">lightbulb</span> Recomendación combinada:</strong> <span id="aiRecomendacion"></span></p>
                     <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">event_upcoming</span> Próximo Control Sugerido:</strong> En <span id="aiMesesControl"></span> meses (<span id="aiFechaControl"></span>).</p>
-                    
+
                     <button class="btn-premium-action" onclick="programarRecallPremium()">
                         <span class="material-symbols-outlined">schedule_send</span> Programar Mensaje Automático
                     </button>
@@ -374,6 +397,9 @@
                     <button class="btn-text" id="btnAgregarFila" onclick="agregarFila()" style="font-weight: bold; font-size: 0.9rem;">+ Agregar Fila</button>
                     
                     <div class="total-final-box">TOTAL PRESUPUESTO: $ <span id="granTotalPagar">0</span></div>
+                    <button type="button" id="btnEmitirPresupuestoSolo" class="btn-pixar btn-full mt-20" style="background: var(--pixar-orange); padding: 12px; border-radius: 12px; margin-top: 15px; font-size: 1.05rem; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);" onclick="emitirPresupuestoPDF()">
+    <span class="material-symbols-outlined" style="vertical-align: middle;">request_quote</span> Generar y Guardar Presupuesto PDF
+</button>
 
                     <div class="btn-group-dual mt-20" style="margin-top: 30px;">
                         <button type="button" class="btn-login-outline btn-full" onclick="abrirModalReceta()" style="padding: 15px; border-radius: 12px; font-weight: bold; color: var(--pixar-cyan); border-color: var(--pixar-cyan);">
@@ -667,35 +693,116 @@
                     </div>
                 </section>
 
-                <!-- ============== TIMELINE HISTÓRICO DERECHO ============== -->
-                <aside class="odn-timeline" aria-label="Timeline histórico por pieza">
-                    <header class="odn-timeline__header">
-                        <h3 class="odn-timeline__title">
-                            <span class="material-symbols-outlined" aria-hidden="true">timeline</span>
-                            Historial clínico
-                        </h3>
-                        <span class="odn-timeline__chip" id="odnTimelineChip" data-empty="true">0 evento(s)</span>
-                    </header>
-                    <div class="odn-timeline__filter" role="group" aria-label="Filtros de eventos">
-                        <button class="odn-timeline__filter-btn odn-active" data-filter="all"       type="button">Todos</button>
-                        <button class="odn-timeline__filter-btn"            data-filter="active"    type="button">Patología</button>
-                        <button class="odn-timeline__filter-btn"            data-filter="planned"   type="button">Plan</button>
-                        <button class="odn-timeline__filter-btn"            data-filter="completed" type="button">Existente</button>
-                        <button class="odn-timeline__filter-btn"            data-filter="historic"  type="button">Histórico</button>
-                    </div>
+                <!-- ============================================================
+                     COLUMNA DERECHA: PANEL DE EXAMEN PERIODONTAL (TAREAS 4 + 5)
+                     ------------------------------------------------------------
+                     Aside fijo de ~320px con scroll propio si el contenido
+                     RAR (8 botones) excede la altura de la columna.
+                     ============================================================ -->
+                <aside class="odn-perio-card" id="odnPerioPanel" aria-label="Examen Periodontal">
+                    <h4>
+                        <span class="material-symbols-outlined" aria-hidden="true">monitor_heart</span>
+                        Examen Periodontal
+                    </h4>
 
-                    <div id="smartPanelContainer" class="odn-smart-panel right-side-panel"></div>
+                    <div class="odn-perio-card__scroll">
+                        <div class="odn-perio-switches">
+                            <label class="odn-perio-switch">
+                                <input type="checkbox" data-perio="placa">
+                                <span>Placa bacteriana visible</span>
+                            </label>
+                            <label class="odn-perio-switch">
+                                <input type="checkbox" data-perio="bop">
+                                <span>Sangrado al sondaje (BOP)</span>
+                            </label>
+                            <label class="odn-perio-switch">
+                                <input type="checkbox" data-perio="cal_leve">
+                                <span>CAL leve/moderada (1–4 mm)</span>
+                            </label>
+                            <label class="odn-perio-switch">
+                                <input type="checkbox" data-perio="cal_severa">
+                                <span>CAL severa (≥ 5 mm)</span>
+                            </label>
+                            <label class="odn-perio-switch" data-tone="smoker">
+                                <input type="checkbox" data-perio="fumador">
+                                <span>Fumador activo (Grado C)</span>
+                            </label>
+                        </div>
 
-
-                    <div class="odn-timeline__scroll">
-                        <div class="odn-timeline__rail" id="odontogramaTimelineRail">
-                            <div class="odn-timeline__empty" id="odnTimelineEmpty">
-                                <span class="material-symbols-outlined" aria-hidden="true">touch_app</span>
-                                Selecciona una pieza dental en el lienzo para ver su historial clínico completo.
+                        <div class="odn-perio-actions">
+                            <span class="odn-perio-actions__title">Manejo terapéutico sugerido</span>
+                            <button type="button" class="odn-perio-btn" data-perio-rx="destartraje">
+                                Destartraje Supragingival y Pulido Coronal (Boca Completa)
+                            </button>
+                            <span class="odn-perio-actions__title">Pulido Radicular y Alisado (RAR)</span>
+                            <div class="odn-perio-rar-grid">
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-sup">Arcada Superior</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-inf">Arcada Inferior</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g1">Grupo I</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g2">Grupo II</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g3">Grupo III</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g4">Grupo IV</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g5">Grupo V</button>
+                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g6">Grupo VI</button>
                             </div>
+                        </div>
+
+                        <div class="odn-perio-diag-out" id="odnPerioDiagOut" data-diagnosticado="false">
+                            <em>Aún sin diagnóstico periodontal inferido.</em>
                         </div>
                     </div>
                 </aside>
+
+                <!-- ============================================================
+                     FILA INFERIOR (full-width): HISTORIAL DE PLANIFICACIÓN Y PRESUPUESTO
+                     ------------------------------------------------------------
+                     Recibe los bloques pendiente/planificado/auto-perio y el
+                     timeline cronológico como referencia colapsable.
+                     ============================================================ -->
+                <section class="odn-historial" aria-label="Historial de Planificación y Presupuesto">
+                    <header class="odn-historial__header">
+                        <h3 class="odn-historial__title">
+                            <span class="material-symbols-outlined" aria-hidden="true">fact_check</span>
+                            Historial de Planificación y Presupuesto
+                        </h3>
+                        <span class="odn-historial__chip" id="odnHistorialChip">0 hallazgos</span>
+                        <div class="odn-timeline__filter" role="group" aria-label="Filtros del historial">
+                            <button class="odn-timeline__filter-btn odn-active" data-filter="all"          type="button">Todos</button>
+                            <button class="odn-timeline__filter-btn"            data-filter="pendiente"    type="button">Pendiente</button>
+                            <button class="odn-timeline__filter-btn"            data-filter="planificado"  type="button">Planificado</button>
+                            <button class="odn-timeline__filter-btn"            data-filter="auto-perio"   type="button">Periodontal</button>
+                        </div>
+                    </header>
+
+                    <div id="smartPanelContainer" class="odn-smart-panel"></div>
+
+                    <div class="odn-historial__body">
+                        <!-- Bloques de planificación terapéutica (lista principal) -->
+                        <div class="odn-plan-list" id="odnPlanList" data-empty="true">
+                            <div class="odn-plan-empty" id="odnPlanEmpty">
+                                <span class="material-symbols-outlined" aria-hidden="true" style="vertical-align:middle;">touch_app</span>
+                                Aún no hay hallazgos registrados. Selecciona una condición y marca una superficie dental.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline cronológico (referencia colapsable) -->
+                    <details class="odn-timeline" style="margin-top:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:6px 12px;">
+                        <summary style="cursor:pointer; font-size:0.85rem; font-weight:700; color:var(--odn-accent-deep);">
+                            <span class="material-symbols-outlined" aria-hidden="true" style="vertical-align:middle;">timeline</span>
+                            Ver timeline cronológico
+                            <span class="odn-timeline__chip" id="odnTimelineChip" data-empty="true" style="margin-left:10px;">0 evento(s)</span>
+                        </summary>
+                        <div class="odn-timeline__scroll" style="max-height:240px; padding:8px 0;">
+                            <div class="odn-timeline__rail" id="odontogramaTimelineRail">
+                                <div class="odn-timeline__empty" id="odnTimelineEmpty">
+                                    <span class="material-symbols-outlined" aria-hidden="true">touch_app</span>
+                                    Selecciona una pieza dental en el lienzo para ver su historial clínico completo.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </section>
             </div>
         </div>
     </div>
@@ -1347,6 +1454,35 @@
         }
 
         // ==========================================
+        // HELPER · Información de la Clínica del Dentista
+        // Lee `sedes_dentistas.nombre_sede` para usarlo como
+        // título corporativo en TODOS los PDFs (ficha, presupuesto,
+        // receta, odontograma). Tolerante a errores: si no hay
+        // sede registrada devuelve un fallback genérico.
+        // ==========================================
+        async function obtenerInfoClinica(dentistaId) {
+            const fallback = { nombre: 'Consulta Dental', direccion: '', comuna: '' };
+            if (!dentistaId) return fallback;
+            try {
+                const { data: sedes } = await window.midental
+                    .from('sedes_dentistas')
+                    .select('nombre_sede, direccion, comuna')
+                    .eq('dentista_id', dentistaId)
+                    .limit(1);
+                if (!sedes || sedes.length === 0) return fallback;
+                const s = sedes[0];
+                return {
+                    nombre:    s.nombre_sede || fallback.nombre,
+                    direccion: s.direccion   || '',
+                    comuna:    s.comuna      || ''
+                };
+            } catch (err) {
+                console.error('[obtenerInfoClinica] Error:', err);
+                return fallback;
+            }
+        }
+
+        // ==========================================
         // MOTOR NATIVO PDF (JSPDF + AUTOTABLE) ACTUALIZADO
         // ==========================================
         async function generarDocumentoJSPDF(dentistaId, motivoTxt, diagTxt, accionTxt) {
@@ -1354,33 +1490,39 @@
             const doc = new jsPDF();
 
             const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-            const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna').eq('dentista_id', dentistaId).limit(1);
+            const clinica = await obtenerInfoClinica(dentistaId);
 
             const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : 'No especificado';
             const drRut = dr ? dr.rut : '--';
             const drSis = dr ? dr.registro_sis : '--';
-            const drSede = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
+            const drSede = (clinica.direccion || clinica.comuna)
+                ? `${clinica.direccion}${clinica.comuna ? ', ' + clinica.comuna : ''}`
+                : 'Atención Particular';
 
             // Cabecera (Branding)
             doc.setFontSize(22);
             doc.setTextColor(0, 180, 216); // Pixar Cyan
             doc.text("MiDental", 14, 20);
-            
+
             doc.setFontSize(10);
             doc.setTextColor(100, 116, 139);
             doc.text("Red de Salud Digital", 14, 26);
 
-            // Titulo Derecho
+            // Título Derecho: NOMBRE DE LA CLÍNICA del dentista
+            // (reemplaza al antiguo "Ficha Clínica y Presupuesto").
             doc.setFontSize(16);
             doc.setTextColor(30, 58, 138); // Blue Elegant
-            doc.text("Ficha Clínica y Presupuesto", 200, 20, { align: "right" });
-            
+            const tituloClinica = doc.splitTextToSize(clinica.nombre, 110);
+            doc.text(tituloClinica, 200, 20, { align: "right" });
+
             doc.setFontSize(10);
             doc.setTextColor(85, 85, 85);
-            doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
+            const yFecha = 20 + (tituloClinica.length * 6);
+            doc.text(`Ficha Clínica · Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, yFecha, { align: "right" });
 
+            const yDivider = Math.max(30, yFecha + 4);
             doc.setDrawColor(200, 200, 200);
-            doc.line(14, 30, 200, 30);
+            doc.line(14, yDivider, 200, yDivider);
 
             // Info de Paciente y Doctor
             doc.setFontSize(12);
@@ -1883,29 +2025,34 @@
             btn.disabled = true;
 
             try {
-                // 1. Obtener info profesional
+                // 1. Obtener info profesional + clínica
                 const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-                
+                const clinica = await obtenerInfoClinica(dentistaId);
+
                 // 2. Generar PDF
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                
+
                 const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo.toUpperCase()}` : '';
                 const drInfo = dr ? `Esp. Odontología - General, RUT: ${dr.rut}\nID/Folio: ${Date.now().toString().slice(-6)}\nFecha receta: ${new Date().toLocaleDateString('es-CL')}` : '';
 
-                // Header
-                doc.setFontSize(18);
-                doc.setTextColor(0, 180, 216);
-                doc.text("MiDental", 14, 20);
-                
+                // Header — nombre de la clínica como branding principal
+                doc.setFontSize(16);
+                doc.setTextColor(30, 58, 138);
+                doc.setFont("helvetica", "bold");
+                const tituloClinica = doc.splitTextToSize(clinica.nombre, 110);
+                doc.text(tituloClinica, 14, 20);
+
+                doc.setFont("helvetica", "normal");
                 doc.setFontSize(8);
                 doc.setTextColor(0, 0, 0);
                 doc.text(drName, 200, 16, { align: "right" });
                 doc.text(drInfo, 200, 20, { align: "right" });
-                
+
                 // Título
                 doc.setFontSize(14);
                 doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 0, 0);
                 doc.text("Receta Médica", 105, 35, { align: "center" });
 
                 // Datos Paciente
@@ -2029,62 +2176,67 @@
         // ==========================================
         let recallCalculadoPara = null;
 
+        /**
+         * Lee el motor de riesgo integral (cariología × periodoncia) y proyecta
+         * el resultado unificado en la tarjeta premium. Si el motor no está
+         * disponible o el odontograma está vacío, oculta la tarjeta.
+         */
         function analizarPerfilClinicoPaciente() {
-            if (!window.MiDentalOdontograma) return;
-            const eventos = window.MiDentalOdontograma.getEvents();
-            
-            // Si el odontograma está en blanco, ocultamos la tarjeta
-            if (eventos.length === 0) {
-                document.getElementById('tarjetaInteligenciaClinica').style.display = 'none';
+            const card = document.getElementById('tarjetaInteligenciaClinica');
+            if (!window.MiDentalOdontograma || typeof window.MiDentalOdontograma.calcularRiesgoIntegral !== 'function') {
+                if (card) card.style.display = 'none';
                 return;
             }
 
-            let cariesActivas = 0;
-            let compromisoSevero = 0;
+            const eventos = window.MiDentalOdontograma.getEvents();
+            const hallazgos = (typeof window.MiDentalOdontograma.getHallazgos === 'function')
+                ? window.MiDentalOdontograma.getHallazgos()
+                : [];
+            const perio = (window.MiDentalOdontograma.getPerio && window.MiDentalOdontograma.getPerio()) || null;
+            const tieneAlgo = eventos.length > 0 || hallazgos.length > 0 || (perio && (perio.bop || perio.cal_leve || perio.cal_severa));
+            if (!tieneAlgo) { if (card) card.style.display = 'none'; return; }
 
-            // Evaluamos la gravedad de los hallazgos activos
-            eventos.forEach(e => {
-                if (e.state === 'active') {
-                    cariesActivas++;
-                    // Si el código incluye 'cp' (compromiso pulpar irreversible, necrosis, etc)
-                    if(e.findingCode && e.findingCode.includes('cp-')) compromisoSevero++;
-                }
-            });
+            // Motor unificado.
+            const riesgo = window.MiDentalOdontograma.calcularRiesgoIntegral(hallazgos, null);
 
-            // Variables por defecto (Bajo Riesgo)
-            let nivel = "Bajo Riesgo / Mantenimiento";
-            let colorBadge = "#10b981"; // Verde
-            let mesesRecall = 6;
-            let recomendacion = "El paciente presenta estabilidad oral. Indicar uso de pasta dental estándar (1450 ppm flúor) y mantener técnica de cepillado actual.";
+            const NIVEL_META = {
+                'alto':  { label: 'Alto Riesgo',  color: '#ef4444' },
+                'medio': { label: 'Riesgo Moderado', color: '#f59e0b' },
+                'bajo':  { label: 'Bajo Riesgo / Mantenimiento', color: '#10b981' }
+            };
+            const m = NIVEL_META[riesgo.nivel] || NIVEL_META.bajo;
 
-            // Algoritmo de Perfilamiento
-            if (compromisoSevero > 0 || cariesActivas >= 4) {
-                nivel = "Alto Riesgo Cariogénico";
-                colorBadge = "#ef4444"; // Rojo
-                mesesRecall = 1; // Control al mes
-                recomendacion = "ALERTA: Paciente con alta actividad patológica. Iniciar terapia de choque con barniz de flúor 5%. Indicar pasta de 5000 ppm flúor. Realizar asesoramiento dietético estricto (diario dietético de 3 días) e instrucción de higiene intensiva.";
-            } 
-            else if (cariesActivas > 0 || eventos.some(e => e.state === 'planned')) {
-                nivel = "Riesgo Moderado";
-                colorBadge = "#f59e0b"; // Naranja
-                mesesRecall = 3; // Control a los 3 meses
-                recomendacion = "Paciente con lesiones incipientes o tratamientos en curso. Considerar aplicación de sellantes en fosas y fisuras profundas. Reforzar uso de seda dental y control de azúcares entre comidas.";
-            }
-
-            // Calcular la fecha exacta del próximo control
+            // Próximo control (fecha exacta)
             const fechaControl = new Date();
-            fechaControl.setMonth(fechaControl.getMonth() + mesesRecall);
-            recallCalculadoPara = fechaControl.toISOString(); // Lo guardamos en memoria para Supabase
+            fechaControl.setMonth(fechaControl.getMonth() + riesgo.control_meses);
+            recallCalculadoPara = fechaControl.toISOString();
 
-            // Actualizar el DOM
-            document.getElementById('aiNivelRiesgo').innerText = nivel;
-            document.getElementById('aiNivelRiesgo').style.background = colorBadge;
-            document.getElementById('aiRecomendacion').innerText = recomendacion;
-            document.getElementById('aiMesesControl').innerText = mesesRecall;
-            document.getElementById('aiFechaControl').innerText = fechaControl.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+            // Badge global
+            const badge = document.getElementById('aiNivelRiesgo');
+            badge.innerText = m.label;
+            badge.style.background = m.color;
 
-            // Mostrar la tarjeta
-            document.getElementById('tarjetaInteligenciaClinica').style.display = 'block';
+            // Desglose por área — pinta el borde-left y el sub-badge según subnivel
+            const desg = riesgo.desglose || {};
+            const pintarArea = (areaId, badgeId, recoId, sub) => {
+                const meta = NIVEL_META[sub.nivel] || NIVEL_META.bajo;
+                const cardEl = document.getElementById(areaId);
+                if (cardEl) cardEl.style.borderLeftColor = meta.color;
+                const b = document.getElementById(badgeId);
+                if (b) { b.textContent = meta.label; b.style.background = meta.color; }
+                const r = document.getElementById(recoId);
+                if (r) r.textContent = sub.recomendacion || '—';
+            };
+            pintarArea('aiAreaCaries', 'aiCariesBadge', 'aiCariesReco', desg.caries || { nivel: 'bajo', recomendacion: '—' });
+            pintarArea('aiAreaPerio',  'aiPerioBadge',  'aiPerioReco',  desg.perio  || { nivel: 'bajo', recomendacion: '—' });
+
+            // Bloque global
+            document.getElementById('aiRecomendacion').innerText = riesgo.recomendaciones;
+            document.getElementById('aiMesesControl').innerText  = riesgo.control_meses;
+            document.getElementById('aiFechaControl').innerText  = fechaControl.toLocaleDateString('es-CL',
+                { day: 'numeric', month: 'long', year: 'numeric' });
+
+            card.style.display = 'block';
         }
 
         async function programarRecallPremium() {
@@ -2279,8 +2431,9 @@
             const doc = new jsPDF();
             const dentistaId = localStorage.getItem('midental_user_id');
 
-            // Datos del dentista (best-effort, no bloqueante si no hay sesión).
+            // Datos del dentista + clínica (best-effort, no bloqueante si no hay sesión).
             let drName = '—', drRut = '—', drSis = '—';
+            let clinica = { nombre: 'Consulta Dental', direccion: '', comuna: '' };
             try {
                 if (dentistaId) {
                     const { data: dr } = await window.midental.from('perfiles_dentistas')
@@ -2291,6 +2444,7 @@
                         drRut  = dr.rut || '—';
                         drSis  = dr.registro_sis || '—';
                     }
+                    clinica = await obtenerInfoClinica(dentistaId);
                 }
             } catch (_) { /* silencioso */ }
 
@@ -2304,14 +2458,17 @@
 
             doc.setFontSize(16);
             doc.setTextColor(30, 58, 138);
-            doc.text("Historial del Odontograma", 200, 20, { align: "right" });
+            const tituloClinica = doc.splitTextToSize(clinica.nombre, 110);
+            doc.text(tituloClinica, 200, 20, { align: "right" });
             doc.setFontSize(10);
             doc.setTextColor(85, 85, 85);
-            doc.text(`Fecha emisión: ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}`,
-                     200, 26, { align: "right" });
+            const yFecha = 20 + (tituloClinica.length * 6);
+            doc.text(`Historial del Odontograma · ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}`,
+                     200, yFecha, { align: "right" });
 
+            const yDivider = Math.max(30, yFecha + 4);
             doc.setDrawColor(200, 200, 200);
-            doc.line(14, 30, 200, 30);
+            doc.line(14, yDivider, 200, yDivider);
 
             // ============ DATOS DEL PACIENTE Y DENTISTA ============
             doc.setFontSize(12);
@@ -2621,11 +2778,22 @@
 
     function agregarPlanAlPresupuesto(prestacionSeleccionada, btnElement) {
         let piezaNum = "Pieza ?";
-        
-        // Extraer la pieza del SVG activo
-        const activeTooth = document.querySelector('g[data-fdi].selected'); 
-        if (activeTooth && activeTooth.dataset.fdi) {
-            piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
+
+        // 1) Preferimos la pieza expuesta por el motor del odontograma
+        //    (engine.selectedFDI) → es la fuente de verdad y respeta
+        //    multi-pieza/multi-superficie.
+        let fdi = null;
+        if (window.MiDentalOdontograma && typeof window.MiDentalOdontograma.getState === 'function') {
+            const st = window.MiDentalOdontograma.getState();
+            if (st && st.selectedFDI) fdi = st.selectedFDI;
+        }
+        // 2) Fallback: leer la clase real del motor (.odn-selected, NO .selected).
+        if (!fdi) {
+            const activeTooth = document.querySelector('g.odn-tooth.odn-selected[data-fdi]');
+            if (activeTooth && activeTooth.dataset.fdi) fdi = activeTooth.dataset.fdi;
+        }
+        if (fdi && fdi.length >= 2) {
+            piezaNum = `${fdi.charAt(0)}.${fdi.charAt(1)}`;
         }
 
         const tbody = document.getElementById('tbodyPresupuesto');
@@ -2676,7 +2844,8 @@
         }
 
         // Recuperamos la recomendación actual de la IA que está en pantalla
-        const aiRecomendacion = document.querySelector('.smart-recommendation').innerText;
+        const reco = document.querySelector('.smart-recommendation');
+        const aiRecomendacion = reco ? reco.innerText : '';
 
         // Inyectamos la tarjeta al inicio del historial
         const cardTimelineHTML = `
@@ -2708,32 +2877,17 @@
     }
 
     // =========================================================
-    // NUEVO: ACTIVADOR DE SELECCIÓN DE CARAS EN EL SVG
+    // [DESACTIVADO] · Listener legacy de selección por SVG
+    // ---------------------------------------------------------
+    // Este handler aplicaba la clase `.selected` (sin prefijo
+    // `odn-`) que pintaba las caras de CYAN por encima de los
+    // colores clínicos del motor (rojo activo / verde planificado
+    // / azul histórico). El motor en js/odontograma.js ya tiene
+    // su propia delegación de clicks que aplica `.odn-selected`
+    // sobre `g.odn-tooth`, por lo que mantener este listener
+    // generaba una doble pintura y rompía la semántica visual.
+    // Se elimina para que el motor sea la única fuente de verdad.
     // =========================================================
-    document.addEventListener('DOMContentLoaded', () => {
-        const svgContenedor = document.getElementById('odontogramaSVG');
-        if (svgContenedor) {
-            svgContenedor.addEventListener('click', (e) => {
-                // Buscamos si el clic fue en un polígono o ruta del diente
-                const targetCara = e.target.closest('polygon, path');
-                if (targetCara) {
-                    // Alternar color de la cara clicleada
-                    targetCara.classList.toggle('selected');
-                    
-                    // Identificamos a qué grupo (diente completo) pertenece esa cara
-                    const grupoPieza = targetCara.closest('g[data-fdi]');
-                    if (grupoPieza) {
-                        // Limpiamos la selección del diente anterior para no confundir al sistema
-                        document.querySelectorAll('g[data-fdi].selected').forEach(el => {
-                            if(el !== grupoPieza) el.classList.remove('selected');
-                        });
-                        // Marcamos el diente actual como "Diente Activo" para que la tabla lea su número
-                        grupoPieza.classList.add('selected');
-                    }
-                }
-            });
-        }
-    });
 
     // Pequeño script para manejar los menús desplegables del nuevo panel (Acordeones)
     document.querySelectorAll('.odn-finding-group__head').forEach(btn => {
@@ -2754,6 +2908,146 @@
             document.getElementById('smartPanelContainer').style.display = 'none';
         });
     });
+    // ==========================================
+        // EMITIR PRESUPUESTO INDEPENDIENTE (SÓLO COTIZACIÓN)
+        // ==========================================
+        async function emitirPresupuestoPDF() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            if (!dentistaId) return alert("Error de sesión.");
+
+            // Validar que la tabla no esté vacía
+            let hayPresupuesto = false;
+            document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
+                const ref = parseFloat(tr.querySelector('.input-ref').value) || 0;
+                if (ref > 0) hayPresupuesto = true;
+            });
+
+            if (!hayPresupuesto) return alert("Debes agregar al menos una prestación con valor al presupuesto.");
+
+            const btn = document.getElementById('btnEmitirPresupuestoSolo');
+            const textoOriginal = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Documento...';
+            btn.disabled = true;
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // 1. Obtener info profesional + clínica
+                const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
+                const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
+                const clinica = await obtenerInfoClinica(dentistaId);
+
+                // 2. Cabecera PDF — nombre de la clínica como título principal
+                doc.setFontSize(22);
+                doc.setTextColor(0, 180, 216); // Pixar Cyan
+                doc.text("MiDental", 14, 20);
+                doc.setFontSize(10);
+                doc.setTextColor(100, 116, 139);
+                doc.text("Red de Salud Digital", 14, 26);
+
+                doc.setFontSize(16);
+                doc.setTextColor(30, 58, 138); // Blue Elegant
+                const tituloClinica = doc.splitTextToSize(clinica.nombre, 110);
+                doc.text(tituloClinica, 200, 20, { align: "right" });
+                doc.setFontSize(10);
+                doc.setTextColor(85, 85, 85);
+                const yFecha = 20 + (tituloClinica.length * 6);
+                doc.text(`Presupuesto Dental · ${new Date().toLocaleDateString('es-CL')}`, 200, yFecha, { align: "right" });
+
+                const yDivider = Math.max(30, yFecha + 4);
+                doc.setDrawColor(200, 200, 200);
+                doc.line(14, yDivider, 200, yDivider);
+
+                // 3. Datos Paciente y Doctor
+                doc.setFontSize(12);
+                doc.setTextColor(30, 58, 138);
+                doc.text("Datos del Paciente", 14, 40);
+                doc.setFontSize(10);
+                doc.setTextColor(50, 50, 50);
+                doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47);
+                doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
+
+                doc.setFontSize(12);
+                doc.setTextColor(30, 58, 138);
+                doc.text("Profesional Tratante", 110, 40);
+                doc.setFontSize(10);
+                doc.setTextColor(50, 50, 50);
+                doc.text(`Dentista: ${drName}`, 110, 47);
+                if(dr) doc.text(`RUT: ${dr.rut}`, 110, 53);
+
+                // 4. Armar Tabla de Presupuesto
+                const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
+                const tableRows = [];
+                
+                document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
+                    const pieza = tr.querySelector('.input-diente').value || '-';
+                    const diag = tr.querySelector('.input-diag').value || '-';
+                    const trat = tr.querySelector('.input-tratamiento').value || '-';
+                    const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
+                    const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
+                    
+                    let totalInput = 0;
+                    const elTotal = tr.querySelector('.input-total');
+                    if(elTotal.dataset.valorReal) totalInput = parseFloat(elTotal.dataset.valorReal);
+                    else if (elTotal.value) totalInput = parseFloat(elTotal.value);
+
+                    if (!pieza && !diag && !trat && refInput === 0 && totalInput === 0) return;
+
+                    const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
+                    tableRows.push([pieza, diag, trat, `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
+                });
+
+                doc.autoTable({
+                    startY: 65,
+                    head: [tableColumn],
+                    body: tableRows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 58, 138] },
+                    styles: { fontSize: 9 }
+                });
+
+                // 5. Total Final
+                const finalY = doc.lastAutoTable.finalY || 70;
+                doc.setFontSize(14);
+                doc.setTextColor(30, 58, 138);
+                doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
+
+                // 6. Descarga y Subida a Supabase
+                const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
+                const nombreArchivo = `Presupuesto_Comercial_${nombrePuro}_${Date.now()}.pdf`;
+                
+                doc.save(nombreArchivo); // Descarga local inmediata
+
+                if (!isLocal) {
+                    const pdfBlob = doc.output('blob');
+                    const { error: uploadError } = await window.midental.storage
+                        .from('documentos_clinicos')
+                        .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
+
+                    if (!uploadError) {
+                        await window.midental.from('documentos_pacientes').insert([{
+                            paciente_id: pacienteIdURL,
+                            dentista_id: dentistaId,
+                            nombre_archivo: `Presupuesto Cotización ${new Date().toLocaleDateString('es-CL')}.pdf`,
+                            tipo: 'pdf',
+                            archivo_url: nombreArchivo 
+                        }]);
+                        // Refrescar la vista de documentos para que aparezca al instante
+                        if(typeof cargarDocumentosPaciente === 'function') cargarDocumentosPaciente(); 
+                    }
+                }
+                
+                alert("✅ Presupuesto generado y resguardado con éxito en los documentos del paciente.");
+                
+            } catch (err) {
+                alert("Error al generar el presupuesto: " + err.message);
+                console.error(err);
+            } finally {
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
+            }
+        }
 </script>
 </body>
 </html>

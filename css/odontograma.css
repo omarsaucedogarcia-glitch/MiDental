@@ -338,20 +338,48 @@
 .odn-btn-icon .material-symbols-outlined { font-size: 1.25rem; }
 
 /* ============================================================
-   4. Layout principal: 3 columnas (tools | canvas | timeline)
+   4. Layout principal · Refactor V3 (post-regresión)
+   ------------------------------------------------------------
+   Distribución estricta:
+     ┌──────────┬──────────────────────────┬──────────┐
+     │          │                          │          │
+     │  TOOLS   │      CANVAS SVG          │  PERIO   │
+     │  300px   │      (flex-grow:1)       │  320px   │
+     │          │                          │          │
+     ├──────────┴──────────────────────────┴──────────┤
+     │   HISTORIAL DE PLANIFICACIÓN Y PRESUPUESTO     │
+     │   (full-width, debajo de las 3 columnas)       │
+     └────────────────────────────────────────────────┘
+   La columna central queda EXCLUSIVAMENTE para el SVG del
+   odontograma. El historial nunca puede empujar el SVG fuera
+   de pantalla porque el workspace permite overflow vertical
+   y la fila inferior es `auto` (no toma del 1fr de la fila
+   principal).
    ============================================================ */
 .odn-workspace {
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr) 340px;
-    grid-template-rows: 1fr;
+    grid-template-columns: 300px minmax(0, 1fr) 320px;
+    grid-template-rows: minmax(420px, 1fr) auto;
+    grid-template-areas:
+        "tools  canvas perio"
+        "historial historial historial";
     gap: 14px;
     padding: 14px;
-    height: 100%;
-    min-height: 0;
+    min-height: 100%;
     background:
         radial-gradient(900px 500px at 50% -10%, rgba(0, 168, 255, 0.10), transparent 70%),
         var(--odn-bg-app);
+    overflow-y: auto;
 }
+
+.odn-toolpanel  { grid-area: tools; min-width: 0; }
+.odn-canvas     { grid-area: canvas; min-width: 0; flex: 1 1 auto; }
+.odn-perio-card { grid-area: perio; min-width: 0; }
+.odn-historial  { grid-area: historial; min-width: 0; }
+
+/* El SVG ocupa el 100% de la columna central. */
+.odn-canvas__stage { width: 100%; }
+.odn-svg { width: 100%; }
 
 /* ============================================================
    5. Panel lateral de herramientas clínicas
@@ -1069,20 +1097,38 @@ g.odn-layer-therapeutic  > * { stroke-width: 2.5; }
    11. Breakpoints responsivos
    ============================================================ */
 @media (max-width: 1280px) {
-    .odn-workspace { grid-template-columns: 260px minmax(0, 1fr) 300px; }
+    .odn-workspace { grid-template-columns: 280px minmax(0, 1fr) 300px; }
     .odn-patient-chip__name { max-width: 180px; }
+}
+
+@media (max-width: 1100px) {
+    /* Periodoncia pasa a una segunda fila a la derecha del canvas. */
+    .odn-workspace {
+        grid-template-columns: 280px minmax(0, 1fr);
+        grid-template-rows: minmax(380px, 1fr) auto auto;
+        grid-template-areas:
+            "tools  canvas"
+            "perio  perio"
+            "historial historial";
+    }
+    .odn-perio-card { max-height: 360px; }
 }
 
 @media (max-width: 1024px) {
     .odn-workspace {
         grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        grid-template-areas:
+            "tools"
+            "canvas"
+            "perio"
+            "historial";
         gap: 10px;
         padding: 10px;
     }
-    .odn-toolpanel { max-height: 220px; }
-    .odn-timeline  { max-height: 280px; }
-    .odn-canvas    { min-height: 360px; }
+    .odn-toolpanel  { max-height: 260px; }
+    .odn-perio-card { max-height: 320px; }
+    .odn-canvas     { min-height: 360px; }
     .odn-finding-group__body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
 }
 
@@ -1111,6 +1157,383 @@ g.odn-layer-therapeutic  > * { stroke-width: 2.5; }
     .odn-event__title { font-size: 0.82rem; }
     .odn-patient-chip__meta { display: none; }
     .odn-patient-chip__name { max-width: 110px; font-size: 0.85rem; }
+}
+
+/* ============================================================
+   11.bis  Sección "Historial de Planificación y Presupuesto"
+   ------------------------------------------------------------
+   Full-width debajo del canvas. Hospeda:
+     · Bloques de planificación terapéutica (pendiente / planificado)
+     · Diagnóstico periodontal inyectado por inferencia AAP/EFP 2017
+     · Timeline cronológico de eventos del odontograma
+   ============================================================ */
+.odn-historial {
+    background: var(--odn-bg-panel);
+    border-radius: var(--odn-radius-lg);
+    box-shadow: var(--odn-shadow-md);
+    border: 1px solid var(--odn-border);
+    padding: 18px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.odn-historial__header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    border-bottom: 2px solid var(--odn-divider);
+    padding-bottom: 10px;
+}
+.odn-historial__title {
+    margin: 0; color: var(--odn-accent-deep);
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 1.05rem; font-weight: 900; letter-spacing: 0.3px;
+}
+.odn-historial__title .material-symbols-outlined { color: var(--odn-accent); }
+.odn-historial__chip {
+    background: var(--odn-bg-panel-alt);
+    color: var(--odn-text-soft);
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 0.78rem; font-weight: 700;
+}
+.odn-historial__body {
+    display: block;     /* simple — perio se movió a columna derecha */
+}
+
+/* ---- Bloques de planificación ---- */
+.odn-plan-list { display: flex; flex-direction: column; gap: 10px; min-height: 60px; }
+.odn-plan-empty {
+    color: var(--odn-text-muted);
+    padding: 18px;
+    text-align: center;
+    border: 2px dashed var(--odn-border);
+    border-radius: var(--odn-radius-md);
+    font-size: 0.88rem;
+}
+
+.odn-plan-block {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "main   status"
+        "options options";
+    align-items: start;
+    gap: 12px;
+    padding: 12px 14px 12px 16px;
+    background: #fff;
+    border: 1px solid var(--odn-border);
+    border-left: 5px solid var(--odn-state-active);
+    border-radius: var(--odn-radius-md);
+    cursor: pointer;
+    transition: transform var(--odn-dur-fast) var(--odn-easing),
+                box-shadow var(--odn-dur-base) var(--odn-easing),
+                border-color var(--odn-dur-base) var(--odn-easing),
+                background var(--odn-dur-base) var(--odn-easing);
+}
+.odn-plan-block:hover { transform: translateY(-1px); box-shadow: var(--odn-shadow-md); }
+.odn-plan-block__main   { grid-area: main; min-width: 0; }
+.odn-plan-block .odn-plan-status { grid-area: status; }
+.odn-plan-block__rx--prompt {
+    color: var(--odn-accent-deep) !important;
+    font-weight: 700;
+}
+.odn-plan-block__rx--prompt::after {
+    content: " ▾";
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+.odn-plan-block[data-expanded="true"] .odn-plan-block__rx--prompt::after {
+    content: " ▴";
+}
+
+.odn-plan-block[data-estado="planificado"] {
+    border-left-color: var(--odn-state-control-ok);
+    background: linear-gradient(0deg, rgba(34,197,94,0.06), rgba(34,197,94,0.06)), #fff;
+}
+.odn-plan-block[data-estado="auto-perio"] {
+    border-left-color: #7c3aed;
+    background: #faf5ff;
+}
+/* Estado HISTÓRICO heredado: sólo lectura, fondo azul pálido, sin
+   acción posible. El borde izquierdo azul oscuro lo amarra
+   cromáticamente al SVG de superficies inmutables (.odn-historic-inherited). */
+.odn-plan-block[data-estado="historico"] {
+    border-left-color: #1e3a8a;
+    background: #eff6ff;          /* azul muy pálido */
+    cursor: not-allowed;
+    color: #475569;
+}
+.odn-plan-block[data-estado="historico"]:hover {
+    transform: none;
+    box-shadow: none;
+}
+.odn-plan-block[data-estado="historico"] .odn-plan-block__finding {
+    color: #1e3a8a;
+}
+.odn-plan-block[data-estado="historico"] .odn-plan-block__rx {
+    color: #475569;
+    font-style: italic;
+}
+.odn-plan-block[data-estado="historico"] .odn-plan-block__meta {
+    color: #64748b;
+    font-weight: 600;
+}
+.odn-plan-block[data-estado="historico"] .odn-plan-status {
+    background: #1e3a8a;
+}
+
+.odn-plan-block__main { min-width: 0; }
+.odn-plan-block__finding {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--odn-text);
+}
+.odn-plan-block__rx {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--odn-text-soft);
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.odn-plan-block__rx::before {
+    content: "+";
+    color: var(--odn-state-control-ok);
+    font-weight: 900;
+}
+.odn-plan-block__meta {
+    margin: 6px 0 0 0;
+    font-size: 0.74rem;
+    color: var(--odn-text-muted);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.odn-plan-status {
+    align-self: start;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: white;
+    background: var(--odn-state-active);
+    white-space: nowrap;
+}
+.odn-plan-block[data-estado="planificado"] .odn-plan-status { background: var(--odn-state-control-ok); }
+.odn-plan-block[data-estado="auto-perio"] .odn-plan-status { background: #7c3aed; }
+
+/* Superficies pintadas como "planificadas / aceptadas" → verde clínico */
+polygon.odn-surface.odn-accepted {
+    fill: #22c55e !important;
+    stroke: #15803d !important;
+    stroke-width: 1.4 !important;
+}
+
+/* Superficies heredadas de sesiones previas → azul oscuro institucional
+   (inmutables, sólo lectura). Se distingue tajantemente del verde de
+   "planificado de hoy" y del rojo patológico activo. */
+polygon.odn-surface.odn-historic-inherited {
+    fill: #1e3a8a !important;
+    stroke: #0f172a !important;
+    stroke-width: 1.2 !important;
+    opacity: 0.88;
+    /* "Candado" visual sutil — trama diagonal para identificar a primera
+       vista que la cara es de una sesión anterior. */
+    filter: url(#__no-filter__) saturate(0.85);
+}
+polygon.odn-surface.odn-historic-inherited:hover {
+    /* Bloqueado: el hover tampoco lo "ilumina" como una cara editable. */
+    stroke: #0f172a !important;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   11.ter  Menú desplegable de opciones terapéuticas
+   ------------------------------------------------------------
+   Aparece DENTRO del .odn-plan-block cuando éste tiene
+   data-expanded="true". Se ve como una banda gris con
+   separación visual y un grid de botones de tratamiento.
+   ============================================================ */
+.odn-treatment-options {
+    grid-area: options;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 10px 12px 12px;
+    background: #f1f5f9;
+    border-top: 1px dashed var(--odn-border-strong);
+    border-radius: 0 0 var(--odn-radius-sm) var(--odn-radius-sm);
+    animation: odn-options-in 0.18s var(--odn-easing);
+}
+.odn-plan-block[data-expanded="true"] .odn-treatment-options {
+    display: flex;
+}
+@keyframes odn-options-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+
+.odn-treatment-options__title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--odn-text-muted);
+    margin: 0 0 4px 0;
+}
+
+.odn-treatment-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #ffffff;
+    color: var(--odn-text);
+    font-size: 0.86rem;
+    font-weight: 600;
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-sm);
+    padding: 9px 12px;
+    cursor: pointer;
+    transition: background var(--odn-dur-fast) var(--odn-easing),
+                color      var(--odn-dur-fast) var(--odn-easing),
+                border-color var(--odn-dur-fast) var(--odn-easing),
+                transform  var(--odn-dur-fast) var(--odn-easing);
+}
+.odn-treatment-btn:hover {
+    background: #dbeafe;             /* azul claro */
+    color: #1e3a8a;                  /* azul oscuro */
+    border-color: var(--odn-accent);
+    transform: translateX(2px);
+}
+.odn-treatment-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.30);
+}
+.odn-treatment-btn:active {
+    transform: translateX(0);
+    background: #bfdbfe;
+}
+.odn-treatment-btn--selected {
+    background: var(--odn-state-control-ok);
+    color: white;
+    border-color: #15803d;
+}
+.odn-treatment-btn--selected:hover {
+    background: #15803d;
+    color: white;
+}
+
+/* ---- Panel periodontal (columna derecha del workspace) ---- */
+.odn-perio-card {
+    background: var(--odn-bg-panel);
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-lg);
+    box-shadow: var(--odn-shadow-md);
+    display: flex; flex-direction: column;
+    min-height: 0;       /* permite que el hijo con overflow tenga altura útil */
+    overflow: hidden;    /* contiene el scroll interno */
+}
+.odn-perio-card h4 {
+    margin: 0;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--odn-divider);
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: var(--odn-accent-deep);
+    display: inline-flex; align-items: center; gap: 6px;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    flex: 0 0 auto;
+}
+.odn-perio-card h4 .material-symbols-outlined { color: var(--odn-accent); }
+
+/* Scroll interno del panel periodontal — evita desbordar el viewport
+   cuando el grupo RAR (8 botones) supera la altura de la columna. */
+.odn-perio-card__scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 14px 16px 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--odn-border-strong) transparent;
+}
+.odn-perio-card__scroll::-webkit-scrollbar { width: 8px; }
+.odn-perio-card__scroll::-webkit-scrollbar-thumb {
+    background: var(--odn-border-strong);
+    border-radius: 4px;
+}
+
+.odn-perio-switches { display: flex; flex-direction: column; gap: 8px; }
+.odn-perio-switch {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.85rem;
+    color: var(--odn-text);
+    cursor: pointer;
+    user-select: none;
+}
+.odn-perio-switch input[type="checkbox"] {
+    width: 38px; height: 22px;
+    appearance: none; -webkit-appearance: none;
+    background: #cbd5e1;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+    transition: background var(--odn-dur-base);
+    flex-shrink: 0;
+}
+.odn-perio-switch input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: left var(--odn-dur-base) var(--odn-easing);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.odn-perio-switch input[type="checkbox"]:checked { background: var(--odn-state-active); }
+.odn-perio-switch input[type="checkbox"]:checked::after { left: 18px; }
+.odn-perio-switch[data-tone="smoker"] input[type="checkbox"]:checked { background: #7c3aed; }
+
+.odn-perio-actions { display: flex; flex-direction: column; gap: 6px; }
+.odn-perio-actions__title {
+    font-size: 0.72rem; font-weight: 800;
+    color: var(--odn-text-muted);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin: 4px 0 2px;
+}
+.odn-perio-btn {
+    text-align: left;
+    background: #fff;
+    border: 1px solid var(--odn-border);
+    border-radius: var(--odn-radius-sm);
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    color: var(--odn-text);
+    cursor: pointer;
+    transition: background var(--odn-dur-fast), border-color var(--odn-dur-fast);
+}
+.odn-perio-btn:hover { background: #eff6ff; border-color: var(--odn-accent); }
+.odn-perio-rar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 6px;
+}
+.odn-perio-diag-out {
+    background: #fff;
+    border: 1px dashed var(--odn-border-strong);
+    border-radius: var(--odn-radius-sm);
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: var(--odn-text-soft);
+    min-height: 36px;
+}
+.odn-perio-diag-out[data-diagnosticado="true"] {
+    background: #f5f3ff;
+    border-color: #c4b5fd;
+    color: #5b21b6;
+    border-style: solid;
 }
 
 /* ============================================================

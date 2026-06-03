@@ -291,17 +291,22 @@
         }
 
         // ==========================================================
-        // ANÁLISIS DE RIESGO CLÍNICO (PREMIUM)
+        // ANÁLISIS DE RIESGO INTEGRAL (PREMIUM)
+        // ------------------------------------------------------------
+        // El motor de inferencia vive en el lado del dentista. Acá
+        // SÓLO leemos historial_json.riesgo_integral de la última
+        // ficha clínica. Sin reglas heurísticas locales — el paciente
+        // debe ver EXACTAMENTE el mismo análisis que validó su doctor.
         // ==========================================================
         async function cargarAnalisisRiesgo(pacienteId) {
-            const badge = document.getElementById('riskBadge');
-            const diagEl = document.getElementById('riskDiagnostico');
+            const badge      = document.getElementById('riskBadge');
+            const diagEl     = document.getElementById('riskDiagnostico');
             const nextCtrlEl = document.getElementById('riskNextControl');
 
             try {
                 const { data: ficha, error } = await window.midental
                     .from('fichas_clinicas')
-                    .select('motivo_consulta, accion_realizada, historial_json, created_at')
+                    .select('historial_json, created_at')
                     .eq('paciente_id', pacienteId)
                     .order('created_at', { ascending: false })
                     .limit(1)
@@ -311,36 +316,50 @@
 
                 if (!ficha) {
                     setBadge(badge, 'sin_datos', 'shield_person', 'Sin datos');
-                    diagEl.textContent = 'Aún no tienes una ficha clínica registrada. Tu Análisis de Riesgo se activará tras tu primera atención.';
+                    diagEl.textContent     = 'Aún no tienes una ficha clínica registrada. Tu Análisis de Riesgo se activará tras tu primera atención.';
                     nextCtrlEl.textContent = 'Agenda una evaluación inicial con un especialista.';
                     return;
                 }
 
-                // Extracción de texto evaluable: historial_json.diagnostico o motivo_consulta
-                let diagnosticoTexto = '';
-                if (ficha.historial_json && typeof ficha.historial_json === 'object') {
-                    diagnosticoTexto = ficha.historial_json.diagnostico || '';
-                } else if (typeof ficha.historial_json === 'string') {
-                    try {
-                        const parsed = JSON.parse(ficha.historial_json);
-                        diagnosticoTexto = parsed?.diagnostico || '';
-                    } catch (_) { /* ignorar */ }
+                // Lectura segura del JSON (puede venir como objeto o como string).
+                let historial = ficha.historial_json;
+                if (typeof historial === 'string') {
+                    try { historial = JSON.parse(historial); }
+                    catch (e) { console.warn('[cargarAnalisisRiesgo] historial_json no parseable:', e); historial = null; }
                 }
-                if (!diagnosticoTexto) diagnosticoTexto = ficha.motivo_consulta || '';
+                const riesgo = historial && typeof historial === 'object'
+                    ? historial.riesgo_integral
+                    : null;
 
-                const evaluado = inferirRiesgo(diagnosticoTexto, ficha.accion_realizada || '');
-                setBadge(badge, evaluado.nivel, evaluado.icono, evaluado.etiqueta);
+                if (!riesgo || !riesgo.nivel) {
+                    setBadge(badge, 'sin_datos', 'shield_person', 'Evaluación pendiente');
+                    diagEl.textContent     = 'Tu doctor aún no ha cerrado tu análisis de riesgo integral. Esta sección se activará una vez validado.';
+                    nextCtrlEl.textContent = 'Te avisaremos cuando esté disponible.';
+                    return;
+                }
 
-                diagEl.textContent = diagnosticoTexto
-                    ? diagnosticoTexto
-                    : 'Sin diagnóstico textual registrado. Evaluación basada en tu última atención.';
+                // Render directo del análisis VALIDADO por el dentista.
+                const META = {
+                    'alto':  { ui: 'alto',     icono: 'warning',       label: 'Alto Riesgo' },
+                    'medio': { ui: 'moderado', icono: 'monitor_heart', label: 'Riesgo Moderado' },
+                    'bajo':  { ui: 'bajo',     icono: 'verified_user', label: 'Bajo Riesgo / Preventivo' }
+                };
+                const meta = META[riesgo.nivel] || META.bajo;
+                setBadge(badge, meta.ui, meta.icono, meta.label);
 
-                const fechaControl = calcularProximoControl(ficha.created_at, evaluado.mesesControl);
-                nextCtrlEl.innerHTML = `${evaluado.mensajeControl} · <strong style="color:var(--blue-elegant);">${fechaControl}</strong>`;
+                diagEl.textContent = riesgo.recomendaciones ||
+                    'Tu doctor ha validado tu análisis clínico. Consulta los detalles en tu próxima cita.';
+
+                const baseFecha    = riesgo.fecha_calculo || ficha.created_at;
+                const fechaControl = calcularProximoControl(baseFecha, riesgo.control_meses || 6);
+                const msgControl   = (riesgo.control_meses === 1)
+                    ? 'Control clínico en 1 mes'
+                    : `Control clínico en ${riesgo.control_meses || 6} meses`;
+                nextCtrlEl.innerHTML = `${msgControl} · <strong style="color:var(--blue-elegant);">${fechaControl}</strong>`;
             } catch (err) {
                 console.error("[cargarAnalisisRiesgo] Error:", err);
                 setBadge(badge, 'sin_datos', 'error', 'No disponible');
-                diagEl.textContent = 'No pudimos cargar tu análisis clínico en este momento.';
+                diagEl.textContent     = 'No pudimos cargar tu análisis clínico en este momento.';
                 nextCtrlEl.textContent = '—';
             }
         }
@@ -350,43 +369,10 @@
             el.innerHTML = `<span class="material-symbols-outlined" style="font-size:1rem;">${icono}</span> ${etiqueta}`;
         }
 
-        function inferirRiesgo(diagnostico, accion) {
-            const fuente = `${diagnostico} ${accion}`.toLowerCase();
-
-            const palabrasAlto     = ['caries profunda', 'pulpitis', 'necrosis'];
-            const palabrasModerado = ['mancha blanca', 'superficial', 'restauracion', 'restauración'];
-
-            if (palabrasAlto.some(p => fuente.includes(p))) {
-                return {
-                    nivel: 'alto',
-                    etiqueta: 'Alto Riesgo',
-                    icono: 'warning',
-                    mesesControl: 1,
-                    mensajeControl: 'Control clínico en 1 mes'
-                };
-            }
-            if (palabrasModerado.some(p => fuente.includes(p))) {
-                return {
-                    nivel: 'moderado',
-                    etiqueta: 'Riesgo Moderado',
-                    icono: 'monitor_heart',
-                    mesesControl: 3,
-                    mensajeControl: 'Control clínico en 3 meses'
-                };
-            }
-            return {
-                nivel: 'bajo',
-                etiqueta: 'Bajo Riesgo / Preventivo',
-                icono: 'verified_user',
-                mesesControl: 6,
-                mensajeControl: 'Control preventivo en 6 meses'
-            };
-        }
-
         function calcularProximoControl(fechaBaseIso, mesesControl) {
             const base = fechaBaseIso ? new Date(fechaBaseIso) : new Date();
             const destino = new Date(base.getTime());
-            destino.setMonth(destino.getMonth() + mesesControl);
+            destino.setMonth(destino.getMonth() + (mesesControl || 6));
             return destino.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
