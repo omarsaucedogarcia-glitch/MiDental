@@ -77,90 +77,197 @@
         </div>
     </nav>
 
-    <main class="hero-section">
-        <div class="hero-text-wrapper">
-            <h2 class="hero-title">Encuentra a tu Dentista de Confianza</h2>
-            <p class="hero-subtitle">La primera plataforma <strong>100% gratuita</strong> que te conecta con dentistas verificados y te da el control absoluto de tu historial dental.</p>
+    <!-- ========================================== -->
+<!-- HERO SECTION & SEARCH ENGINE               -->
+<!-- ========================================== -->
+<main class="hero-section">
+    <div class="hero-text-wrapper">
+        <h2 class="hero-title">Encuentra a tu Dentista de Confianza</h2>
+        <p class="hero-subtitle">La primera plataforma <strong>100% gratuita</strong> que te conecta con dentistas verificados y te da el control absoluto de tu historial dental.</p>
+    </div>
+
+    <div class="search-pill-container">
+        <div class="search-input-group">
+            <span class="material-symbols-outlined icon-cyan">search</span>
+            <input type="text" placeholder="Especialidad, tratamiento o nombre del dentista..." class="apple-input" id="searchEspecialidad">
         </div>
-
-        <div class="search-pill-container">
-            <div class="search-input-group">
-                <span class="material-symbols-outlined icon-cyan">search</span>
-                <input type="text" placeholder="Especialidad, tratamiento o nombre del dentista..." class="apple-input" id="searchEspecialidad">
-            </div>
-            <div class="search-divider"></div> 
-            <div class="search-input-group">
-                <span class="material-symbols-outlined icon-cyan">location_on</span>
-                <input type="text" placeholder="Comuna o ubicación..." class="apple-input" id="searchUbicacion">
-            </div>
-            <button class="btn-pixar btn-search-round" onclick="ejecutarBusquedaInicial()">Buscar</button>
+        <div class="search-divider"></div> 
+        <div class="search-input-group">
+            <span class="material-symbols-outlined icon-cyan">location_on</span>
+            <input type="text" placeholder="Comuna o ubicación..." class="apple-input" id="searchUbicacion">
         </div>
-    </main>
+        <button class="btn-pixar btn-search-round" onclick="ejecutarBusquedaInicial()">Buscar</button>
+    </div>
+</main>
 
-    <section id="que-es" class="about-section">
-        <div class="about-container">
-            <div class="about-content">
-                <div class="about-text">
-                    <h2>¿Qué es MiDental?</h2>
-                    
-                    <p class="highlight-text">Conectando la salud dental</p> <strong>Autonomía para pacientes, control total para dentistas</strong></p>
-                    
-                    <p>100% Gratuito, Siempre: Gestión de citas, recordatorios y comunicación directa con tus especialistas sin pagar de más.
-
-Tu Ficha Clínica es Tuya: Accede a tu historial médico, evoluciones y radiografías con total autonomía y desde cualquier dispositivo.
-
-Libertad de Elección: Rompe las cadenas burocráticas. Al ser dueño de tus datos médicos, tienes la libertad de atenderte en el centro o con el profesional que tú decidas, llevando tu historial contigo sin empezar nunca desde cero.</p>
-                    <p>Acceso Flexible: Software de gestión clínica con un modelo freemium. Entra de manera gratuita y escala a funciones premium a medida que tu práctica crezca.
-
-Portabilidad Absoluta: Toma el control completo de tu cartera de pacientes de forma independiente, sin importar los centros médicos o clínicas en las que colabores hoy o mañana.
-
-Vinculación y Prevención: Desarrolla programas de seguimiento continuo y fidelización. Genera perfiles de riesgo personalizados para tus pacientes, permitiéndote ofrecer una odontología preventiva, predictiva y de alto valor clínico.</p>
-                </div>
+<!-- ========================================== -->
+<!-- ABOUT SECTION (Acordeones Dinámicos al Hover) -->
+<!-- ========================================== -->
+<section id="que-es" class="about-section">
+    <div class="about-container">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>¿Qué es MiDental?</h2>
+                <p class="highlight-text" style="margin-bottom: 25px;">Conectando la salud dental: <strong>Autonomía para pacientes, control total para dentistas</strong></p>
                 
-                <div class="about-visual" style="background: transparent !important; box-shadow: none !important; min-width: 350px !important; height: auto !important; display: flex; justify-content: center; align-items: center; padding: 20px;">
+                <!-- Contenedor de las tarjetas interactivas -->
+                <div class="features-hover-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; text-align: left; align-items: start;">
                     
-                    <img src="assets/LogoMiDental.png" alt="Logo corporativo de MiDental" style="width: 320px; height: auto; max-width: 100%; mix-blend-mode: multiply; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.08) translateY(-10px)'" onmouseout="this.style.transform='scale(1) translateY(0)'">
-                    
+                    <!-- Tarjeta Interactiva Pacientes -->
+                    <div class="hover-card paciente-card">
+                        <h3 class="card-title-header">
+                            <span class="material-symbols-outlined">person</span> Para Pacientes
+                        </h3>
+                        <div class="card-expandable-content">
+                            <div class="inner-padding">
+                                <p><strong>100% Gratuito, Siempre:</strong> Gestión de citas, recordatorios y comunicación directa con tus especialistas sin pagar de más.</p>
+                                <p><strong>Tu Ficha Clínica es Tuya:</strong> Accede a tu historial médico, evoluciones y radiografías con total autonomía y desde cualquier dispositivo.</p>
+                                <p><strong>Libertad de Elección:</strong> Al ser dueño de tus datos médicos, tienes la libertad de atenderte en el centro o con el profesional que tú decidas, llevando tu historial contigo sin empezar nunca desde cero.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Interactiva Dentistas -->
+                    <div class="hover-card dentista-card">
+                        <h3 class="card-title-header">
+                            <span class="material-symbols-outlined">medical_information</span> Para Dentistas
+                        </h3>
+                        <div class="card-expandable-content">
+                            <div class="inner-padding">
+                                <p><strong>Gestión Clínica Avanzada:</strong> Genera presupuestos de manera fácil e intuitiva y emite recetas médicas específicas para odontología directamente desde la plataforma.</p>
+                                <p><strong>Control Financiero Total:</strong> Monitorea tus ingresos por paciente y ajusta los porcentajes de ganancia según las condiciones de cada centro en el que colabores.</p>
+                                <p><strong>Portabilidad y Autonomía:</strong> Mantén el control absoluto de tu cartera de pacientes de forma independiente a la infraestructura física, desarrollando programas de seguimiento según su perfil de riesgo clínico.</p>
+                                <p style="margin-bottom: 0;"><strong>Acceso Flexible:</strong> Software bajo modelo freemium. Entra 100% gratis y escala a funciones premium cuando lo necesites.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+            </div>
+            
+            <!-- Bloque Visual del Logo -->
+            <div class="about-visual" style="background: transparent !important; box-shadow: none !important; min-width: 320px !important; height: auto !important; display: flex; justify-content: center; align-items: center; padding: 20px; margin-top: 20px;">
+                <img src="assets/LogoMiDental.png" alt="Logo corporativo de MiDental" style="width: 280px; height: auto; max-width: 100%; mix-blend-mode: multiply; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onmouseover="this.style.transform='scale(1.05) translateY(-5px)'" onmouseout="this.style.transform='scale(1) translateY(0)'">
             </div>
         </div>
-    </section>
+    </div>
 
-    <section id="faq" class="faq-section">
-        <div class="faq-container">
-            <h2 style="text-align: center; color: var(--blue-elegant); margin-bottom: 40px; font-size: 2rem;">Preguntas Frecuentes</h2>
-            
-            <div class="faq-item" onclick="toggleFAQ(this)">
-                <div class="faq-question">
-                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">person</span> ¿Cómo funciona MiDental para el Paciente?</div>
-                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
-                </div>
-                <p class="faq-answer">Con MiDental, eres el verdadero dueño de tu salud dental. Accedes a una plataforma 100% gratuita donde puedes agendar tus citas clínicas con total facilidad. Tu historial médico, evoluciones y radiografías te acompañan siempre en tu Bóveda Digital segura. Al tener el control absoluto de tus datos, tienes la libertad de atenderte donde y con quien tú decidas, sin trámites, sin perder información y sin empezar de cero en cada consulta.</p>
-            </div>
+    <!-- Estilos exclusivos para el comportamiento de expansión suave (puedes dejarlos aquí o moverlos a tu CSS) -->
+    <style>
+        /* Estructura base de las tarjetas */
+        .hover-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
 
-            <div class="faq-item" onclick="toggleFAQ(this)">
-                <div class="faq-question">
-                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">medical_information</span> ¿Soy Dentista, por qué debería unirme a la red?</div>
-                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
-                </div>
-                <p class="faq-answer"><strong>Puedes empezar a usarlo de manera 100% gratuita y acceder a funciones premium a medida que crezcas.</strong> Porque es el software de gestión clínica que se adapta a tu ritmo y protege tu consulta. MiDental te da el control total de tu cartera de pacientes de forma independiente, sin importar el centro o clínica donde trabajes. Además, te permite diseñar programas de vinculación continua y alertas de prevención basadas en el perfil de riesgo de cada paciente, elevando la fidelización y la calidad de tu atención.</p>
-            </div>
+        /* Variaciones de bordes e identificadores de color individuales */
+        .paciente-card { border-left: 5px solid #007aff; }
+        .dentista-card { border-left: 5px solid #34c759; }
 
-            <div class="faq-item" onclick="toggleFAQ(this)">
-                <div class="faq-question">
-                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">real_estate_agent</span> ¿Cómo funciona el subarriendo de infraestructura?</div>
-                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
-                </div>
-                <p class="faq-answer">Es la democratización del ejercicio profesional. Si tienes horas muertas o un box vacío, MiDental lo convierte en ingresos. Los publicas en nuestro marketplace interno para arrendar el espacio a colegas emergentes que no tienen clínica propia. Es la herramienta definitiva para optimizar tu capacidad instalada.</p>
-            </div>
+        /* Títulos fijos siempre visibles */
+        .card-title-header {
+            margin: 0;
+            padding: 22px 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .paciente-card .card-title-header { color: #007aff; }
+        .dentista-card .card-title-header { color: #34c759; }
 
-            <div class="faq-item" onclick="toggleFAQ(this)">
-                <div class="faq-question">
-                    <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">move_up</span> ¿Cómo funcionan las derivaciones a especialistas?</div>
-                    <span class="material-symbols-outlined chevron-icon">expand_more</span>
-                </div>
-                <p class="faq-answer">A través de un sistema de derivación segura mediante códigos PIN únicos. Envías al paciente a un especialista dentro de la red manteniendo la integridad de su ficha clínica, exámenes y radiografías, resguardando su privacidad en todo momento bajo estándares digitales modernos y normativas de salud.</p>
+        /* Magia del Acordeón: Por defecto el contenido mide 0 de alto y es invisible */
+        .card-expandable-content {
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: max-height 0.5s cubic-bezier(0.165, 0.84, 0.44, 1), 
+                        opacity 0.4s ease, 
+                        visibility 0.4s;
+        }
+
+        /* Contenedor interno para evitar saltos en el cálculo de altura */
+        .inner-padding {
+            padding: 0 20px 22px 20px;
+        }
+        .inner-padding p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            color: #4a4a4a;
+        }
+
+        /* ========================================== */
+        /* EFECTO HOVER: Activación al pasar el mouse  */
+        /* ========================================== */
+        .hover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Cambios sutiles de fondo en el título al pasar el mouse */
+        .paciente-card:hover .card-title-header { background: rgba(0, 122, 255, 0.03); }
+        .dentista-card:hover .card-title-header { background: rgba(52, 199, 89, 0.03); }
+
+        /* Al hacer hover, calculamos una altura máxima segura para desplegar todo el texto */
+        .hover-card:hover .card-expandable-content {
+            max-height: 500px; /* Altura máxima para dar margen a que se estire suavemente */
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</section>
+
+<!-- ========================================== -->
+<!-- FAQ SECTION                                -->
+<!-- ========================================== -->
+<section id="faq" class="faq-section">
+    <div class="faq-container">
+        <h2 style="text-align: center; color: var(--blue-elegant); margin-bottom: 40px; font-size: 2rem;">Preguntas Frecuentes</h2>
+        
+        <!-- FAQ 1: Paciente -->
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">person</span> ¿Cómo funciona MiDental para el Paciente?</div>
+                <span class="material-symbols-outlined chevron-icon">expand_more</span>
             </div>
+            <p class="faq-answer">Con MiDental, eres el verdadero dueño de tu salud dental. Accedes a una plataforma 100% gratuita donde puedes agendar tus citas clínicas con total facilidad. Tu historial médico, evoluciones y radiografías te acompañan siempre en tu Bóveda Digital segura. Al tener el control absoluto de tus datos, tienes la libertad de atenderte donde y con quien tú decidas, sin trámites, sin perder información y sin empezar de cero en cada consulta.</p>
+        </div>
+
+        <!-- FAQ 2: Dentista (CON LAS NUEVAS MEJORAS) -->
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">medical_information</span> ¿Soy Dentista, por qué debería usar MiDental?</div>
+                <span class="material-symbols-outlined chevron-icon">expand_more</span>
+            </div>
+            <p class="faq-answer">Porque es el software de gestión que te da el control absoluto de tu trabajo clínico y financiero de forma gratuita. Con MiDental puedes estructurar presupuestos claros e intuitivos para tus pacientes, emitir recetas odontológicas específicas y controlar de manera exacta tus ingresos. Lo mejor es que la plataforma te permite configurar y ajustar los porcentajes de comisión de cada centro médico o clínica donde trabajas, permitiéndote gestionar tu cartera de pacientes de forma portátil, independiente y ordenada.</p>
+        </div>
+
+        <!-- FAQ 3: Subarriendo -->
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">real_estate_agent</span> ¿Cómo funciona el subarriendo de infraestructura?</div>
+                <span class="material-symbols-outlined chevron-icon">expand_more</span>
+            </div>
+            <p class="faq-answer">Es la solución ideal para el dentista independiente y centros de salud. Si eres una clínica con sillones o pabellones disponibles en horas muertas, puedes publicarlos en nuestro ecosistema para rentabilizar tu capacidad instalada. Si eres un odontólogo independiente, puedes subarrendar estos espacios por horas o jornadas de forma flexible, operando con total formalidad y llevando siempre contigo tu software de gestión MiDental.</p>
+        </div>
+
+        <!-- FAQ 4: Derivaciones -->
+        <div class="faq-item" onclick="toggleFAQ(this)">
+            <div class="faq-question">
+                <div class="q-text"><span class="material-symbols-outlined" style="color:var(--pixar-cyan);">move_up</span> ¿Cómo funcionan las derivaciones a especialistas?</div>
+                <span class="material-symbols-outlined chevron-icon">expand_more</span>
+            </div>
+            <p class="faq-answer">A través de un sistema de derivación segura mediante códigos PIN únicos. Envías al paciente a un especialista dentro de la red manteniendo la integridad de su ficha clínica, exámenes y radiografías, resguardando su privacidad en todo momento bajo estándares digitales modernos y normativas de salud.</p>
+        </div>
+    </div>
+</section>
         </div>
     </section>
 
