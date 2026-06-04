@@ -116,6 +116,7 @@
         .doc-icon.img { background: #e0f2fe; color: #0ea5e9; }
         .doc-icon.presupuesto { background: var(--pixar-cyan); color: white; }
         .doc-icon.receta { background: #ede9fe; color: #7c3aed; }
+        .doc-icon.consentimiento { background: #7c3aed; color: white; }
 
         .doc-info { flex: 1; min-width: 0; }
         .doc-info h4 { margin: 0 0 3px 0; font-size: 0.95rem; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -227,6 +228,15 @@
         </div>
         <div id="listaPresupuestos">
             <div class="empty-state"><span class="material-symbols-outlined spin">sync</span><p>Cargando presupuestos...</p></div>
+        </div>
+
+        <!-- CONSENTIMIENTOS INFORMADOS -->
+        <div class="section-title">
+            <span class="material-symbols-outlined" style="color: #7c3aed;">assignment_turned_in</span>
+            Consentimientos Informados
+        </div>
+        <div id="listaConsentimientos">
+            <div class="empty-state"><span class="material-symbols-outlined spin">sync</span><p>Cargando consentimientos...</p></div>
         </div>
 
         <!-- RECETAS Y EXÁMENES -->
@@ -395,8 +405,9 @@
         // REPOSITORIO DE DOCUMENTOS · Presupuestos vs Recetas
         // ==========================================================
         async function cargarDocumentos(pacienteId) {
-            const contPresupuestos = document.getElementById('listaPresupuestos');
-            const contRecetas      = document.getElementById('listaRecetas');
+            const contPresupuestos    = document.getElementById('listaPresupuestos');
+            const contConsentimientos = document.getElementById('listaConsentimientos');
+            const contRecetas         = document.getElementById('listaRecetas');
 
             try {
                 const { data, error } = await window.midental
@@ -408,25 +419,32 @@
                 if (error) throw error;
 
                 const docs = data || [];
-                const presupuestos = [];
-                const recetas      = [];
+                const presupuestos    = [];
+                const consentimientos = [];
+                const recetas         = [];
 
                 docs.forEach(d => {
-                    if (esPresupuesto(d)) presupuestos.push(d);
-                    else recetas.push(d);
+                    if (esConsentimiento(d))      consentimientos.push(d);
+                    else if (esPresupuesto(d))    presupuestos.push(d);
+                    else                          recetas.push(d);
                 });
 
                 contPresupuestos.innerHTML = presupuestos.length
                     ? presupuestos.map((d, i) => renderDocItem(d, `presu_${i}`, 'presupuesto')).join('')
                     : renderEmptyState('request_quote', 'Aún no hay presupuestos emitidos', 'Cuando tu especialista emita un presupuesto, aparecerá aquí.');
 
+                contConsentimientos.innerHTML = consentimientos.length
+                    ? consentimientos.map((d, i) => renderDocItem(d, `cons_${i}`, 'consentimiento')).join('')
+                    : renderEmptyState('assignment_turned_in', 'Sin consentimientos informados', 'Cuando tu dentista emita un consentimiento informado, lo verás aquí.');
+
                 contRecetas.innerHTML = recetas.length
                     ? recetas.map((d, i) => renderDocItem(d, `rec_${i}`, 'receta')).join('')
                     : renderEmptyState('prescriptions', 'Sin recetas ni exámenes', 'Sube tus radiografías, exámenes o recetas para mantenerlos a mano.');
             } catch (err) {
                 console.error("[cargarDocumentos] Error:", err);
-                contPresupuestos.innerHTML = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus presupuestos.');
-                contRecetas.innerHTML = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus documentos.');
+                contPresupuestos.innerHTML    = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus presupuestos.');
+                contConsentimientos.innerHTML = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus consentimientos.');
+                contRecetas.innerHTML         = renderEmptyState('error', 'Error de conexión', 'No pudimos cargar tus documentos.');
             }
         }
 
@@ -434,6 +452,12 @@
             const nombre = (doc.nombre_archivo || '').toLowerCase();
             const tipo   = (doc.tipo || '').toLowerCase();
             return nombre.includes('presupuesto') || tipo.includes('presupuesto') || tipo === 'budget';
+        }
+
+        function esConsentimiento(doc) {
+            const nombre = (doc.nombre_archivo || '').toLowerCase();
+            const tipo   = (doc.tipo || '').toLowerCase();
+            return nombre.includes('consentimiento') || tipo === 'consentimiento';
         }
 
         function renderDocItem(doc, refId, categoria) {
@@ -444,8 +468,9 @@
 
             let iconClass = esPDF ? 'pdf' : 'img';
             let iconSymbol = esPDF ? 'picture_as_pdf' : 'image';
-            if (categoria === 'presupuesto') { iconClass = 'presupuesto'; iconSymbol = 'request_quote'; }
-            else if (categoria === 'receta') { iconClass = 'receta'; iconSymbol = esPDF ? 'description' : 'prescriptions'; }
+            if (categoria === 'presupuesto')        { iconClass = 'presupuesto';    iconSymbol = 'request_quote'; }
+            else if (categoria === 'consentimiento'){ iconClass = 'consentimiento'; iconSymbol = 'assignment_turned_in'; }
+            else if (categoria === 'receta')        { iconClass = 'receta';         iconSymbol = esPDF ? 'description' : 'prescriptions'; }
 
             const archivoRef = doc.archivo_url || doc.file_url || '';
             const refSafe = encodeURIComponent(archivoRef);
