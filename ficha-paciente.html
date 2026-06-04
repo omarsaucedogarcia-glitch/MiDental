@@ -1361,17 +1361,24 @@
                     const esImagen = archivoRef.match(/\.(jpeg|jpg|gif|png)$/i) != null;
                     const esPresupuesto = doc.nombre_archivo && doc.nombre_archivo.toLowerCase().includes('presupuesto');
                     const iconSymbol = esPresupuesto ? 'request_quote' : (esImagen ? 'image' : 'description');
-                    const colorStyle = esPresupuesto ? 'color: white; background: var(--pixar-cyan);' : 'color: var(--pixar-cyan);';
 
-                    contenedor.innerHTML += `
-                        <div style="background: #f8fafc; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; transition: 0.2s;">
-                            <div style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; ${colorStyle}">
-                                <span class="material-symbols-outlined" style="font-size: 1.8rem;">${iconSymbol}</span>
-                            </div>
-                            <p style="font-size: 0.75rem; margin: 0 0 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155; font-weight: bold;" title="${doc.nombre_archivo}">${doc.nombre_archivo || 'Documento Adjunto'}</p>
-                            <a href="${urlSegura}" target="_blank" style="font-size: 0.75rem; color: white; background: var(--pixar-orange); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box; display: block;">Ver Archivo</a>
+                    const cardDoc = document.createElement('div');
+                    cardDoc.style.cssText = "background: #f8fafc; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; transition: 0.2s;";
+                    cardDoc.innerHTML = `
+                        <div class="doc-thumb-icon" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 1.8rem;">${iconSymbol}</span>
                         </div>
+                        <p style="font-size: 0.75rem; margin: 0 0 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155; font-weight: bold;" title="${doc.nombre_archivo}">${doc.nombre_archivo || 'Documento Adjunto'}</p>
+                        <a href="${urlSegura}" target="_blank" style="font-size: 0.75rem; color: white; background: var(--pixar-orange); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box; display: block;">Ver Archivo</a>
                     `;
+                    const thumbIcon = cardDoc.querySelector('.doc-thumb-icon');
+                    if (esPresupuesto) {
+                        thumbIcon.style.color = 'white';
+                        thumbIcon.style.background = 'var(--pixar-cyan)';
+                    } else {
+                        thumbIcon.style.color = 'var(--pixar-cyan)';
+                    }
+                    contenedor.appendChild(cardDoc);
                 }
             } catch (err) {
                 contenedor.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; grid-column: 1/-1; text-align: center;">Error al cargar archivos.</p>';
@@ -2287,20 +2294,23 @@
             else if (hallazgoActivoSeleccionado.includes('Mancha') || hallazgoActivoSeleccionado.includes('Rehabilitación')) { colorBadge = "#f59e0b"; }
 
             const aiRecomendacion = document.querySelector('.smart-recommendation').innerText;
-            const cardTimelineHTML = `
-                <div style="background: white; border: 1px solid #e2e8f0; border-left: 5px solid ${colorBadge}; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease;">
-                    <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
-                        <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
-                    </div>
-                    <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${hallazgoActivoSeleccionado}</div>
-                    <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle; color: ${colorBadge};">medical_services</span> ${prestacionSeleccionada}</div>
-                    <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
-                        ${aiRecomendacion}
-                    </div>
+            const cardTimeline = document.createElement('div');
+            cardTimeline.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease;";
+            cardTimeline.style.borderLeft = "5px solid " + colorBadge;
+            cardTimeline.innerHTML = `
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
+                </div>
+                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${hallazgoActivoSeleccionado}</div>
+                <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><span class="material-symbols-outlined icon-prestacion-dyn" style="font-size: 0.9rem; vertical-align: middle;">medical_services</span> ${prestacionSeleccionada}</div>
+                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                    ${aiRecomendacion}
                 </div>
             `;
-            timelineRail.insertAdjacentHTML('afterbegin', cardTimelineHTML);
+            const iconPrestacion = cardTimeline.querySelector('.icon-prestacion-dyn');
+            if (iconPrestacion) iconPrestacion.style.color = colorBadge;
+            timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
 
             if (btnElement) {
                 btnElement.style.background = "var(--green-success)"; btnElement.style.color = "white"; btnElement.style.borderColor = "var(--green-success)";
@@ -2586,21 +2596,24 @@
         const aiRecomendacion = document.querySelector('.smart-recommendation').innerText;
 
         // Inyectamos la tarjeta al inicio del historial
-        const cardTimelineHTML = `
-            <div style="background: white; border: 1px solid #e2e8f0; border-left: 5px solid ${colorBadge}; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease;">
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
-                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
-                </div>
-                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${hallazgoActivoSeleccionado}</div>
-                <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle; color: ${colorBadge};">medical_services</span> ${prestacionSeleccionada}</div>
-                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
-                    ${aiRecomendacion}
-                </div>
+        const cardTimeline = document.createElement('div');
+        cardTimeline.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease;";
+        cardTimeline.style.borderLeft = "5px solid " + colorBadge;
+        cardTimeline.innerHTML = `
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
+            </div>
+            <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${hallazgoActivoSeleccionado}</div>
+            <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><span class="material-symbols-outlined icon-prestacion-dyn" style="font-size: 0.9rem; vertical-align: middle;">medical_services</span> ${prestacionSeleccionada}</div>
+            <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                ${aiRecomendacion}
             </div>
         `;
+        const iconPrestacion = cardTimeline.querySelector('.icon-prestacion-dyn');
+        if (iconPrestacion) iconPrestacion.style.color = colorBadge;
 
-        timelineRail.insertAdjacentHTML('afterbegin', cardTimelineHTML);
+        timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
 
         if (btnElement) {
             btnElement.style.background = "var(--green-success)";
