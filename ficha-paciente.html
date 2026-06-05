@@ -621,18 +621,6 @@
                             </div>
                         </section>
 
-                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
-                                <span class="odn-finding-group__dot" aria-hidden="true" style="background:#dc2626;"></span>
-                                <span class="odn-finding-group__name">Cirugía y Periodoncia</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
-                            </button>
-                            <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn" data-state="planned" data-scope="whole-tooth" data-code="exodoncia" data-label="Indicación de Exodoncia" onclick="lanzarAsistenteClinico('exodoncia')">Indicación de Exodoncia</button>
-                                <button type="button" class="odn-finding-btn" data-state="planned" data-scope="whole-mouth" data-code="destartraje" data-label="Destartraje y Profilaxis" onclick="lanzarAsistenteClinico('destartraje')">Destartraje y Profilaxis</button>
-                            </div>
-                        </section>
-
                         <section class="odn-finding-group" data-collapsed="true" data-color="completed">
                             <button type="button" class="odn-finding-group__head" aria-expanded="false">
                                 <span class="odn-finding-group__dot" aria-hidden="true" style="background:#3b82f6;"></span>
@@ -1547,34 +1535,32 @@
             const doc = new jsPDF();
 
             const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-            const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna, nombre_sede').eq('dentista_id', dentistaId).limit(1);
+            const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna').eq('dentista_id', dentistaId).limit(1);
 
             const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : 'No especificado';
             const drRut = dr ? dr.rut : '--';
             const drSis = dr ? dr.registro_sis : '--';
             const drSede = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
-            const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede : 'Centro Odontológico Privado';
 
             doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
             doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
             doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text("Ficha Clínica y Presupuesto", 200, 20, { align: "right" });
-            doc.setFontSize(11); doc.setTextColor(30, 58, 138); doc.setFont("helvetica", "bold"); doc.text(nombreCentro, 200, 26, { align: "right" }); doc.setFont("helvetica", "normal");
-            doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 32, { align: "right" });
-            doc.setDrawColor(200, 200, 200); doc.line(14, 36, 200, 36);
+            doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
+            doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
 
-            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 44);
+            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 40);
             doc.setFontSize(10); doc.setTextColor(50, 50, 50);
-            doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 51); doc.text(`RUT: ${pacienteActual.rut}`, 14, 57);
+            doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47); doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
 
-            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 44);
+            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 40);
             doc.setFontSize(10); doc.setTextColor(50, 50, 50);
-            doc.text(`Dentista: ${drName}`, 110, 51); doc.text(`RUT: ${drRut} | Registro SIS: ${drSis}`, 110, 57); doc.text(`Sede: ${drSede}`, 110, 63);
+            doc.text(`Dentista: ${drName}`, 110, 47); doc.text(`RUT: ${drRut} | Registro SIS: ${drSis}`, 110, 53); doc.text(`Sede: ${drSede}`, 110, 59);
 
-            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Evolución Clínica", 14, 74);
+            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Evolución Clínica", 14, 70);
             doc.setFontSize(10); doc.setTextColor(50, 50, 50);
-            const splitMotivo = doc.splitTextToSize(`Motivo de Consulta: ${motivoTxt}`, 180); doc.text(splitMotivo, 14, 81);
-
-            let startYDiag = 81 + (splitMotivo.length * 5) + 2;
+            const splitMotivo = doc.splitTextToSize(`Motivo de Consulta: ${motivoTxt}`, 180); doc.text(splitMotivo, 14, 77);
+            
+            let startYDiag = 77 + (splitMotivo.length * 5) + 2;
             const splitDiag = doc.splitTextToSize(`Diagnóstico: ${diagTxt}`, 180); doc.text(splitDiag, 14, startYDiag);
 
             let startYTrat = startYDiag + (splitDiag.length * 5) + 2;
@@ -1713,26 +1699,23 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-                const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna, nombre_sede').eq('dentista_id', dentistaId).limit(1);
                 const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
-                const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede : 'Centro Odontológico Privado';
-
+                
                 doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
                 doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
                 doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text("Presupuesto Dental", 200, 20, { align: "right" });
-                doc.setFontSize(11); doc.setTextColor(30, 58, 138); doc.setFont("helvetica", "bold"); doc.text(nombreCentro, 200, 26, { align: "right" }); doc.setFont("helvetica", "normal");
-                doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 32, { align: "right" });
-                doc.setDrawColor(200, 200, 200); doc.line(14, 36, 200, 36);
+                doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
+                doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
 
-                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 44);
-                doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 51); doc.text(`RUT: ${pacienteActual.rut}`, 14, 57);
+                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 40);
+                doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47); doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
 
-                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 44);
-                doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Dentista: ${drName}`, 110, 51); if(dr) doc.text(`RUT: ${dr.rut}`, 110, 57);
+                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 40);
+                doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Dentista: ${drName}`, 110, 47); if(dr) doc.text(`RUT: ${dr.rut}`, 110, 53);
 
                 const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
                 const tableRows = [];
-
+                
                 document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
                     const piezaVal = tr.querySelector('.input-diente').value.trim();
                     const diagVal = tr.querySelector('.input-diag').value.trim();
@@ -1751,7 +1734,7 @@
                     tableRows.push([piezaVal || '-', diagVal || '-', tratVal || '-', `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
                 });
 
-                doc.autoTable({ startY: 70, head: [tableColumn], body: tableRows, theme: 'grid', headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 9 } });
+                doc.autoTable({ startY: 65, head: [tableColumn], body: tableRows, theme: 'grid', headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 9 } });
 
                 const finalY = doc.lastAutoTable.finalY || 70;
                 doc.setFontSize(14); doc.setTextColor(30, 58, 138); doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
@@ -1773,16 +1756,71 @@
             finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
         }
 
-        // ==========================================
-        // RECETAS MÉDICAS Y VADEMÉCUM
-        // ==========================================
-        let recetaMedicamentos = [];
-        const vademecumDB = [
-            { "nombre": "AMOXICILINA 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones odontogénicas leves a moderadas." },
-            { "nombre": "AMOXICILINA 875 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Protocolo de dosis alta." },
-            { "nombre": "IBUPROFENO 400 mg cápsula blanda", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Estándar de oro para dolor dental." },
-            { "nombre": "KETOROLACO 10 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Analgésico de rescate." }
-        ];
+      // ==========================================
+// RECETAS MÉDICAS Y VADEMÉCUM
+// ==========================================
+let recetaMedicamentos = [];
+
+const vademecumDB = [
+  // --- ANTIBIÓTICOS ---
+  { "nombre": "AMOXICILINA 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones odontogénicas leves a moderadas." },
+  { "nombre": "AMOXICILINA 875 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Protocolo de dosis alta para mejorar cumplimiento." },
+  { "nombre": "AMOXICILINA/ÁCIDO CLAVULÁNICO 875/125 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones recurrentes o producidas por bacterias productoras de betalactamasas." },
+  { "nombre": "AMOXICILINA/ÁCIDO CLAVULÁNICO 500/125 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones moderadas-severas." },
+  { "nombre": "CLINDAMICINA 300 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Elección en alérgicos a penicilina o infecciones con sospecha de anaerobios." },
+  { "nombre": "CLINDAMICINA 600 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Dosis alta para procesos severos en alérgicos a penicilina." },
+  { "nombre": "AZITROMICINA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Alternativa en alergias, pauta de corta duración." },
+  { "nombre": "METRONIDAZOL 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Específico para bacterias anaerobias. Suele combinarse con Amoxicilina." },
+  { "nombre": "METRONIDAZOL 250 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Uso en terapias combinadas para periodontitis." },
+  { "nombre": "CLARITROMICINA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Macrólido con mejor tolerancia que la Eritromicina." },
+  { "nombre": "CEFADROXILO 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Cefalosporina de 1ra generación; profilaxis y tratamiento." },
+  { "nombre": "CEFALEXINA 500 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 6, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones de piel y tejidos blandos peri-orales." },
+  { "nombre": "DOXICICLINA 100 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 15, "dunid": "Día(s)", "ind": "Tratamiento coadyuvante en periodontitis agresiva / inhibición de colagenasas." },
+  { "nombre": "PENICILINA V POTÁSICA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 6, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Infecciones muy leves, espectro reducido." },
+  { "nombre": "MOXIFLOXACINO 400 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Casos de infecciones odontogénicas graves refractarias (Uso restringido)." },
+  { "nombre": "ESPIRAMICINA/METRONIDAZOL 1.5MUI/250mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Combinación sinérgica común en infecciones periodontales y abscesos." },
+
+  // --- ANALGÉSICOS Y AINES ---
+  { "nombre": "PARACETAMOL 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 6, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Dolor leve a moderado. Seguro en embarazo y anticoagulados." },
+  { "nombre": "PARACETAMOL 1 g tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Dolor moderado. No exceder 4g al día." },
+  { "nombre": "IBUPROFENO 400 mg cápsula blanda", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Estándar de oro para dolor inflamatorio dental." },
+  { "nombre": "IBUPROFENO 600 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dolor post-quirúrgico moderado-severo." },
+  { "nombre": "NAPROXENO SÓDICO 550 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dolor prolongado. Excelente vida media." },
+  { "nombre": "KETOROLACO 10 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Potente analgésico de rescate a corto plazo." },
+  { "nombre": "KETOROLACO 30 mg tableta sublingual", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Sublingual", "dur": 2, "dunid": "Día(s)", "ind": "Dolor agudo severo (post-exodoncia compleja)." },
+  { "nombre": "DICLOFENACO POTÁSICO 50 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Rápida acción analgésica." },
+  { "nombre": "KETOPROFENO 100 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Eficaz en procesos con alto componente inflamatorio." },
+  { "nombre": "CELECOXIB 200 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Inhibidor selectivo COX-2. Pacientes con sensibilidad gástrica." },
+  { "nombre": "ETORICOXIB 90 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Dolor agudo post-quirúrgico. Alta potencia y selectividad." },
+  { "nombre": "CLONIXINATO DE LISINA 125 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Analgésico no narcótico, efectivo en dolor dental moderado." },
+  { "nombre": "TRAMADOL / PARACETAMOL 37.5/325 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Dolor severo que no cede a AINES convencionales." },
+
+  // --- OTROS ANALGÉSICOS Y AINES ---
+  { "nombre": "METAMIZOL SÓDICO (DIPIRONA) 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Excelente antipirético y analgésico. Útil en dolor post-extracción." },
+  { "nombre": "DEXKETOPROFENO 25 mg comprimido", "cant": 1, "form": "Comprimido(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "S-enantiomer del ketoprofeno. Acción más rápida y potente." },
+  { "nombre": "MELOXICAM 15 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Preferente COX-2. Útil en procesos inflamatorios prolongados o ATM." },
+  { "nombre": "MELOXICAM 7.5 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dosis de mantenimiento para procesos inflamatorios leves." },
+  { "nombre": "NIMESULIDA 100 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Selectivo COX-2. Potente antiinflamatorio para periodontitis agudas." },
+  { "nombre": "TENOXICAM 20 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Larga vida media. Indicado en dolor post-quirúrgico persistente." },
+  { "nombre": "PIROXICAM 20 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Uso en patologías de la articulación temporomandibular (ATM)." },
+  { "nombre": "LORNOXICAM 8 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Oxicam de acción corta. Potente analgésico para dolor dental agudo." },
+  { "nombre": "DICLOFENACO SÓDICO 50 mg tableta entérica", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Acción sistémica más prolongada que el potásico." },
+  { "nombre": "NABUMETONA 500 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Profármaco. Menor incidencia de daño en la mucosa gástrica directa." },
+  { "nombre": "INDOMETACINA 25 mg cápsula", "cant": 1, "form": "Cápsula(s)", "frec": 8, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Uso limitado a neuralgias específicas o inflamación severa de ATM." },
+  { "nombre": "SULINDACO 200 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 7, "dunid": "Día(s)", "ind": "Menor toxicidad renal comparado con otros AINES." },
+
+  // --- CORTICOIDES ---
+  { "nombre": "DEXAMETASONA 4 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 2, "dunid": "Día(s)", "ind": "Prevención y manejo del edema post-quirúrgico severo (ej. terceros molares)." },
+  { "nombre": "DEXAMETASONA 4 mg/ml ampolla", "cant": 1, "form": "Ampolla(s)", "frec": 0, "funid": "Dosis Única", "via": "Submucosa / Intramuscular", "dur": 1, "dunid": "Día(s)", "ind": "Aplicación pre-quirúrgica o intraoperatoria inmediata para control del trismo y edema." },
+  { "nombre": "BETAMETASONA 0.6 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Control de procesos inflamatorios agudos prolongados. Vida media larga." },
+  { "nombre": "BETAMETASONA 7 mg/ml ampolla inyectable", "cant": 1, "form": "Ampolla(s)", "frec": 0, "funid": "Dosis Única", "via": "Intramuscular", "dur": 1, "dunid": "Día(s)", "ind": "Efecto depósito. Prevención de inflamación severa en cirugías complejas." },
+  { "nombre": "PREDNISONA 20 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Procesos autoinmunes orales o alergias severas. Requiere pauta decreciente." },
+  { "nombre": "PREDNISONA 5 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 5, "dunid": "Día(s)", "ind": "Dosis de mantención o escalón final en la reducción gradual del corticoide." },
+  { "nombre": "DEFLAZACORT 30 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 24, "funid": "Hora(s)", "via": "Vía Oral", "dur": 4, "dunid": "Día(s)", "ind": "Alternativa a la prednisona con menor impacto en el metabolismo óseo y de glucosa." },
+  { "nombre": "METILPREDNISOLONA 4 mg tableta", "cant": 1, "form": "Tableta(s)", "frec": 12, "funid": "Hora(s)", "via": "Vía Oral", "dur": 3, "dunid": "Día(s)", "ind": "Alta potencia antiinflamatoria, menor retención de líquidos que otros corticoides." },
+  { "nombre": "TRIAMCINOLONA ACETÓNIDO 0.1% pasta base", "cant": 1, "form": "Tubo", "frec": 8, "funid": "Hora(s)", "via": "Tópica", "dur": 7, "dunid": "Día(s)", "ind": "Tratamiento localizado de aftas severas, úlceras traumáticas y liquen plano oral leve." },
+  { "nombre": "CLOBETASOL PROPIONATO 0.05% ungüento", "cant": 1, "form": "Tubo", "frec": 12, "funid": "Hora(s)", "via": "Tópica", "dur": 14, "dunid": "Día(s)", "ind": "Corticoide de muy alta potencia para liquen plano oral erosivo o pénfigo (Uso en cubeta o gasa)." }
+];
 
         function abrirModalReceta() {
             document.getElementById('recetaNombrePaciente').innerText = pacienteActual.nombre;
@@ -1848,20 +1886,17 @@
             btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando...'; btn.disabled = true;
             try {
                 const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-                const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna, nombre_sede').eq('dentista_id', dentistaId).limit(1);
                 const { jsPDF } = window.jspdf; const doc = new jsPDF();
                 const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo.toUpperCase()}` : '';
                 const drInfo = dr ? `Esp. Odontología - General, RUT: ${dr.rut}\nFecha receta: ${new Date().toLocaleDateString('es-CL')}` : '';
-                const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede : 'Centro Odontológico Privado';
 
                 doc.setFontSize(18); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
-                doc.setFontSize(10); doc.setTextColor(30, 58, 138); doc.setFont("helvetica", "bold"); doc.text(nombreCentro, 14, 27); doc.setFont("helvetica", "normal");
                 doc.setFontSize(8); doc.setTextColor(0, 0, 0); doc.text(drName, 200, 16, { align: "right" }); doc.text(drInfo, 200, 20, { align: "right" });
-                doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("Receta Médica", 105, 40, { align: "center" });
+                doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("Receta Médica", 105, 35, { align: "center" });
 
-                doc.setFontSize(12); doc.text("Datos del paciente", 14, 55);
+                doc.setFontSize(12); doc.text("Datos del paciente", 14, 50);
                 doc.setFontSize(8); doc.setFont("helvetica", "normal");
-                doc.text(`Nombre: ${pacienteActual.nombre.toUpperCase()}`, 14, 61); doc.text(`RUT: ${pacienteActual.rut}`, 14, 66);
+                doc.text(`Nombre: ${pacienteActual.nombre.toUpperCase()}`, 14, 56); doc.text(`RUT: ${pacienteActual.rut}`, 14, 61);
 
                 doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text("Rp.", 14, 80);
                 let startY = 88; doc.setFontSize(9);
@@ -1904,33 +1939,177 @@
 
         const diccionarioConsentimientos = {
             'exodoncia': {
-                titulo: 'CONSENTIMIENTO INFORMADO PARA EXODONCIA (EXTRACCIÓN DENTAL)',
-                riesgos: [
-                    "Dolor, inflamación (edema) y hematomas en la zona de la cara y cuello.",
-                    "Hemorragia postoperatoria que puede requerir atención adicional.",
-                    "Infección del alvéolo (alveolitis) que causa dolor intenso y mal olor.",
-                    "Parestesia (adormecimiento temporal o permanente) del labio, lengua o mentón por cercanía al nervio.",
-                    "Fractura de la raíz dental, requiriendo procedimientos quirúrgicos adicionales o derivación.",
-                    "Daño a dientes adyacentes o a restauraciones previas."
-                ],
-                cuidados: [
-                    "Morder la gasa firmemente por 30 a 45 minutos.",
-                    "No escupir, no enjuagarse la boca ni usar bombillas (pajillas) durante 24 horas para no desprender el coágulo.",
-                    "Aplicar hielo local (envuelto en paño) durante las primeras 24 horas, en intervalos de 15 minutos.",
-                    "Mantener dieta blanda y fría/tibia por 48 horas. Evitar grasas, semillas y alimentos irritantes.",
-                    "No fumar ni consumir alcohol por al menos 72 horas, ya que retrasa drásticamente la cicatrización.",
-                    "Dormir con la cabeza ligeramente elevada."
-                ]
-            },
-            'resina': { titulo: 'CONSENTIMIENTO INFORMADO PARA RESTAURACIÓN DE RESINA', riesgos: [], cuidados: [] },
-            'periodoncia': { titulo: 'CONSENTIMIENTO INFORMADO PARA TRATAMIENTO PERIODONTAL', riesgos: [], cuidados: [] },
-            'pfija': { titulo: 'CONSENTIMIENTO INFORMADO PARA PRÓTESIS FIJA', riesgos: [], cuidados: [] },
-            'premovible': { titulo: 'CONSENTIMIENTO INFORMADO PARA PRÓTESIS REMOVIBLE', riesgos: [], cuidados: [] },
-            'implantes': { titulo: 'CONSENTIMIENTO INFORMADO PARA IMPLANTES DENTALES', riesgos: [], cuidados: [] },
-            'ortodoncia': { titulo: 'CONSENTIMIENTO INFORMADO PARA ORTODONCIA', riesgos: [], cuidados: [] },
-            'endodoncia': { titulo: 'CONSENTIMIENTO INFORMADO PARA ENDODONCIA', riesgos: [], cuidados: [] },
-            'orofacial': { titulo: 'CONSENTIMIENTO INFORMADO PARA ESTÉTICA OROFACIAL', riesgos: [], cuidados: [] }
-        };
+        titulo: 'CONSENTIMIENTO INFORMADO PARA EXODONCIA (EXTRACCIÓN DENTAL)',
+        riesgos: [
+            "Dolor, inflamación (edema) y hematomas en la zona de la cara y cuello.",
+            "Hemorragia postoperatoria que puede requerir atención adicional.",
+            "Infección del alvéolo (alveolitis) que causa dolor intenso y mal olor.",
+            "Parestesia (adormecimiento temporal o permanente) del labio, lengua o mentón por cercanía al nervio.",
+            "Fractura de la raíz dental, requiriendo procedimientos quirúrgicos adicionales o derivación.",
+            "Daño a dientes adyacentes o a restauraciones previas."
+        ],
+        cuidados: [
+            "Morder la gasa firmemente por 30 a 45 minutos.",
+            "No escupir, no enjuagarse la boca ni usar bombillas (pajillas) durante 24 horas para no desprender el coágulo.",
+            "Aplicar hielo local (envuelto en paño) durante las primeras 24 horas, en intervalos de 15 minutos.",
+            "Mantener dieta blanda y fría/tibia por 48 horas. Evitar grasas, semillas y alimentos irritantes.",
+            "No fumar ni consumir alcohol por al menos 72 horas, ya que retrasa drásticamente la cicatrización.",
+            "Dormir con la cabeza ligeramente elevada."
+        ]
+    },
+         'resina': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA RESTAURACIÓN DE RESINA', 
+        riesgos: [
+            "Sensibilidad postoperatoria al frío, calor o a la masticación, la cual suele ser temporal pero puede prolongarse.",
+            "Necesidad de un tratamiento de conducto (endodoncia) si la caries era muy profunda y generó daño irreversible en la pulpa dental.",
+            "Fractura de la restauración o del diente remanente al masticar objetos o alimentos extremadamente duros.",
+            "Desalojo, filtración o caída de la resina con el paso del tiempo, requiriendo su recambio.",
+            "Cambio de coloración o aparición de manchas en los bordes de la resina debido a la dieta (té, café, vino) o hábitos como el tabaquismo.",
+            "Leve inflamación o sangrado temporal en la encía adyacente debido al aislamiento y manipulación durante el procedimiento."
+        ], 
+        cuidados: [
+            "Evitar masticar alimentos por el lado tratado hasta que pase completamente el efecto de la anestesia para prevenir mordeduras en labios, mejillas o lengua.",
+            "Evitar el consumo de alimentos o bebidas altamente pigmentantes (café, vino tinto, cúrcuma) durante las primeras 24 horas para asegurar la estabilidad del color.",
+            "No morder objetos duros (hielo, lápices, semillas, cáscaras) que puedan provocar la fractura del material restaurador.",
+            "Mantener una higiene oral estricta con cepillado y uso de hilo dental para evitar caries secundarias en los bordes de la restauración.",
+            "Acudir a controles dentales periódicos para pulido de la resina y evaluación de su integridad estructural.",
+            "Informar al odontólogo si la sensibilidad persiste por más de dos semanas o si se siente que la restauración está 'alta' al morder."
+        ] 
+    },
+    'periodoncia': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA TRATAMIENTO PERIODONTAL', 
+        riesgos: [
+            "Aumento transitorio de la sensibilidad dental al frío o al calor tras el raspado y alisado radicular.",
+            "Recesión gingival (encías retraídas) a medida que disminuye la inflamación, exponiendo parte de la raíz del diente.",
+            "Sangrado leve de las encías durante los primeros días posteriores al tratamiento.",
+            "Movilidad dental temporal debido a la manipulación de los tejidos de soporte, que suele estabilizarse con la cicatrización.",
+            "Aparición de espacios negros (triángulos negros) entre los dientes al desinflamarse la papila gingival.",
+            "Posible progresión de la enfermedad periodontal si no se cumplen estrictamente los hábitos de higiene o si existe tabaquismo activo."
+        ], 
+        cuidados: [
+            "Evitar el cepillado fuerte o traumático; utilizar un cepillo de cerdas suaves siguiendo la técnica indicada por el especialista.",
+            "Utilizar elementos de higiene interproximal (cepillos interdentales, hilo dental) diariamente para evitar la acumulación de placa bacteriana.",
+            "Realizar enjuagues con clorhexidina u otro colutorio específico solo si fue prescrito, respetando los tiempos y dosis indicados.",
+            "Mantener una dieta blanda durante las primeras 48 horas para no sobrecargar los dientes con movilidad.",
+            "Suspender o reducir drásticamente el consumo de tabaco, ya que el cigarrillo es el principal factor de fracaso en los tratamientos periodontales.",
+            "Asistir rigurosamente a las sesiones de terapia periodontal de soporte (mantenimiento) cada 3, 4 o 6 meses según la indicación clínica."
+        ] 
+    },
+    'pfija': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA PRÓTESIS FIJA', 
+        riesgos: [
+            "Sensibilidad térmica en los dientes vitales tallados (muñones) durante la fase de provisorios o tras la cementación definitiva.",
+            "Inflamación gingival transitoria alrededor de los márgenes de la corona o puente.",
+            "Descementación (caída) de las restauraciones provisorias o, a largo plazo, de las definitivas, requiriendo recementación.",
+            "Fractura de la porcelana (chipping) debido a bruxismo, impactos o masticación de elementos extremadamente duros.",
+            "Necesidad de tratamiento de endodoncia futuro si el diente tallado desarrolla pulpitis irreversible o necrosis por el trauma mecánico de la preparación.",
+            "Dificultad temporal para la fonación o alteraciones leves en la masticación durante el periodo de adaptación."
+        ], 
+        cuidados: [
+            "Evitar masticar alimentos extremadamente duros (hielo, turrón, calugas, frutos secos con cáscara) que puedan fracturar la cerámica.",
+            "No consumir alimentos excesivamente pegajosos (chicles, caramelos masticables) que puedan descementar la prótesis, especialmente los provisorios.",
+            "Mantener una higiene oral estricta en los márgenes de la corona utilizando cepillos interproximales y seda dental tipo Super Floss para puentes.",
+            "Utilizar placa de relajación (plano de alivio oclusal) si se ha diagnosticado bruxismo para proteger la porcelana de fuerzas desmedidas.",
+            "En caso de que se suelte un provisorio, acudir de inmediato a la consulta; no intentar pegarlo con adhesivos domésticos.",
+            "Asistir a controles periódicos para evaluar la oclusión, la integridad de los márgenes y la salud gingival."
+        ] 
+    },
+    'premovible': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA PRÓTESIS REMOVIBLE', 
+        riesgos: [
+            "Aparición de úlceras, llagas o zonas de presión (enrojecimiento) en las mucosas durante las primeras semanas de adaptación.",
+            "Dificultad inicial para la masticación, requiriendo un periodo de aprendizaje muscular y articular.",
+            "Alteraciones transitorias en la fonación y el habla mientras la lengua y los labios se adaptan a los nuevos contornos acrílicos o metálicos.",
+            "Aumento de la salivación (sialorrea) durante los primeros días de uso, como respuesta refleja al cuerpo extraño.",
+            "Sensación de pérdida de retención o inestabilidad, especialmente en prótesis completas inferiores donde el reborde óseo es escaso.",
+            "A largo plazo, reabsorción continua e inevitable del hueso alveolar de soporte, requiriendo rebasados futuros."
+        ], 
+        cuidados: [
+            "Retirar la prótesis durante la noche (o al menos entre 6 y 8 horas diarias) para permitir el descanso y la oxigenación de los tejidos bucales.",
+            "Limpiar la prótesis fuera de la boca utilizando un cepillo especial y jabón líquido neutro o pastillas efervescentes, evitando el uso de pasta dental abrasiva.",
+            "Comenzar la dieta con alimentos blandos y cortados en trozos pequeños, masticando por ambos lados simultáneamente para estabilizar la prótesis.",
+            "Manipular la prótesis con cuidado sobre una toalla o un lavabo lleno de agua durante la limpieza para evitar su fractura en caso de caída.",
+            "Masajear suavemente las encías con un cepillo suave sin pasta dental para estimular la circulación sanguínea.",
+            "Acudir a la consulta para realizar los ajustes necesarios ante cualquier punto de dolor; nunca intentar limar o modificar la prótesis en casa."
+        ] 
+    },
+    'implantes': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA IMPLANTES DENTALES', 
+        riesgos: [
+            "Dolor, inflamación severa y aparición de hematomas faciales en el periodo postoperatorio inmediato.",
+            "Fracaso en la oseointegración (el implante no se une al hueso y debe ser retirado), lo cual puede ocurrir en las semanas o meses posteriores.",
+            "Parestesia (adormecimiento) temporal o permanente del labio, mentón o lengua debido a proximidad o lesión de estructuras nerviosas maxilofaciales.",
+            "Infección del lecho quirúrgico o complicaciones con injertos óseos y membranas utilizadas simultáneamente.",
+            "Comunicación o perforación del seno maxilar (en el maxilar superior) que requiera tratamiento adicional.",
+            "Desarrollo de periimplantitis a largo plazo (pérdida de hueso alrededor del implante por infección) que puede llevar a la pérdida de la fijación."
+        ], 
+        cuidados: [
+            "Aplicar hielo local de forma intermitente durante las primeras 24-48 horas para minimizar el edema.",
+            "Mantener una dieta estrictamente blanda y fría durante los primeros días; evitar la masticación sobre la zona intervenida.",
+            "Tomar los antibióticos, antiinflamatorios y analgésicos recetados en las dosis y horarios exactos indicados.",
+            "Prohibición absoluta de fumar, ya que el tabaco disminuye drásticamente el flujo sanguíneo y multiplica el riesgo de fracaso del implante.",
+            "No utilizar prótesis removibles provisionales sobre la zona operada a menos que hayan sido estrictamente autorizadas y ajustadas por el cirujano.",
+            "Mantener una higiene impecable; evitar el cepillado directo sobre los puntos de sutura, utilizando enjuagues de clorhexidina si se indicó."
+        ] 
+    },
+    'ortodoncia': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA ORTODONCIA', 
+        riesgos: [
+            "Aparición de manchas blancas (descalcificación), caries o gingivitis secundaria a una deficiente higiene oral alrededor de los brackets.",
+            "Dolor o sensibilidad dental al masticar durante los días posteriores a la instalación de los aparatos o sus activaciones periódicas.",
+            "Reabsorción radicular (acortamiento de las raíces de los dientes) leve a moderada, inherente al movimiento dental, que rara vez compromete la viabilidad del diente.",
+            "Úlceras o heridas en la mucosa interna de las mejillas, labios o lengua por el roce de los aditamentos metálicos o cerámicos.",
+            "Aumento en la duración del tratamiento respecto al tiempo estimado inicialmente debido a factores biológicos o falta de cooperación del paciente.",
+            "Recidiva (movimiento de los dientes hacia su posición original) si no se utilizan los aparatos de retención (contenciones) según las indicaciones."
+        ], 
+        cuidados: [
+            "Mantener una higiene oral extrema después de cada comida, utilizando cepillo ortodóncico, cepillos interproximales e hilo dental con enhebrador.",
+            "Evitar alimentos duros, crujientes (frutos secos, hielo, turrones) o comer frutas a mordiscos (manzanas), ya que pueden despegar los brackets.",
+            "Evitar alimentos pegajosos (chicles, caramelos masticables) que puedan doblar los arcos de alambre o acumular bacterias difíciles de remover.",
+            "Aplicar cera de ortodoncia sobre cualquier bracket o alambre que esté causando roce o irritación en los tejidos blandos.",
+            "Usar rigurosamente los elásticos intermaxilares u otros aparatos auxiliares en la cantidad de horas indicadas por el ortodoncista.",
+            "Asistir sin falta a los controles programados para la activación del sistema, ya que las inasistencias prolongan innecesariamente el tratamiento."
+        ] 
+    },
+    'endodoncia': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA ENDODONCIA', 
+        riesgos: [
+            "Dolor postoperatorio moderado a severo, especialmente a la masticación, durante los primeros días debido a la inflamación de los tejidos periapicales (ligamento).",
+            "Imposibilidad de localizar, instrumentar o desinfectar conductos calcificados, curvos o canales accesorios, lo que podría derivar en el fracaso del tratamiento.",
+            "Fractura de instrumentos endodónticos (limas) dentro del conducto radicular debido a la complejidad anatómica, requiriendo cirugía apical o extracción.",
+            "Perforación de la raíz o del piso de la cámara pulpar durante la localización de los conductos.",
+            "Oscurecimiento leve o cambio de tonalidad de la corona dental a largo plazo, producto del material de sellado o remanentes de tejido.",
+            "Fractura de la corona clínica si el diente no es rehabilitado de forma definitiva (con corona o incrustación) a la brevedad."
+        ], 
+        cuidados: [
+            "Evitar masticar alimentos por el lado tratado hasta que se haya colocado la restauración definitiva (resina, incrustación o corona) para prevenir la fractura del diente hueco.",
+            "Tomar los analgésicos o antiinflamatorios recetados para manejar el dolor e inflamación postoperatoria normal del ligamento periodontal.",
+            "Mantener una higiene bucal normal mediante cepillado e hilo dental, con cuidado de no desalojar la curación o cemento temporal.",
+            "Acudir de inmediato al odontólogo si el cemento temporal se cae parcial o totalmente antes de la siguiente cita, para evitar la recontaminación bacteriana de los conductos.",
+            "Comprender que la endodoncia es el primer paso; programar sin retraso la rehabilitación definitiva de la estructura dentaria remanente.",
+            "Comunicarse con la clínica si se presenta una inflamación visible (hinchazón) en el rostro o encía, o si el dolor no cede con los medicamentos."
+        ] 
+    },
+    'orofacial': { 
+        titulo: 'CONSENTIMIENTO INFORMADO PARA ESTÉTICA OROFACIAL', 
+        riesgos: [
+            "Aparición de hematomas (moretones), eritema (enrojecimiento) leve y edema (hinchazón) temporal en los sitios de punción.",
+            "Asimetría facial temporal o resultados que no alcanzan las expectativas estéticas subjetivas del paciente, requiriendo retoques.",
+            "En el caso de toxina botulínica: ptosis (caída) leve y transitoria del párpado o ceja, debilidad muscular temporal o alteraciones transitorias de la mímica facial.",
+            "En el caso de ácido hialurónico o rellenos: formación de nódulos palpables, granulomas o irregularidades bajo la piel.",
+            "Reacciones alérgicas o hipersensibilidad a los productos inyectados (aunque son raras debido a la biocompatibilidad moderna).",
+            "Complicación vascular grave (isquemia o necrosis tisular) por la inyección accidental de ácido hialurónico en un vaso sanguíneo, requiriendo el uso de hialuronidasa de urgencia."
+        ], 
+        cuidados: [
+            "Mantener una posición vertical y no acostarse ni agachar la cabeza de forma pronunciada durante las primeras 4 horas post-inyección (especialmente para toxina botulínica).",
+            "No masajear, frotar ni presionar las zonas tratadas durante las primeras 24 horas para evitar la migración del producto hacia músculos o áreas no deseadas.",
+            "Evitar el ejercicio físico extenuante o actividades que aumenten el flujo sanguíneo facial durante las primeras 24 a 48 horas.",
+            "Evitar la exposición directa y prolongada al sol, radiación UV, saunas o calor extremo hasta que la inflamación y el enrojecimiento hayan desaparecido.",
+            "No aplicar maquillaje sobre los sitios de punción durante al menos 12 horas para minimizar el riesgo de infecciones locales.",
+            "Contactar inmediatamente al especialista en caso de observar cambios inusuales en la coloración de la piel (palidez o coloración violácea), dolor severo o aumento de temperatura en la zona."
+        ],
+       }
+}
 
         async function emitirYGuardarConsentimientoPDF() {
             if (isLocal) return alert("Esta acción no está disponible para Fichas Locales temporales.");
@@ -1956,7 +2135,7 @@
                 doc.setFontSize(22); doc.setTextColor(139, 92, 246); doc.text("MiDental", 14, 20);
                 doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Sistema de Gestión Legal Clínica", 14, 26);
                 
-                doc.setFontSize(13); doc.setTextColor(30, 58, 138); doc.setFont("helvetica", "bold"); doc.text(nombreCentro, 200, 20, { align: "right" }); doc.setFont("helvetica", "normal");
+                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
                 doc.setFontSize(9); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
 
                 doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
@@ -2120,36 +2299,21 @@
         }
 
         function llevarHallazgosAPresupuesto() {
-            if (!window.MiDentalOdontograma) return cerrarYScrollPresupuesto();
+            if (!window.MiDentalOdontograma) return alert("Motor del odontograma no disponible.");
             const eventos = window.MiDentalOdontograma.getEvents();
+            if (!eventos.length) return alert("No hay hallazgos registrados en el odontograma todavía.");
 
-            const STATE_DIAG = {
-                'active':   'Patología activa',
-                'planned':  'Tratamiento planificado',
-                'review':   'Revisión clínica indicada'
-            };
-
-            const map = new Map();
+            const map = new Map();   
             for (let i = eventos.length - 1; i >= 0; i--) {
                 const e = eventos[i];
                 if (e.state !== 'planned' && e.state !== 'active') continue;
-                const findingKey = e.findingCode || e.findingLabel || e.state;
-                const k = `${e.fdi}|${findingKey}|${e.surface || ''}`;
+                const k = `${e.fdi}|${e.findingCode || e.findingLabel}`;
                 map.set(k, e);
             }
 
+            if (map.size === 0) return alert("Sólo hay hallazgos históricos / existentes. Marca patología o planificación para llevarlos al presupuesto.");
+
             const tbody = document.getElementById('tbodyPresupuesto');
-            const filasActuales = tbody.querySelectorAll('tr');
-            const hayFilasUsadas = Array.from(filasActuales).some(tr => {
-                const d = tr.querySelector('.input-diente'); const g = tr.querySelector('.input-diag');
-                return (d && d.value.trim()) || (g && g.value.trim());
-            });
-
-            if (map.size === 0) {
-                if (hayFilasUsadas) return cerrarYScrollPresupuesto();
-                return alert("Aún no hay planificación. Marca un hallazgo (patología o planificado) en el odontograma o usa el Asistente Clínico para sumar prestaciones al presupuesto.");
-            }
-
             const piezasYa = new Set();
             tbody.querySelectorAll('tr').forEach(tr => {
                 const d = tr.querySelector('.input-diente'); const g = tr.querySelector('.input-diag');
@@ -2165,15 +2329,15 @@
 
             let agregadas = 0;
             map.forEach(e => {
-                const piezaFmt = e.fdi && e.fdi.length === 2 ? `${e.fdi.charAt(0)}.${e.fdi.charAt(1)}` : (e.fdi || '—');
+                const piezaFmt = `${e.fdi.charAt(0)}.${e.fdi.charAt(1)}`;
                 const surfaces = e.surfaces && e.surfaces.length ? e.surfaces : (e.surface ? [e.surface] : []);
                 const surfCode = (e.scope === 'whole-tooth' || surfaces.length === 0) ? '' : surfaces.join('');
                 const piezaCol = surfCode ? `${piezaFmt} ${surfCode}` : piezaFmt;
-                const diag = e.findingLabel || STATE_DIAG[e.state] || 'Hallazgo clínico';
+                const diag = e.findingLabel || 'Hallazgo clínico';
                 const key  = `${piezaCol}|${diag.toLowerCase()}`;
-
+                
                 if (piezasYa.has(key)) return;
-
+                
                 tbody.insertAdjacentHTML('beforeend', `
                     <tr>
                         <td><input type="text" class="input-diente" value="${piezaCol}" placeholder="Ej: 1.4"></td>
@@ -2208,90 +2372,6 @@
             t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2400);
         }
 
-        function cerrarYScrollPresupuesto() {
-            cerrarOdontograma();
-            const tabla = document.querySelector('.presupuesto-table-wrapper');
-            if (tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            mostrarToastFicha('Revisa el presupuesto y completa valores referenciales.');
-        }
-
-        function agregarPrestacionDirectaAlPresupuesto(diagnostico, prestacion, piezaTxt) {
-            const tbody = document.getElementById('tbodyPresupuesto');
-            const filas = tbody.querySelectorAll('tr');
-            const pieza = piezaTxt || 'Boca Completa';
-            const yaExiste = Array.from(filas).some(tr => {
-                const d = (tr.querySelector('.input-diente')?.value || '').trim().toLowerCase();
-                const t = (tr.querySelector('.input-tratamiento')?.value || '').trim().toLowerCase();
-                return d === pieza.toLowerCase() && t === prestacion.toLowerCase();
-            });
-            if (yaExiste) {
-                mostrarToastFicha('Esta prestación ya está en el presupuesto.');
-                return false;
-            }
-            let insertada = false;
-            if (filas.length === 1) {
-                const r = filas[0];
-                const vacia = !r.querySelector('.input-diente').value && !r.querySelector('.input-diag').value && !r.querySelector('.input-tratamiento').value && !r.querySelector('.input-ref').value;
-                if (vacia) {
-                    r.querySelector('.input-diente').value = pieza;
-                    r.querySelector('.input-diag').value = diagnostico;
-                    r.querySelector('.input-tratamiento').value = prestacion;
-                    insertada = true;
-                }
-            }
-            if (!insertada) {
-                tbody.insertAdjacentHTML('beforeend', `
-                    <tr>
-                        <td><input type="text" class="input-diente" value="${pieza}" placeholder="Ej: 1.4"></td>
-                        <td><input type="text" class="input-diag" value="${diagnostico.replace(/"/g, '&quot;')}" placeholder="Diagnóstico"></td>
-                        <td><input type="text" class="input-tratamiento" value="${prestacion.replace(/"/g, '&quot;')}" placeholder="Prestación"></td>
-                        <td><input type="number" class="input-ref" placeholder="0" oninput="calcularFila(this)"></td>
-                        <td><input type="number" class="input-desc" placeholder="0" oninput="calcularFila(this)"></td>
-                        <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
-                    </tr>
-                `);
-            }
-            calcularGranTotal();
-            return true;
-        }
-
-        const PERIO_RX_PRESTACIONES = {
-            'destartraje': { diag: 'Indicación Periodontal Preventiva', prestacion: 'Destartraje Supragingival y Pulido Coronal (Boca Completa)', pieza: 'Boca Completa' },
-            'rar-sup':     { diag: 'Periodontitis (Arcada Superior)',     prestacion: 'Raspaje y Alisado Radicular - Arcada Superior',           pieza: 'Arcada Sup.' },
-            'rar-inf':     { diag: 'Periodontitis (Arcada Inferior)',     prestacion: 'Raspaje y Alisado Radicular - Arcada Inferior',           pieza: 'Arcada Inf.' },
-            'rar-g1':      { diag: 'Periodontitis (Grupo I)',             prestacion: 'Raspaje y Alisado Radicular - Grupo I',                   pieza: 'Grupo I' },
-            'rar-g2':      { diag: 'Periodontitis (Grupo II)',            prestacion: 'Raspaje y Alisado Radicular - Grupo II',                  pieza: 'Grupo II' },
-            'rar-g3':      { diag: 'Periodontitis (Grupo III)',           prestacion: 'Raspaje y Alisado Radicular - Grupo III',                 pieza: 'Grupo III' },
-            'rar-g4':      { diag: 'Periodontitis (Grupo IV)',            prestacion: 'Raspaje y Alisado Radicular - Grupo IV',                  pieza: 'Grupo IV' },
-            'rar-g5':      { diag: 'Periodontitis (Grupo V)',             prestacion: 'Raspaje y Alisado Radicular - Grupo V',                   pieza: 'Grupo V' },
-            'rar-g6':      { diag: 'Periodontitis (Grupo VI)',            prestacion: 'Raspaje y Alisado Radicular - Grupo VI',                  pieza: 'Grupo VI' }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const perioPanel = document.getElementById('odnPerioPanel');
-            if (perioPanel) {
-                perioPanel.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.odn-perio-btn[data-perio-rx]');
-                    if (!btn) return;
-                    const rx = btn.dataset.perioRx;
-                    const cfg = PERIO_RX_PRESTACIONES[rx];
-                    if (!cfg) return;
-                    const ok = agregarPrestacionDirectaAlPresupuesto(cfg.diag, cfg.prestacion, cfg.pieza);
-                    if (ok) {
-                        btn.style.background = 'var(--green-success, #10b981)';
-                        btn.style.color = 'white';
-                        const txtOrig = btn.textContent;
-                        btn.textContent = '✓ Agregado al presupuesto';
-                        setTimeout(() => { btn.style.background = ''; btn.style.color = ''; btn.textContent = txtOrig; }, 1600);
-                        mostrarToastFicha(`✓ ${cfg.prestacion} agregado al presupuesto.`);
-                    }
-                });
-            }
-
-            const btnAplicar = document.getElementById('odnBtnAplicarPresupuesto');
-            if (btnAplicar) btnAplicar.addEventListener('click', llevarHallazgosAPresupuesto);
-        });
-
         document.addEventListener('keydown', (e) => {
             const modal = document.getElementById('odontogramaModal');
             const open  = modal && modal.classList.contains('odn-active');
@@ -2318,26 +2398,24 @@
         const arbolClinico = {
             'sano': { titulo: 'Pieza Sana', claseAlerta: 'smart-recommendation', icon: 'health_and_safety', rec: 'Manejo Preventivo.', opciones: [] },
             'restauracion': { titulo: 'Restauración Existente', claseAlerta: 'smart-recommendation', icon: 'info', rec: 'Control radiográfico preventivo.', opciones: ['Restauración en Resina', 'Restauración en Amalgama'] },
-            'ausente': { titulo: 'Pieza Ausente', claseAlerta: 'smart-recommendation warning', icon: 'visibility_off', rec: 'Determine la causa.', opciones: ['Pérdida por Caries', 'Ortodoncia', 'Agenesia', 'Implante Dental', 'Prótesis Fija (Puente)'] },
+            'ausente': { titulo: 'Pieza Ausente', claseAlerta: 'smart-recommendation warning', icon: 'visibility_off', rec: 'Determine la causa.', opciones: ['Pérdida por Caries', 'Ortodoncia', 'Agenesia'] },
             'rehabilitacion': { titulo: 'Rehabilitación Protésica', claseAlerta: 'smart-recommendation warning', icon: 'architecture', rec: 'Evaluar estado de los pilares.', opciones: ['PFU', 'PPR'] },
-            'fractura': { titulo: 'Fractura Coronal', claseAlerta: 'smart-recommendation alert', icon: 'personal_injury', rec: 'Evaluar compromiso pulpar y radicular.', opciones: ['Fractura Parcial', 'Fractura Compleja', 'Exodoncia (Extracción Dental)'] },
-            'movilidad': { titulo: 'Movilidad Dental', claseAlerta: 'smart-recommendation alert', icon: 'air', rec: 'Evaluar estado periodontal. Movilidad Grado 3 indica Exodoncia.', opciones: ['Grado 1', 'Grado 2', 'Grado 3', 'Exodoncia (Extracción Dental)'] },
+            'fractura': { titulo: 'Fractura Coronal', claseAlerta: 'smart-recommendation alert', icon: 'personal_injury', rec: 'Evaluar compromiso pulpar.', opciones: ['Fractura Parcial', 'Fractura Compleja'] },
+            'movilidad': { titulo: 'Movilidad Dental', claseAlerta: 'smart-recommendation alert', icon: 'air', rec: 'Evaluar estado periodontal.', opciones: ['Grado 1', 'Grado 2', 'Grado 3'] },
             'iccms_1': { titulo: 'Mancha Blanca', claseAlerta: 'smart-recommendation warning', icon: 'water_drop', rec: 'Recetar flúor.', opciones: ['Sellantes', 'Flúor Barniz'] },
             'iccms_3': { titulo: 'Caries Superficial', claseAlerta: 'smart-recommendation warning', icon: 'radio_button_checked', rec: 'Rx Bite Wing.', opciones: ['Sellantes', 'Flúor Barniz'] },
             'iccms_5': { titulo: 'Caries Dentinaria', claseAlerta: 'smart-recommendation alert', icon: 'coronavirus', rec: 'Rx Bite Wing obligatoria.', opciones: ['Resina Simple', 'Resina Compleja'] },
-            'iccms_6': { titulo: 'Caries Profunda', claseAlerta: 'smart-recommendation alert', icon: 'warning', rec: 'Evaluación de vitalidad pulpar.', opciones: ['Rx Periapical', 'Recubrimiento Pulpar', 'Resina', 'Exodoncia (Extracción Dental)'] },
+            'iccms_6': { titulo: 'Caries Profunda', claseAlerta: 'smart-recommendation alert', icon: 'warning', rec: 'Evaluación de vitalidad pulpar.', opciones: ['Rx Periapical', 'Recubrimiento Pulpar', 'Resina'] },
             'pulpitis_rev': { titulo: 'Pulpitis Reversible', claseAlerta: 'smart-recommendation warning', icon: 'thermostat', rec: 'Evaluar sensibilidad.', opciones: ['Protección Pulpar', 'Resina'] },
-            'pulpitis_irrev_sint': { titulo: 'Pulpitis Irrev. Sintomática', claseAlerta: 'smart-recommendation alert', icon: 'emergency', rec: 'Dolor agudo.', opciones: ['Trepanación', 'Endodoncia', 'Exodoncia (Extracción Dental)'] },
-            'pulpitis_irrev_asint': { titulo: 'Pulpitis Irrev. Asintomática', claseAlerta: 'smart-recommendation alert', icon: 'healing', rec: 'Riesgo reagudización.', opciones: ['Trepanación', 'Endodoncia', 'Exodoncia (Extracción Dental)'] },
-            'necrosis': { titulo: 'Necrosis Pulpar', claseAlerta: 'smart-recommendation alert', icon: 'skull', rec: 'Pérdida de vitalidad.', opciones: ['Trepanación', 'Endodoncia', 'Exodoncia (Extracción Dental)'] },
-            'pre_iniciado': { titulo: 'Previamente Iniciado', claseAlerta: 'smart-recommendation warning', icon: 'construction', rec: 'Tratamiento en curso.', opciones: ['Endodoncia', 'Exodoncia (Extracción Dental)'] },
-            'perio_apical_sint': { titulo: 'Periodontitis Apical Sint.', claseAlerta: 'smart-recommendation alert', icon: 'bolt', rec: 'Evaluar Trauma.', opciones: ['Desgaste Oclusal', 'Endodoncia', 'Exodoncia (Extracción Dental)'] },
-            'perio_apical_asint': { titulo: 'Periodontitis Apical Asint.', claseAlerta: 'smart-recommendation alert', icon: 'radio_button_unchecked', rec: 'Intervenir.', opciones: ['Endodoncia', 'Exodoncia (Extracción Dental)'] },
-            'absceso_agudo': { titulo: 'Absceso Agudo', claseAlerta: 'smart-recommendation alert', icon: 'medication', rec: 'Antibióticos.', opciones: ['Trepanación', 'Drenaje', 'Exodoncia (Extracción Dental)'] },
-            'absceso_cronico': { titulo: 'Absceso Crónico', claseAlerta: 'smart-recommendation warning', icon: 'medication', rec: 'Fístula.', opciones: ['Fistulografía', 'Endodoncia', 'Exodoncia (Extracción Dental)'] },
+            'pulpitis_irrev_sint': { titulo: 'Pulpitis Irrev. Sintomática', claseAlerta: 'smart-recommendation alert', icon: 'emergency', rec: 'Dolor agudo.', opciones: ['Trepanación', 'Endodoncia'] },
+            'pulpitis_irrev_asint': { titulo: 'Pulpitis Irrev. Asintomática', claseAlerta: 'smart-recommendation alert', icon: 'healing', rec: 'Riesgo reagudización.', opciones: ['Trepanación', 'Endodoncia'] },
+            'necrosis': { titulo: 'Necrosis Pulpar', claseAlerta: 'smart-recommendation alert', icon: 'skull', rec: 'Pérdida de vitalidad.', opciones: ['Trepanación', 'Endodoncia'] },
+            'pre_iniciado': { titulo: 'Previamente Iniciado', claseAlerta: 'smart-recommendation warning', icon: 'construction', rec: 'Tratamiento en curso.', opciones: ['Endodoncia'] },
+            'perio_apical_sint': { titulo: 'Periodontitis Apical Sint.', claseAlerta: 'smart-recommendation alert', icon: 'bolt', rec: 'Evaluar Trauma.', opciones: ['Desgaste Oclusal', 'Endodoncia'] },
+            'perio_apical_asint': { titulo: 'Periodontitis Apical Asint.', claseAlerta: 'smart-recommendation alert', icon: 'radio_button_unchecked', rec: 'Intervenir.', opciones: ['Endodoncia'] },
+            'absceso_agudo': { titulo: 'Absceso Agudo', claseAlerta: 'smart-recommendation alert', icon: 'medication', rec: 'Antibióticos.', opciones: ['Trepanación', 'Drenaje'] },
+            'absceso_cronico': { titulo: 'Absceso Crónico', claseAlerta: 'smart-recommendation warning', icon: 'medication', rec: 'Fístula.', opciones: ['Fistulografía', 'Endodoncia'] },
             'osteitis': { titulo: 'Osteítis Condensante', claseAlerta: 'smart-recommendation warning', icon: 'lens_blur', rec: 'Reacción ósea.', opciones: ['Endodoncia'] },
-            'exodoncia': { titulo: 'Indicación de Exodoncia', claseAlerta: 'smart-recommendation alert', icon: 'dental_chip', rec: 'Indicación quirúrgica de extracción dental. Requiere Consentimiento Informado de Exodoncia.', opciones: ['Exodoncia Simple', 'Exodoncia Quirúrgica', 'Exodoncia de 3er Molar (Cordal)'] },
-            'destartraje': { titulo: 'Destartraje y Profilaxis', claseAlerta: 'smart-recommendation warning', icon: 'cleaning_services', rec: 'Manejo periodontal preventivo: remoción de cálculo supragingival y pulido coronal de boca completa.', opciones: ['Destartraje Supragingival (Boca Completa)', 'Profilaxis y Pulido Coronal', 'Destartraje + Profilaxis (Sesión Combinada)'] },
             'aparato_removible': { titulo: 'Prótesis Removible', claseAlerta: 'smart-recommendation', icon: 'check_box', rec: 'Control 3 meses.', opciones: [] },
             'aparato_ortodoncia': { titulo: 'Ortodoncia', claseAlerta: 'smart-recommendation', icon: 'check_box', rec: 'Control 3 meses.', opciones: [] },
             'aparato_contensor': { titulo: 'Contensor', claseAlerta: 'smart-recommendation', icon: 'check_box', rec: 'Control 3 meses.', opciones: [] }
@@ -2370,14 +2448,9 @@
         }
 
         function agregarPlanAlPresupuesto(prestacionSeleccionada, btnElement) {
-            const esBocaCompleta = hallazgoActivoSeleccionado && (
-                hallazgoActivoSeleccionado.includes('Destartraje') ||
-                hallazgoActivoSeleccionado.includes('Profilaxis') ||
-                /boca completa/i.test(prestacionSeleccionada)
-            );
-            let piezaNum = esBocaCompleta ? "Boca Completa" : "Pieza ?";
-            const activeTooth = document.querySelector('g[data-fdi].selected');
-            if (!esBocaCompleta && activeTooth && activeTooth.dataset.fdi) {
+            let piezaNum = "Pieza ?";
+            const activeTooth = document.querySelector('g[data-fdi].selected'); 
+            if (activeTooth && activeTooth.dataset.fdi) {
                 piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
             }
 
