@@ -406,7 +406,7 @@
                             <span class="material-symbols-outlined">gavel</span> Consentimiento
                         </button>
                         <button type="button" class="btn-login-outline btn-full" onclick="soloPrevisualizarPDF()" style="padding: 12px 10px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;">
-                            <span class="material-symbols-outlined">visibility</span> Ver Ficha
+                            <span class="material-symbols-outlined">visibility</span> Presupuesto
                         </button>
                     </div>
 
@@ -1527,7 +1527,7 @@
             return total;
         }
 
-        // ==========================================
+       // ==========================================
         // MOTOR DE PDFs (Recetas, Fichas, Cotizaciones)
         // ==========================================
         async function generarDocumentoJSPDF(dentistaId, motivoTxt, diagTxt, accionTxt) {
@@ -1535,16 +1535,25 @@
             const doc = new jsPDF();
 
             const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-            const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna').eq('dentista_id', dentistaId).limit(1);
+            // Se agregó 'nombre' a la consulta para obtener el nombre del centro médico
+            const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
 
             const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : 'No especificado';
             const drRut = dr ? dr.rut : '--';
             const drSis = dr ? dr.registro_sis : '--';
             const drSede = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
+            
+            // Lógica para el nombre del centro médico (título del PDF)
+            let nombreCentro = 'Presupuesto Dental';
+            if (sedes && sedes.length > 0 && sedes[0].nombre_sede && sedes[0].nombre_sede.trim() !== '') {
+                nombreCentro = sedes[0].nombre_sede.trim();
+            }
 
             doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
             doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
-            doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text("Ficha Clínica y Presupuesto", 200, 20, { align: "right" });
+            
+            // Se reemplaza "Ficha Clínica y Presupuesto" por el nombre del centro médico
+            doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
             doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
             doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
 
@@ -1556,17 +1565,13 @@
             doc.setFontSize(10); doc.setTextColor(50, 50, 50);
             doc.text(`Dentista: ${drName}`, 110, 47); doc.text(`RUT: ${drRut} | Registro SIS: ${drSis}`, 110, 53); doc.text(`Sede: ${drSede}`, 110, 59);
 
-            doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Evolución Clínica", 14, 70);
-            doc.setFontSize(10); doc.setTextColor(50, 50, 50);
-            const splitMotivo = doc.splitTextToSize(`Motivo de Consulta: ${motivoTxt}`, 180); doc.text(splitMotivo, 14, 77);
-            
-            let startYDiag = 77 + (splitMotivo.length * 5) + 2;
-            const splitDiag = doc.splitTextToSize(`Diagnóstico: ${diagTxt}`, 180); doc.text(splitDiag, 14, startYDiag);
+            // ==========================================
+            // SE ELIMINÓ LA EVOLUCIÓN CLÍNICA DEL PDF
+            // (Motivo, Diagnóstico y Procedimiento ya no se imprimen aquí)
+            // ==========================================
 
-            let startYTrat = startYDiag + (splitDiag.length * 5) + 2;
-            const splitTrat = doc.splitTextToSize(`Procedimiento: ${accionTxt}`, 180); doc.text(splitTrat, 14, startYTrat);
-
-            let tableStartY = startYTrat + (splitTrat.length * 5) + 10;
+            // La tabla comienza directamente debajo de los datos del paciente y profesional
+            let tableStartY = 70; 
             const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
             const tableRows = [];
             let hayPresupuesto = false;
@@ -1699,11 +1704,17 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
                 const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
+                // Se asegura de extraer el nombre de la sede también aquí para mantener consistencia
+                const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
+                
                 const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
+                const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre) ? sedes[0].nombre : 'Presupuesto Dental';
                 
                 doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
                 doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
-                doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text("Presupuesto Dental", 200, 20, { align: "right" });
+                
+                // Aplicación del nombre del centro médico en lugar del título genérico
+                doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
                 doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
                 doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
 
@@ -1882,50 +1893,111 @@ const vademecumDB = [
         }
         async function emitirYGuardarRecetaPDF() {
             if (recetaMedicamentos.length === 0) return alert("Debes agregar al menos un medicamento a la receta.");
-            const dentistaId = localStorage.getItem('midental_user_id'); const btn = document.getElementById('btnEmitirReceta');
-            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando...'; btn.disabled = true;
+            
+            const dentistaId = localStorage.getItem('midental_user_id'); 
+            const btn = document.getElementById('btnEmitirReceta');
+            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando...'; 
+            btn.disabled = true;
+            
             try {
-                const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-                const { jsPDF } = window.jspdf; const doc = new jsPDF();
+                // 1. Consulta del perfil del profesional y la sede
+                const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis, especialidad').eq('id', dentistaId).single();
+                const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
+                
+                // 2. Inicialización del motor de PDF
+                const { jsPDF } = window.jspdf; 
+                const doc = new jsPDF();
+                
+                // 3. Preparación de variables de texto
                 const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo.toUpperCase()}` : '';
-                const drInfo = dr ? `Esp. Odontología - General, RUT: ${dr.rut}\nFecha receta: ${new Date().toLocaleDateString('es-CL')}` : '';
+                const drInfo = dr ? `RUT: ${dr.rut}\nFecha receta: ${new Date().toLocaleDateString('es-CL')}` : '';
+                const especialidadDentista = dr && dr.especialidad ? dr.especialidad : 'Odontología - General';
 
-                doc.setFontSize(18); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
-                doc.setFontSize(8); doc.setTextColor(0, 0, 0); doc.text(drName, 200, 16, { align: "right" }); doc.text(drInfo, 200, 20, { align: "right" });
-                doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("Receta Médica", 105, 35, { align: "center" });
+                let nombreCentro = 'Centro Odontológico';
+                if (sedes && sedes.length > 0 && sedes[0].nombre_sede && sedes[0].nombre_sede.trim() !== '') {
+                    nombreCentro = sedes[0].nombre_sede.trim().toUpperCase();
+                }
 
-                doc.setFontSize(12); doc.text("Datos del paciente", 14, 50);
+                // ==========================================
+                // 4. NUEVO DISEÑO DEL ENCABEZADO AUTOAJUSTABLE
+                // ==========================================
+                
+                // Reducimos sutilmente el tamaño para soportar nombres largos
+                doc.setFontSize(15); 
+                doc.setTextColor(0, 180, 216); 
+                
+                // Límite de contención: Cortamos el texto si supera los 110mm de ancho
+                const tituloDividido = doc.splitTextToSize(nombreCentro, 110);
+                doc.text(tituloDividido, 14, 20);
+                
+                // Textos del profesional a la derecha (intactos)
+                doc.setFontSize(8); doc.setTextColor(0, 0, 0); 
+                doc.text(drName, 200, 16, { align: "right" }); 
+                doc.text(drInfo, 200, 20, { align: "right" });
+                
+                // ==========================================
+
+                // 5. Título Central del Documento
+                doc.setFontSize(14); doc.setFont("helvetica", "bold"); 
+                doc.text("Receta Médica", 105, 38, { align: "center" });
+
+                // 6. Sección de Datos del Paciente
+                doc.setFontSize(12); doc.text("Datos del paciente", 14, 52);
                 doc.setFontSize(8); doc.setFont("helvetica", "normal");
-                doc.text(`Nombre: ${pacienteActual.nombre.toUpperCase()}`, 14, 56); doc.text(`RUT: ${pacienteActual.rut}`, 14, 61);
+                doc.text(`Nombre: ${pacienteActual.nombre.toUpperCase()}`, 14, 58); 
+                doc.text(`RUT: ${pacienteActual.rut}`, 14, 63);
 
+                // 7. Sección de Fármacos e Indicaciones (Rp.)
                 doc.setFontSize(12); doc.setFont("helvetica", "bold"); doc.text("Rp.", 14, 80);
                 let startY = 88; doc.setFontSize(9);
+                
                 recetaMedicamentos.forEach((med, i) => {
-                    doc.setFont("helvetica", "bold"); doc.text(`${i + 1}. ${med.nombre.toUpperCase()}`, 14, startY);
+                    doc.setFont("helvetica", "bold"); 
+                    doc.text(`${i + 1}. ${med.nombre.toUpperCase()}`, 14, startY);
+                    
                     doc.setFont("helvetica", "normal");
-                    let txtLine = `• ${med.posologia}`; if (med.indicaciones) txtLine += `\n• Nota: ${med.indicaciones}`;
+                    let txtLine = `• ${med.posologia}`; 
+                    if (med.indicaciones) txtLine += `\n• Nota: ${med.indicaciones}`;
+                    
                     const splitText = doc.splitTextToSize(txtLine, 180);
-                    doc.text(splitText, 18, startY + 5); startY += (splitText.length * 4) + 8;
+                    doc.text(splitText, 18, startY + 5); 
+                    startY += (splitText.length * 4) + 8;
                 });
 
+                // 8. Pie de página (Firmas)
                 const finalPageY = doc.internal.pageSize.height;
                 doc.setDrawColor(0, 0, 0); doc.line(75, finalPageY - 35, 135, finalPageY - 35);
-                doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.text(drName, 105, finalPageY - 30, { align: "center" });
+                doc.setFontSize(8); doc.setFont("helvetica", "normal"); 
+                doc.text(drName, 105, finalPageY - 30, { align: "center" });
 
+                // 9. Generación, Guardado local y Respaldo en la Nube
                 const nombreArchivo = `Receta_${pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
                 doc.save(nombreArchivo); 
                 
                 if (!isLocal) {
                     const pdfBlob = doc.output('blob');
                     const { error: uploadError } = await window.midental.storage.from('documentos_clinicos').upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
+                    
                     if (!uploadError) {
-                        await window.midental.from('documentos_pacientes').insert([{ paciente_id: pacienteIdURL, dentista_id: dentistaId, nombre_archivo: `Receta Médica ${new Date().toLocaleDateString('es-CL')}.pdf`, tipo: 'pdf', archivo_url: nombreArchivo }]);
+                        await window.midental.from('documentos_pacientes').insert([{ 
+                            paciente_id: pacienteIdURL, 
+                            dentista_id: dentistaId, 
+                            nombre_archivo: `Receta Médica ${new Date().toLocaleDateString('es-CL')}.pdf`, 
+                            tipo: 'pdf', 
+                            archivo_url: nombreArchivo 
+                        }]);
                         cargarDocumentosPaciente(); 
                     }
                 }
-                alert("✅ Receta emitida exitosamente."); document.getElementById('modalRecetaMedica').style.display = 'none';
-            } catch (err) { alert("Error al emitir receta: " + err.message); } 
-            finally { btn.innerHTML = '<span class="material-symbols-outlined">print</span> Emitir Orden Médica'; btn.disabled = false; }
+                alert("✅ Receta emitida exitosamente."); 
+                document.getElementById('modalRecetaMedica').style.display = 'none';
+                
+            } catch (err) { 
+                alert("Error al emitir receta: " + err.message); 
+            } finally { 
+                btn.innerHTML = '<span class="material-symbols-outlined">print</span> Emitir Orden Médica'; 
+                btn.disabled = false; 
+            }
         }
 
         // ==========================================
