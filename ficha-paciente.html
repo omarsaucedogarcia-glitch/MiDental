@@ -965,6 +965,11 @@
                 </select>
             </div>
 
+            <div class="input-group-modal" style="margin-top: 15px;">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Información Adicional / Tiempo de Control (Opcional)</label>
+                <textarea id="inputInfoAdicionalConsentimiento" class="apple-input-modal" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; resize: vertical; font-size: 0.85rem; background: #fff;" placeholder="Ej: Próximo control clínico en 6 meses. Mantener uso de cepillo interproximal..."></textarea>
+            </div>
+
             <div style="background: #f8fafc; border-left: 4px solid #8b5cf6; padding: 15px; border-radius: 8px; margin-top: 20px; margin-bottom: 25px;">
                 <p style="margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.5;">
                     <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle; color: #8b5cf6;">info</span>
@@ -2255,6 +2260,19 @@ const vademecumDB = [
                     dataCons.cuidados.forEach(c => { const splitC = doc.splitTextToSize(`• ${c}`, 175); doc.text(splitC, 18, startY); startY += (splitC.length * 4) + 2; });
                 } else { doc.text("• [Texto de cuidados en construcción]", 18, startY); startY += 8; }
 
+                // Obtener información adicional / tiempo de control
+                const infoAdic = document.getElementById('inputInfoAdicionalConsentimiento').value.trim();
+                if (infoAdic) {
+                    startY += 5;
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("4. INFORMACIÓN ADICIONAL Y TIEMPO DE CONTROL:", 14, startY);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    startY += 6;
+                    const splitAdic = doc.splitTextToSize(infoAdic, 175);
+                    doc.text(splitAdic, 18, startY);
+                    startY += (splitAdic.length * 4) + 2;
+                }
+
                 startY += 10;
                 doc.setFillColor(248, 250, 252); doc.setDrawColor(139, 92, 246); doc.rect(14, startY, 180, 25, 'FD');
                 doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.setTextColor(50, 50, 50);
@@ -2283,6 +2301,7 @@ const vademecumDB = [
                 }
 
                 alert("✅ Consentimiento Informado generado y resguardado en la ficha del paciente.");
+                document.getElementById('inputInfoAdicionalConsentimiento').value = '';
                 document.getElementById('modalConsentimiento').style.display = 'none';
 
             } catch (err) { alert("Error al emitir el consentimiento: " + err.message); console.error(err); } 
