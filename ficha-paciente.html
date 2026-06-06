@@ -2233,7 +2233,21 @@ const vademecumDB = [
 
                 startY += 5;
                 doc.setFontSize(10); doc.setFont("helvetica", "bold");
-                doc.text("2. INDICACIONES Y CUIDADOS POST-OPERATORIOS OBLIGATORIOS:", 14, startY);
+                doc.text("2. OBLIGACIONES DEL PACIENTE PARA EL CONTROL:", 14, startY);
+                doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                startY += 6;
+
+                const obligacionesControl = [
+                    "Asistir de forma obligatoria y puntual a todos los controles programados para supervisar la evolución clínica.",
+                    "Notificar de inmediato a la clínica o profesional tratante ante la presencia de dolor persistente, sangrado o inflamación inusual.",
+                    "Mantener rigurosamente la higiene oral e indicaciones específicas dadas para el período de recuperación.",
+                    "Seguir estrictamente el tratamiento farmacológico indicado, respetando dosis, frecuencia y duración prescrita."
+                ];
+                obligacionesControl.forEach(o => { const splitO = doc.splitTextToSize(`• ${o}`, 175); doc.text(splitO, 18, startY); startY += (splitO.length * 4) + 2; });
+
+                startY += 5;
+                doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                doc.text("3. INDICACIONES Y CUIDADOS POST-OPERATORIOS OBLIGATORIOS:", 14, startY);
                 doc.setFontSize(9); doc.setFont("helvetica", "normal");
                 startY += 6;
 
