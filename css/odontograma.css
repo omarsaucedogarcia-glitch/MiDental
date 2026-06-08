@@ -1157,6 +1157,48 @@ g.odn-layer-therapeutic  > * { stroke-width: 2.5; }
     .odn-event__title { font-size: 0.82rem; }
     .odn-patient-chip__meta { display: none; }
     .odn-patient-chip__name { max-width: 110px; font-size: 0.85rem; }
+
+    /* SVG ancho por naturaleza (arcada de 8+8 piezas): le damos su propio
+       scroll horizontal con momentum táctil iOS para que el resto de la
+       página no rebote ni se vea forzado por el viewport. */
+    .odn-canvas__stage {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    .odn-canvas__stage .odn-svg {
+        min-width: 720px;    /* ancho mínimo para que las piezas sigan siendo táctiles */
+        height: auto;
+        max-height: none;
+    }
+
+    /* Touch targets ≥44px: panel izquierdo y derecho del odontograma */
+    .odn-finding-btn,
+    .odn-treatment-btn {
+        min-height: 44px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .odn-canvas__ctrl {
+        min-width: 40px;
+        min-height: 40px;
+    }
+    .odn-timeline__filter-btn {
+        min-height: 38px;
+        padding: 8px 12px;
+    }
+}
+
+/* Touch optimization a nivel general (no solo ≤540px) — afina el hit-area
+   de las superficies del SVG para que dispositivos táctiles registren
+   el tap correctamente sin requerir doble-tap. */
+@media (pointer: coarse) {
+    .odn-surface { touch-action: manipulation; }
+    .odn-finding-btn,
+    .odn-treatment-btn,
+    .odn-canvas__ctrl,
+    .odn-timeline__filter-btn { touch-action: manipulation; }
 }
 
 /* ============================================================

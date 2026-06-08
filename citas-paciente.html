@@ -293,10 +293,13 @@
         // ==========================================================
         // ANÁLISIS DE RIESGO INTEGRAL (PREMIUM)
         // ------------------------------------------------------------
-        // El motor de inferencia vive en el lado del dentista. Acá
-        // SÓLO leemos historial_json.riesgo_integral de la última
-        // ficha clínica. Sin reglas heurísticas locales — el paciente
-        // debe ver EXACTAMENTE el mismo análisis que validó su doctor.
+        // Fuente primaria: columnas discretas en perfiles_pacientes
+        // (nivel_riesgo, control_meses, proximo_control_fecha,
+        //  riesgo_integral). Fallback compatibilidad: historial_json
+        // de la última ficha_clinica para instalaciones sin la
+        // migración 06_perfiles_pacientes_riesgo.sql aplicada.
+        // El motor de inferencia vive en el lado del dentista — acá
+        // sólo se renderiza lo que el dentista cerró/validó.
         // ==========================================================
         async function cargarAnalisisRiesgo(pacienteId) {
             const badge      = document.getElementById('riskBadge');
@@ -304,34 +307,52 @@
             const nextCtrlEl = document.getElementById('riskNextControl');
 
             try {
-                const { data: ficha, error } = await window.midental
-                    .from('fichas_clinicas')
-                    .select('historial_json, created_at')
-                    .eq('paciente_id', pacienteId)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
+                // 1) Fuente primaria: columnas discretas en perfiles_pacientes.
+                let nivel = null, controlMeses = null, proxFechaIso = null, riesgo = null, fechaBase = null;
+                const { data: perfil, error: perfilErr } = await window.midental
+                    .from('perfiles_pacientes')
+                    .select('nivel_riesgo, control_meses, proximo_control_fecha, riesgo_integral, riesgo_calculado_en')
+                    .eq('id', pacienteId)
                     .maybeSingle();
 
-                if (error) throw error;
-
-                if (!ficha) {
-                    setBadge(badge, 'sin_datos', 'shield_person', 'Sin datos');
-                    diagEl.textContent     = 'Aún no tienes una ficha clínica registrada. Tu Análisis de Riesgo se activará tras tu primera atención.';
-                    nextCtrlEl.textContent = 'Agenda una evaluación inicial con un especialista.';
-                    return;
+                if (!perfilErr && perfil && perfil.nivel_riesgo) {
+                    nivel         = perfil.nivel_riesgo;
+                    controlMeses  = perfil.control_meses;
+                    proxFechaIso  = perfil.proximo_control_fecha;
+                    riesgo        = perfil.riesgo_integral || null;
+                    fechaBase     = perfil.riesgo_calculado_en;
+                } else {
+                    // 2) Fallback legacy: última fichas_clinicas con historial_json.riesgo_integral.
+                    const { data: ficha, error } = await window.midental
+                        .from('fichas_clinicas')
+                        .select('historial_json, created_at')
+                        .eq('paciente_id', pacienteId)
+                        .order('created_at', { ascending: false })
+                        .limit(10);            // miramos las 10 últimas y elegimos la que TENGA riesgo
+                    if (error) throw error;
+                    if (!ficha || ficha.length === 0) {
+                        setBadge(badge, 'sin_datos', 'shield_person', 'Sin datos');
+                        diagEl.textContent     = 'Aún no tienes una ficha clínica registrada. Tu Análisis de Riesgo se activará tras tu primera atención.';
+                        nextCtrlEl.textContent = 'Agenda una evaluación inicial con un especialista.';
+                        return;
+                    }
+                    for (const row of ficha) {
+                        let historial = row.historial_json;
+                        if (typeof historial === 'string') {
+                            try { historial = JSON.parse(historial); }
+                            catch (e) { historial = null; }
+                        }
+                        if (historial && typeof historial === 'object' && historial.riesgo_integral && historial.riesgo_integral.nivel) {
+                            riesgo       = historial.riesgo_integral;
+                            nivel        = riesgo.nivel;
+                            controlMeses = riesgo.control_meses;
+                            fechaBase    = riesgo.fecha_calculo || row.created_at;
+                            break;
+                        }
+                    }
                 }
 
-                // Lectura segura del JSON (puede venir como objeto o como string).
-                let historial = ficha.historial_json;
-                if (typeof historial === 'string') {
-                    try { historial = JSON.parse(historial); }
-                    catch (e) { console.warn('[cargarAnalisisRiesgo] historial_json no parseable:', e); historial = null; }
-                }
-                const riesgo = historial && typeof historial === 'object'
-                    ? historial.riesgo_integral
-                    : null;
-
-                if (!riesgo || !riesgo.nivel) {
+                if (!nivel) {
                     setBadge(badge, 'sin_datos', 'shield_person', 'Evaluación pendiente');
                     diagEl.textContent     = 'Tu doctor aún no ha cerrado tu análisis de riesgo integral. Esta sección se activará una vez validado.';
                     nextCtrlEl.textContent = 'Te avisaremos cuando esté disponible.';
@@ -344,17 +365,19 @@
                     'medio': { ui: 'moderado', icono: 'monitor_heart', label: 'Riesgo Moderado' },
                     'bajo':  { ui: 'bajo',     icono: 'verified_user', label: 'Bajo Riesgo / Preventivo' }
                 };
-                const meta = META[riesgo.nivel] || META.bajo;
+                const meta = META[nivel] || META.bajo;
                 setBadge(badge, meta.ui, meta.icono, meta.label);
 
-                diagEl.textContent = riesgo.recomendaciones ||
+                diagEl.textContent = (riesgo && riesgo.recomendaciones) ||
                     'Tu doctor ha validado tu análisis clínico. Consulta los detalles en tu próxima cita.';
 
-                const baseFecha    = riesgo.fecha_calculo || ficha.created_at;
-                const fechaControl = calcularProximoControl(baseFecha, riesgo.control_meses || 6);
-                const msgControl   = (riesgo.control_meses === 1)
-                    ? 'Control clínico en 1 mes'
-                    : `Control clínico en ${riesgo.control_meses || 6} meses`;
+                // Si tenemos la fecha precalculada en la BD, la priorizamos
+                // sobre el cálculo local (evita drift por zonas horarias).
+                const fechaControl = proxFechaIso
+                    ? new Date(proxFechaIso + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })
+                    : calcularProximoControl(fechaBase, controlMeses || 6);
+                const meses = controlMeses || 6;
+                const msgControl = (meses === 1) ? 'Control clínico en 1 mes' : `Control clínico en ${meses} meses`;
                 nextCtrlEl.innerHTML = `${msgControl} · <strong style="color:var(--blue-elegant);">${fechaControl}</strong>`;
             } catch (err) {
                 console.error("[cargarAnalisisRiesgo] Error:", err);

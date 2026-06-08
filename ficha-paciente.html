@@ -124,6 +124,80 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        .odn-finding-btn.active, .odn-treatment-btn.active, .odn-finding-btn.odn-active, .odn-treatment-btn.odn-active {
+            background: #e0f2fe !important;
+            border-color: #0284c7 !important;
+            font-weight: bold !important;
+            color: #0369a1 !important;
+        }
+        .odn-dentition-toggle button { background: #f8fafc; color: var(--odn-text); }
+        .odn-dentition-toggle button.odn-active {
+            background: var(--odn-accent-deep, #0369a1) !important;
+            color: #ffffff !important;
+        }
+
+        /* =========================================================
+           RESPONSIVE OVERRIDES · FICHA CLÍNICA EN MÓVIL/TABLET
+           ========================================================= */
+        /* Tablet (≤1024px): el grid 320px/1fr cae a una columna naturalmente
+           gracias a la regla base de .ficha-layout (flex column).
+           El cambio principal aquí es achicar paddings holgados. */
+        @media (max-width: 1024px) {
+            .nueva-evo-panel { padding: 22px; }
+            .control-presupuesto-card { padding: 16px !important; }
+        }
+
+        /* Celular (≤640px): el header del Control de Presupuesto suele tener
+           4 botones (Editar, Nuevo, Registrar Pago) que deben envolverse;
+           los paneles se compactan más. */
+        @media (max-width: 640px) {
+            .nueva-evo-panel { padding: 14px; border-radius: 14px; }
+            .historial-body  { max-height: 320px; }
+            .control-presupuesto-card > div:first-child {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+            .control-presupuesto-card > div:first-child > div:last-child {
+                /* contenedor de botones */
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .control-presupuesto-card .btn-text,
+            .control-presupuesto-card .btn-pixar {
+                flex: 1 1 auto;
+                min-height: 40px;
+                justify-content: center;
+            }
+        }
+
+        /* Móvil estrecho (≤480px): filas agrupadas del historial se apilan
+           verticalmente para que +Presupuesto y ✓Finalizar respiren. */
+        @media (max-width: 480px) {
+            .odn-grouped-row {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 8px;
+            }
+            .odn-grouped-row > div:last-child {
+                /* el div de acciones (+Presupuesto + ✓Finalizar) */
+                width: 100%;
+            }
+            .odn-grouped-row .odn-budget-btn,
+            .odn-grouped-row .odn-finalize-btn {
+                flex: 1 1 50%;
+                min-height: 40px;
+            }
+            /* La tabla de presupuesto ya tiene .presupuesto-table-wrapper
+               con overflow-x:auto, pero garantizamos el mín-width visible. */
+            .presupuesto-table { font-size: 0.78rem; }
+            .total-final-box   { font-size: 1.05rem; padding-top: 10px; }
+            /* Stats del control de presupuesto: 1 columna en celular */
+            #vistaPresupuesto { grid-template-columns: 1fr !important; }
+        }
+    </style>
+
 </head>
 <body>
 
@@ -238,6 +312,9 @@
                     </h3>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                         <button class="btn-text" id="btnEditarPresupuesto" onclick="togglePresupuestoEdit()" style="color: var(--blue-elegant); font-size: 0.8rem; padding: 6px 10px; background: #eff6ff; border-radius: 8px; font-weight: bold; border: 1px solid #bfdbfe; cursor: pointer;">Editar Presupuesto</button>
+                        <button class="btn-pixar btn-small" id="btnNuevoPresupuesto" onclick="nuevoPresupuesto()" title="Archiva los tratamientos planificados y comienza un nuevo ciclo. NO afecta el historial de pagos." style="padding: 6px 12px; font-size: 0.85rem; background: var(--blue-elegant); border-radius: 8px;">
+                            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">restart_alt</span> Nuevo Presupuesto
+                        </button>
                         <button class="btn-pixar btn-small" onclick="abrirModalRegistrarPagoFicha()" style="padding: 6px 12px; font-size: 0.85rem; background: var(--green-success); border-radius: 8px;">
                             <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">add_circle</span> Registrar Pago
                         </button>
@@ -535,11 +612,6 @@
                     <button type="button" class="odn-btn-icon" id="odnBtnSave" title="Guardar snapshot local">
                         <span class="material-symbols-outlined" aria-hidden="true">save</span>
                     </button>
-                    <button type="button" class="odn-btn-cta" id="odnBtnAplicarPresupuesto"
-                            title="Llevar hallazgos planificados / patología al presupuesto de la ficha">
-                        <span class="material-symbols-outlined" aria-hidden="true">paid</span>
-                        <span class="odn-btn-cta__label">Llevar a presupuesto</span>
-                    </button>
                     <button type="button" class="odn-btn-icon" id="odnBtnLock" title="Firmar y bloquear odontograma">
                         <span class="material-symbols-outlined" aria-hidden="true">lock</span>
                     </button>
@@ -550,11 +622,11 @@
             </header>
 
             <div class="odn-workspace">
-                <!-- ============== PANEL CLÍNICO INTELIGENTE ============== -->
+                <!-- ============== PANEL CLÍNICO INTELIGENTE (IZQUIERDO) ============== -->
                 <aside class="odn-toolpanel" aria-label="Panel de hallazgos clínicos">
                     <div class="odn-toolpanel__header">
                         <span class="material-symbols-outlined" aria-hidden="true">psychology</span>
-                        <h3>Asistente Clínico AI</h3>
+                        <h3>Condiciones y Patologías</h3>
                     </div>
                     <div class="odn-toolpanel__scroll">
 
@@ -569,6 +641,19 @@
                                 <button type="button" class="odn-finding-btn" data-state="historic" data-scope="whole-tooth" data-code="ausente" data-label="Pieza Ausente" onclick="lanzarAsistenteClinico('ausente')">Pieza Ausente</button>
                                 <button type="button" class="odn-finding-btn" data-state="completed" data-scope="surface" data-code="restauracion" data-label="Restauración Existente" onclick="lanzarAsistenteClinico('restauracion')">Restauración Existente</button>
                                 <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="rehabilitacion" data-label="Rehabilitación Protésica" onclick="lanzarAsistenteClinico('rehabilitacion')">Rehabilitación Protésica</button>
+                                <button type="button" class="odn-finding-btn" data-state="historic" data-scope="whole-tooth" data-code="extraccion" data-label="Indicación de Extracción" onclick="lanzarAsistenteClinico('extraccion')">Indicación de Extracción</button>
+                            </div>
+                        </section>
+
+                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                                <span class="odn-finding-group__dot" aria-hidden="true"></span>
+                                <span class="odn-finding-group__name">Condiciones Periodontales</span>
+                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
+                            </button>
+                            <div class="odn-finding-group__body">
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cal_leve" data-label="CAL leve/moderada (1–4 mm)" onclick="lanzarAsistenteClinico('cal_leve')">CAL leve/moderada (1–4 mm)</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cal_severa" data-label="CAL severa (≥ 5 mm)" onclick="lanzarAsistenteClinico('cal_severa')">CAL severa (≥ 5 mm)</button>
                             </div>
                         </section>
 
@@ -634,7 +719,6 @@
                             </div>
                         </section>
 
-                    
                         <div class="odn-finding-actions" style="margin-top:20px;">
                             <button type="button" class="odn-finding-btn odn-finding-btn--eraser" data-state="existing" data-scope="surface" data-code="borrar" data-label="Borrar marcado">
                                 <span class="material-symbols-outlined" aria-hidden="true">ink_eraser</span> Borrar marcado en pieza
@@ -651,6 +735,10 @@
                             <span>Mapa dental — Notación FDI</span>
                         </h3>
                         <div class="odn-canvas__controls" role="group" aria-label="Controles del lienzo">
+                            <div class="odn-dentition-toggle" role="group" aria-label="Tipo de dentición" style="display:inline-flex;gap:0;border:1px solid var(--odn-border);border-radius:var(--odn-radius-sm);overflow:hidden;margin-right:8px;">
+                                <button type="button" data-dentition="permanent" class="odn-active" style="padding:6px 12px;font-size:0.78rem;font-weight:700;border:none;cursor:pointer;">Permanente</button>
+                                <button type="button" data-dentition="primary" style="padding:6px 12px;font-size:0.78rem;font-weight:700;border:none;border-left:1px solid var(--odn-border);cursor:pointer;">Temporal</button>
+                            </div>
                             <button class="odn-canvas__ctrl" id="odnZoomOut" type="button" title="Reducir zoom">
                                 <span class="material-symbols-outlined" aria-hidden="true">remove</span>
                             </button>
@@ -694,19 +782,17 @@
                 </section>
 
                 <!-- ============================================================
-                     COLUMNA DERECHA: PANEL DE EXAMEN PERIODONTAL (TAREAS 4 + 5)
-                     ------------------------------------------------------------
-                     Aside fijo de ~320px con scroll propio si el contenido
-                     RAR (8 botones) excede la altura de la columna.
+                     COLUMNA DERECHA: PANEL DE PLANIFICACIÓN / TRATAMIENTO
                      ============================================================ -->
-                <aside class="odn-perio-card" id="odnPerioPanel" aria-label="Examen Periodontal">
+                <aside class="odn-perio-card" id="odnPerioPanel" aria-label="Planificación / Tratamiento">
                     <h4>
-                        <span class="material-symbols-outlined" aria-hidden="true">monitor_heart</span>
-                        Examen Periodontal
+                        <span class="material-symbols-outlined" aria-hidden="true">clinical_notes</span>
+                        Planificación / Tratamiento
                     </h4>
 
                     <div class="odn-perio-card__scroll">
-                        <div class="odn-perio-switches">
+                        <!-- Global Switches/Toggles -->
+                        <div class="odn-perio-switches" style="margin-bottom: 16px;">
                             <label class="odn-perio-switch">
                                 <input type="checkbox" data-perio="placa">
                                 <span>Placa bacteriana visible</span>
@@ -715,35 +801,55 @@
                                 <input type="checkbox" data-perio="bop">
                                 <span>Sangrado al sondaje (BOP)</span>
                             </label>
-                            <label class="odn-perio-switch">
-                                <input type="checkbox" data-perio="cal_leve">
-                                <span>CAL leve/moderada (1–4 mm)</span>
-                            </label>
-                            <label class="odn-perio-switch">
-                                <input type="checkbox" data-perio="cal_severa">
-                                <span>CAL severa (≥ 5 mm)</span>
-                            </label>
                             <label class="odn-perio-switch" data-tone="smoker">
                                 <input type="checkbox" data-perio="fumador">
                                 <span>Fumador activo (Grado C)</span>
                             </label>
                         </div>
 
-                        <div class="odn-perio-actions">
-                            <span class="odn-perio-actions__title">Manejo terapéutico sugerido</span>
-                            <button type="button" class="odn-perio-btn" data-perio-rx="destartraje">
-                                Destartraje Supragingival y Pulido Coronal (Boca Completa)
-                            </button>
-                            <span class="odn-perio-actions__title">Pulido Radicular y Alisado (RAR)</span>
-                            <div class="odn-perio-rar-grid">
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-sup">Arcada Superior</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-inf">Arcada Inferior</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g1">Grupo I</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g2">Grupo II</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g3">Grupo III</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g4">Grupo IV</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g5">Grupo V</button>
-                                <button type="button" class="odn-perio-btn" data-perio-rx="rar-g6">Grupo VI</button>
+                        <!-- Categorías de Tratamiento -->
+                        <div class="odn-treatment-groups" style="display:flex; flex-direction:column; gap:16px;">
+                            <!-- Tratamiento Periodontal -->
+                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
+                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento Periodontal</div>
+                                <button type="button" class="odn-treatment-btn" data-tx="destartraje" onclick="lanzarAsistenteClinico('destartraje')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Destartraje Supragingival y Pulido Coronal</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="pulido_radicular" onclick="lanzarAsistenteClinico('pulido_radicular')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Pulido Radicular</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="reevaluacion" onclick="lanzarAsistenteClinico('reevaluacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Reevaluación</button>
+                            </div>
+
+                            <!-- Tratamiento de Operatoria -->
+                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
+                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento de Operatoria</div>
+                                <button type="button" class="odn-treatment-btn" data-tx="resina_simple" onclick="lanzarAsistenteClinico('resina_simple')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración resina Simple (1 cara)</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="resina_compleja" onclick="lanzarAsistenteClinico('resina_compleja')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración resina Compleja (2+ caras)</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="restauracion_cervical" onclick="lanzarAsistenteClinico('restauracion_cervical')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración Cervical</button>
+                            </div>
+
+                            <!-- Tratamiento de Endodoncia -->
+                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
+                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento de Endodoncia</div>
+                                <button type="button" class="odn-treatment-btn" data-tx="endo_convencional" onclick="lanzarAsistenteClinico('endo_convencional')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Endodoncia convencional</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="endo_mecanizada" onclick="lanzarAsistenteClinico('endo_mecanizada')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Endodoncia mecanizada</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="trepanacion" onclick="lanzarAsistenteClinico('trepanacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Trepanación</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="recubrimiento_ind" onclick="lanzarAsistenteClinico('recubrimiento_ind')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Recubrimiento pulpar indirecto</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="recubrimiento_dir" onclick="lanzarAsistenteClinico('recubrimiento_dir')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Recubrimiento pulpar directo</button>
+                            </div>
+
+                            <!-- Tratamiento Rehabilitador -->
+                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
+                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento Rehabilitador</div>
+                                <button type="button" class="odn-treatment-btn" data-tx="incrustacion" onclick="lanzarAsistenteClinico('incrustacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Incrustación</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="pfu" onclick="lanzarAsistenteClinico('pfu')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Prótesis fija unitaria</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="intermediario" onclick="lanzarAsistenteClinico('intermediario')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Intermediario de prótesis fija plural</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="implante" onclick="lanzarAsistenteClinico('implante')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Implante dental</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="removible" onclick="lanzarAsistenteClinico('removible')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Prótesis Removible</button>
+                            </div>
+
+                            <!-- Tratamiento de Exodoncia -->
+                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#fef2f2; border:1px solid #fecaca; border-radius:var(--odn-radius-md); padding:10px;">
+                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:#b91c1c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento de Exodoncia</div>
+                                <button type="button" class="odn-treatment-btn" data-tx="exodoncia_simple" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Extracción simple</button>
+                                <button type="button" class="odn-treatment-btn" data-tx="exodoncia_compleja" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Extracción compleja</button>
                             </div>
                         </div>
 
@@ -770,7 +876,7 @@
                             <button class="odn-timeline__filter-btn odn-active" data-filter="all"          type="button">Todos</button>
                             <button class="odn-timeline__filter-btn"            data-filter="pendiente"    type="button">Pendiente</button>
                             <button class="odn-timeline__filter-btn"            data-filter="planificado"  type="button">Planificado</button>
-                            <button class="odn-timeline__filter-btn"            data-filter="auto-perio"   type="button">Periodontal</button>
+                            <button class="odn-timeline__filter-btn"            data-filter="finalizado"   type="button">Finalizado</button>
                         </div>
                     </header>
 
@@ -1171,6 +1277,119 @@
                 await cargarControlPresupuesto();
             } catch (err) {
                 alert("Error al guardar el presupuesto: " + err.message);
+            }
+        }
+
+        // ==========================================================
+        // NUEVO PRESUPUESTO · ÚNICO DISPARADOR DE CICLO
+        // ----------------------------------------------------------
+        // REGLA DE ORO (integridad financiera):
+        //   Esta función NO ejecuta UPDATE/DELETE sobre la tabla
+        //   `pagos`. El libro contable de pagos permanece intacto y
+        //   `cargarHistorialPagos()` sigue mostrando el histórico
+        //   perpetuo. El Dashboard del dentista que agrega pagos
+        //   diarios/semanales/mensuales tampoco se ve afectado.
+        //
+        // Acciones al pulsar el botón:
+        //   1) confirm() con texto explícito sobre el archivado.
+        //   2) UPDATE perfiles_pacientes.presupuesto_integral = 0.
+        //   3) Archivado tolerante de procedures en edr.clinical_findings
+        //      (is_active=false) — el odontograma deja de mostrarlos.
+        //   4) Reset VISUAL de las 3 stats (Presupuesto / Pagado /
+        //      Saldo) a $0 sin consultar nuevamente vista_balance_paciente,
+        //      para que el ciclo empiece en blanco aunque haya pagos
+        //      históricos en la tabla `pagos`.
+        //   5) Limpieza local: tabla de planificación y motor del
+        //      odontograma (engine.events de sesión).
+        // ==========================================================
+        async function nuevoPresupuesto() {
+            if (isLocal) return alert("No disponible para fichas locales.");
+            const ok = confirm(
+                "¿Deseas iniciar un nuevo presupuesto?\n\n" +
+                "Los tratamientos planificados actuales se archivarán y los " +
+                "contadores en pantalla volverán a $0.\n\n" +
+                "El historial de PAGOS del paciente permanece intacto."
+            );
+            if (!ok) return;
+
+            const btn = document.getElementById('btnNuevoPresupuesto');
+            const txtOrig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:1rem;vertical-align:middle;animation:spin 1s linear infinite;">sync</span> Reiniciando…';
+            }
+
+            try {
+                // 1) Reset del valor objetivo en perfiles_pacientes (sticky en BD)
+                const { error: errPerfil } = await window.midental
+                    .from('perfiles_pacientes')
+                    .update({ presupuesto_integral: 0 })
+                    .eq('id', pacienteIdURL);
+                if (errPerfil) throw errPerfil;
+
+                // 2) Archivar tratamientos PLANIFICADOS en EDR.
+                //    Tolerante: si la migración Fase B aún no fue aplicada o
+                //    el paciente no tiene registros EDR, no rompemos el flujo.
+                try {
+                    const { data: idsArchivar } = await window.midental
+                        .schema('edr')
+                        .from('v_active_findings_by_perfil')
+                        .select('finding_id, ontology_category')
+                        .eq('perfil_paciente_id', pacienteIdURL)
+                        .eq('ontology_category', 'procedure');
+
+                    const ids = (idsArchivar || []).map(r => r.finding_id).filter(Boolean);
+                    if (ids.length > 0) {
+                        await window.midental
+                            .schema('edr')
+                            .from('clinical_findings')
+                            .update({ is_active: false })
+                            .in('id', ids);
+                    }
+                } catch (errEdr) {
+                    console.warn('Archivado EDR omitido:', errEdr.message || errEdr);
+                }
+
+                // 3) Reset VISUAL de las 3 stats a $0 — sin re-fetch
+                //    (un cargarControlPresupuesto traería el total_pagado
+                //    histórico de la tabla `pagos` y rompería el "ciclo en blanco").
+                const cero = '$0';
+                document.getElementById('statPresupuestoTotal').innerText = cero;
+                document.getElementById('statTotalPagado').innerText      = cero;
+                document.getElementById('statSaldoRestante').innerText    = cero;
+                const inp = document.getElementById('inputPresupuesto');
+                if (inp) inp.value = '';
+
+                // 4) Limpieza local: tabla de planificación + total
+                const tbody = document.getElementById('tbodyPresupuesto');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td><input type="text" class="input-diente" placeholder="Ej: 1.4"></td>
+                            <td><input type="text" class="input-diag" placeholder="Caries"></td>
+                            <td><input type="text" class="input-tratamiento" placeholder="Restauración"></td>
+                            <td><input type="number" class="input-ref" placeholder="0" oninput="calcularFila(this)"></td>
+                            <td><input type="number" class="input-desc" placeholder="0" oninput="calcularFila(this)"></td>
+                            <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
+                        </tr>`;
+                }
+                const grand = document.getElementById('granTotalPagar');
+                if (grand) grand.innerText = '0';
+
+                // 5) Reset del engine del odontograma en sesión
+                if (window.MiDentalOdontograma && typeof window.MiDentalOdontograma.reset === 'function') {
+                    try { window.MiDentalOdontograma.reset(); } catch (_) { /* no-op */ }
+                }
+
+                alert("✓ Nuevo ciclo de presupuesto iniciado.\n\nEl historial contable de pagos permanece intacto.");
+            } catch (err) {
+                console.error('Error iniciando nuevo presupuesto:', err);
+                alert("No se pudo iniciar el nuevo presupuesto: " + (err.message || err));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = txtOrig;
+                }
             }
         }
 
@@ -2408,21 +2627,33 @@ const vademecumDB = [
             const eventos = window.MiDentalOdontograma.getEvents();
             if (!eventos.length) return alert("No hay hallazgos registrados en el odontograma todavía.");
 
-            const map = new Map();   
-            for (let i = eventos.length - 1; i >= 0; i--) {
-                const e = eventos[i];
-                if (e.state !== 'planned' && e.state !== 'active') continue;
-                const k = `${e.fdi}|${e.findingCode || e.findingLabel}`;
-                map.set(k, e);
+            // Filtrar SOLO los tratamientos planificados (los amarillos)
+            const planificados = eventos.filter(e => e.state === 'planned');
+
+            if (planificados.length === 0) {
+                return alert("Sólo hay hallazgos históricos / existentes o patologías activas sin planificar. Marca algún tratamiento planificado (amarillo) en el panel derecho para enviarlo al presupuesto.");
             }
 
-            if (map.size === 0) return alert("Sólo hay hallazgos históricos / existentes. Marca patología o planificación para llevarlos al presupuesto.");
+            // Agrupar planificados por pieza dental
+            const grouped = {};
+            planificados.forEach(e => {
+                if (!grouped[e.fdi]) {
+                    grouped[e.fdi] = {
+                        fdi: e.fdi,
+                        surfaces: new Set(),
+                        treatment: e,
+                        isResina: e.label.toLowerCase().includes('resina')
+                    };
+                }
+                const g = grouped[e.fdi];
+                if (e.surface) g.surfaces.add(e.surface);
+            });
 
             const tbody = document.getElementById('tbodyPresupuesto');
             const piezasYa = new Set();
             tbody.querySelectorAll('tr').forEach(tr => {
-                const d = tr.querySelector('.input-diente'); const g = tr.querySelector('.input-diag');
-                if (d && d.value.trim()) piezasYa.add(`${d.value.trim()}|${(g.value || '').trim().toLowerCase()}`);
+                const d = tr.querySelector('.input-diente');
+                if (d && d.value.trim()) piezasYa.add(d.value.trim());
             });
 
             const rows = tbody.querySelectorAll('tr');
@@ -2433,36 +2664,71 @@ const vademecumDB = [
             }
 
             let agregadas = 0;
-            map.forEach(e => {
-                const piezaFmt = `${e.fdi.charAt(0)}.${e.fdi.charAt(1)}`;
-                const surfaces = e.surfaces && e.surfaces.length ? e.surfaces : (e.surface ? [e.surface] : []);
-                const surfCode = (e.scope === 'whole-tooth' || surfaces.length === 0) ? '' : surfaces.join('');
-                const piezaCol = surfCode ? `${piezaFmt} ${surfCode}` : piezaFmt;
-                const diag = e.findingLabel || 'Hallazgo clínico';
-                const key  = `${piezaCol}|${diag.toLowerCase()}`;
-                
-                if (piezasYa.has(key)) return;
-                
+            const payload = [];
+
+            Object.values(grouped).forEach(g => {
+                const piezaFmt = `${g.fdi.charAt(0)}.${g.fdi.charAt(1)}`;
+                const sortedSurfs = Array.from(g.surfaces).sort().join('');
+                const piezaCol = sortedSurfs ? `${piezaFmt} ${sortedSurfs}` : piezaFmt;
+
+                // Diagnóstico primario asociado
+                const diag = "Patología dental / Necesidad de restauración";
+
+                // Tratamiento
+                let txName = g.treatment.label.split(': ')[1] || g.treatment.label;
+                let price = 45000;
+
+                // Inferencia inteligente de caras (ej: MOD) para caries/resina
+                if (g.isResina) {
+                    if (g.surfaces.size > 2) {
+                        txName = `Restauración en resina compleja ${sortedSurfs}`;
+                        price = 85000;
+                    } else if (g.surfaces.size === 1) {
+                        txName = `Restauración en resina simple`;
+                        price = 35000;
+                    } else if (g.surfaces.size === 2) {
+                        txName = `Restauración en resina compleja ${sortedSurfs}`;
+                        price = 55000;
+                    }
+                }
+
+                if (piezasYa.has(piezaCol)) return;
+
+                const itemPayload = {
+                    pieza: piezaCol,
+                    diagnostico: diag,
+                    prestacion: txName,
+                    valor: price
+                };
+                payload.push(itemPayload);
+
                 tbody.insertAdjacentHTML('beforeend', `
                     <tr>
                         <td><input type="text" class="input-diente" value="${piezaCol}" placeholder="Ej: 1.4"></td>
-                        <td><input type="text" class="input-diag" value="${diag.replace(/"/g, '&quot;')}" placeholder="Diagnóstico"></td>
-                        <td><input type="text" class="input-tratamiento" placeholder="Prestación a definir"></td>
-                        <td><input type="number" class="input-ref" placeholder="0" oninput="calcularFila(this)"></td>
+                        <td><input type="text" class="input-diag" value="${diag}" placeholder="Diagnóstico"></td>
+                        <td><input type="text" class="input-tratamiento" value="${txName.replace(/"/g, '"')}" placeholder="Prestación a definir"></td>
+                        <td><input type="number" class="input-ref" value="${price}" placeholder="0" oninput="calcularFila(this)"></td>
                         <td><input type="number" class="input-desc" placeholder="0" oninput="calcularFila(this)"></td>
-                        <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
+                        <td><input type="text" class="ref-val input-total input-readonly" value="${price}" placeholder="0" readonly></td>
                     </tr>
                 `);
-                piezasYa.add(key);
+                piezasYa.add(piezaCol);
                 agregadas++;
             });
+
+            console.log("Payload enviado a presupuesto:", payload);
 
             calcularGranTotal();
             cerrarOdontograma();
 
             const tabla = document.querySelector('.presupuesto-table-wrapper');
             if (tabla) tabla.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            mostrarToastFicha(agregadas > 0 ? `✓ ${agregadas} fila(s) agregada(s) al presupuesto.` : 'Sin filas nuevas: las piezas ya estaban en el presupuesto.');
+            
+            if (agregadas > 0) {
+                alert(`✓ Éxito: Se agregaron ${agregadas} pieza(s) con tratamientos planificados al presupuesto.`);
+            } else {
+                alert("Las piezas planificadas ya estaban registradas en el presupuesto.");
+            }
         }
 
         function mostrarToastFicha(msg) {
@@ -2623,23 +2889,22 @@ const vademecumDB = [
             setTimeout(() => { document.getElementById('smartPanelContainer').style.display = 'none'; }, 800);
         }
 
+        // Marcamos la PIEZA (no la cara) como `.selected` para que
+        // agregarPlanAlPresupuesto y el resto del flow lean el FDI activo.
+        // OJO: no se toca el polygon — la CSS `.selected` lleva
+        // `fill: cyan !important` y sobrescribiría los colores clínicos
+        // que aplica applyStateToSurface (azul/rojo/verde/negro).
         document.addEventListener('DOMContentLoaded', () => {
             const svgContenedor = document.getElementById('odontogramaSVG');
-            if (svgContenedor) {
-                svgContenedor.addEventListener('click', (e) => {
-                    const targetCara = e.target.closest('polygon, path');
-                    if (targetCara) {
-                        targetCara.classList.toggle('selected');
-                        const grupoPieza = targetCara.closest('g[data-fdi]');
-                        if (grupoPieza) {
-                            document.querySelectorAll('g[data-fdi].selected').forEach(el => {
-                                if(el !== grupoPieza) el.classList.remove('selected');
-                            });
-                            grupoPieza.classList.add('selected');
-                        }
-                    }
+            if (!svgContenedor) return;
+            svgContenedor.addEventListener('click', (e) => {
+                const grupoPieza = e.target.closest('g[data-fdi]');
+                if (!grupoPieza) return;
+                document.querySelectorAll('g[data-fdi].selected').forEach(el => {
+                    if (el !== grupoPieza) el.classList.remove('selected');
                 });
-            }
+                grupoPieza.classList.add('selected');
+            });
         });
 
         document.querySelectorAll('.odn-finding-group__head').forEach(btn => {
@@ -2658,477 +2923,5 @@ const vademecumDB = [
             });
         });
     </script>
-</body>
-</html>
-
-    // ==========================================
-    // DICCIONARIO DEL SISTEMA DE SOPORTE A LA DECISIÓN CLÍNICA (CDSS)
-    // ==========================================
-    const arbolClinico = {
-        'sano': {
-            titulo: 'Pieza Sana',
-            claseAlerta: 'smart-recommendation', icon: 'health_and_safety',
-            rec: 'Manejo Preventivo: Indicar pasta dental fluorada (1.450 ppm ion flúor). Control clínico sugerido en 6 meses.',
-            opciones: []
-        },
-        'restauracion': {
-            titulo: 'Restauración Existente',
-            claseAlerta: 'smart-recommendation', icon: 'info',
-            rec: 'Control radiográfico preventivo y control clínico en 6 meses.',
-            opciones: ['Restauración en Resina', 'Restauración en Amalgama']
-        },
-        'ausente': {
-            titulo: 'Pieza Ausente',
-            claseAlerta: 'smart-recommendation warning', icon: 'visibility_off',
-            rec: 'Determine la causa de la pérdida para evaluar la biomecánica oral.',
-            opciones: ['Pérdida por Caries', 'Indicación de Ortodoncia', 'Agenesia']
-        },
-        'rehabilitacion': {
-            titulo: 'Rehabilitación Protésica',
-            claseAlerta: 'smart-recommendation warning', icon: 'architecture',
-            rec: 'Evaluar estado de los pilares y ajustar periodicidad de control a 3 meses si existe compromiso.',
-            opciones: ['PFU sobre Espiga', 'PFU sobre Implante', 'Pilar PPR: Con restauraciones', 'Pilar PPR: Con caries', 'Pilar PPR: Sano (Control 3 meses)']
-        },
-        'fractura': {
-            titulo: 'Fractura Coronal',
-            claseAlerta: 'smart-recommendation alert', icon: 'personal_injury',
-            rec: 'Evaluar compromiso pulpar y estado radicular previo a la planificación restauradora.',
-            opciones: ['Fractura Parcial', 'Fractura Compleja', 'Fractura Total (Estado Raíz)']
-        },
-        'movilidad': {
-            titulo: 'Movilidad Dental',
-            claseAlerta: 'smart-recommendation alert', icon: 'air',
-            rec: 'Evaluar estado periodontal exhaustivamente. Si selecciona Grado 3, se sugiere planificar Exodoncia.',
-            opciones: ['Movilidad Grado 1', 'Movilidad Grado 2', 'Movilidad Grado 3 (Sugerencia: Exodoncia)']
-        },
-        'iccms_1': {
-            titulo: 'Mancha Blanca (ICCMS 1)',
-            claseAlerta: 'smart-recommendation warning', icon: 'water_drop',
-            rec: 'Recetar pasta con 5.000 ppm de ión flúor. Recomendar aplicación de flúor barniz cada 3 meses.',
-            opciones: ['Aplicación de Sellantes', 'Remineralización con Flúor Barniz']
-        },
-        'iccms_3': {
-            titulo: 'Caries Superficial (ICCMS 3)',
-            claseAlerta: 'smart-recommendation warning', icon: 'radio_button_checked',
-            rec: 'Solicitar Radiografía Bite Wing para descartar compromiso proximal oculto.',
-            opciones: ['Aplicación de Sellantes', 'Remineralización con Flúor Barniz']
-        },
-        'iccms_5': {
-            titulo: 'Caries Dentinaria (ICCMS 5)',
-            claseAlerta: 'smart-recommendation alert', icon: 'coronavirus',
-            rec: 'Solicitar Radiografía Bite Wing obligatoria para evaluar profundidad de la lesión.',
-            opciones: ['Restauración Directa Resina Simple (1 cara)', 'Restauración Directa Resina Compleja (2 caras)']
-        },
-        'iccms_6': {
-            titulo: 'Caries Profunda (ICCMS 6)',
-            claseAlerta: 'smart-recommendation alert', icon: 'warning',
-            rec: 'Evaluación de vitalidad pulpar urgente. Solicitar Radiografía Periapical de la pieza.',
-            opciones: ['Solicitar Radiografía Periapical', 'Recubrimiento Pulpar Indirecto', 'Recubrimiento Pulpar Directo', 'Restauración Directa Resina Simple (1 cara)', 'Restauración Directa Resina Compleja (2 caras)']
-        },
-        'pulpitis_rev': {
-            titulo: 'Pulpitis Reversible',
-            claseAlerta: 'smart-recommendation warning', icon: 'thermostat',
-            rec: 'Evaluar posible sensibilidad dental. Si opta por protección pulpar, lanzar alerta de reevaluación en 4 a 6 semanas.',
-            opciones: ['Protección Pulpar Indirecta (Reevaluar 4-6 sem)', 'Protección Pulpar Directa (Reevaluar 4-6 sem)', 'Restauración Provisoria', 'Restauración Directa Resina Simple (1 cara)', 'Restauración Directa Resina Compleja (2 caras)']
-        },
-        'pulpitis_irrev_sint': {
-            titulo: 'Pulpitis Irrev. Sintomática',
-            claseAlerta: 'smart-recommendation alert', icon: 'emergency',
-            rec: 'Cuadro de dolor agudo. Requiere descompresión o abordaje endodóntico inmediato.',
-            opciones: ['Trepanación de Urgencia', 'Endodoncia Convencional', 'Endodoncia Mecanizada', 'Pulpotomía Cameral/Parcial']
-        },
-        'pulpitis_irrev_asint': {
-            titulo: 'Pulpitis Irrev. Asintomática',
-            claseAlerta: 'smart-recommendation alert', icon: 'healing',
-            rec: 'Posible hallazgo radiográfico o clínico. Riesgo de reagudización.',
-            opciones: ['Trepanación', 'Pulpotomía Cameral/Parcial', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
-        },
-        'necrosis': {
-            titulo: 'Necrosis Pulpar',
-            claseAlerta: 'smart-recommendation alert', icon: 'skull',
-            rec: 'Pérdida de vitalidad. Alto riesgo de complicación periapical si no se interviene.',
-            opciones: ['Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
-        },
-        'pre_iniciado': {
-            titulo: 'Previamente Iniciado',
-            claseAlerta: 'smart-recommendation warning', icon: 'construction',
-            rec: 'Tratamiento endodóntico en curso o abandonado. Retomar protocolo de instrumentación.',
-            opciones: ['Endodoncia Convencional', 'Endodoncia Mecanizada']
-        },
-        'perio_apical_sint': {
-            titulo: 'Periodontitis Apical Sint.',
-            claseAlerta: 'smart-recommendation alert', icon: 'bolt',
-            rec: 'Evaluar posible Trauma Oclusal asociado. Si evalúa necrosis pulpar, planificar Trepanación o Endodoncia.',
-            opciones: ['Desgaste Oclusal Selectivo', 'Evaluar Necrosis Pulpar (Indicación Endo)']
-        },
-        'perio_apical_asint': {
-            titulo: 'Periodontitis Apical Asint.',
-            claseAlerta: 'smart-recommendation alert', icon: 'radio_button_unchecked',
-            rec: 'Hallazgo radiográfico de lesión periapical silenciosa. Intervenir para evitar reagudización.',
-            opciones: ['Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
-        },
-        'absceso_agudo': {
-            titulo: 'Absceso Alveolar Agudo',
-            claseAlerta: 'smart-recommendation alert', icon: 'medication',
-            rec: 'URGENCIA INFECCIOSA: Iniciar Terapia Antibiótica inmediata (Revisar Vademécum).',
-            opciones: ['Trepanación de Urgencia', 'Drenaje de Urgencia']
-        },
-        'absceso_cronico': {
-            titulo: 'Absceso Alveolar Crónico',
-            claseAlerta: 'smart-recommendation warning', icon: 'medication',
-            rec: 'Posible presencia de fístula. Considerar Terapia Antibiótica coadyuvante.',
-            opciones: ['Fistulografía', 'Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
-        },
-        'osteitis': {
-            titulo: 'Osteítis Condensante',
-            claseAlerta: 'smart-recommendation warning', icon: 'lens_blur',
-            rec: 'Reacción ósea a inflamación pulpar crónica. Resolver causa endodóntica.',
-            opciones: ['Trepanación', 'Endodoncia Convencional', 'Endodoncia Mecanizada']
-        },
-        'aparato_removible': {
-            titulo: 'Prótesis Removible',
-            claseAlerta: 'smart-recommendation', icon: 'check_box',
-            rec: 'Paciente portador activo. Establecer controles cada 3 meses y sugerir uso de pasta dental 5.000 ppm flúor para pilares.',
-            opciones: []
-        },
-        'aparato_ortodoncia': {
-            titulo: 'Aparato Ortodóntico',
-            claseAlerta: 'smart-recommendation', icon: 'check_box',
-            rec: 'Paciente portador activo. Establecer controles cada 3 meses y sugerir uso de pasta dental 5.000 ppm flúor.',
-            opciones: []
-        },
-        'aparato_contensor': {
-            titulo: 'Contensor Post-Orto',
-            claseAlerta: 'smart-recommendation', icon: 'check_box',
-            rec: 'Paciente portador activo. Establecer controles cada 3 meses y revisar integridad de la ferulización.',
-            opciones: []
-        }
-    };
-
-    // ==========================================
-    // FUNCIÓN DE DISPARO Y CONEXIÓN CON PRESUPUESTO
-    // ==========================================
-    let hallazgoActivoSeleccionado = null;
-
-    function lanzarAsistenteClinico(codigoKey) {
-        const data = arbolClinico[codigoKey];
-        if (!data) return;
-        
-        hallazgoActivoSeleccionado = data.titulo;
-        const panel = document.getElementById('smartPanelContainer');
-        
-        // Armamos los botones de opciones de tratamiento dinámicamente
-        let htmlOpciones = '';
-        if (data.opciones.length > 0) {
-            htmlOpciones = `<div class="smart-options-title">Planes de Tratamiento sugeridos:</div>`;
-            data.opciones.forEach(op => {
-                // Al hacer clic, enviamos la opción seleccionada directo a la tabla de presupuesto
-                htmlOpciones += `<button class="smart-plan-btn" onclick="agregarPlanAlPresupuesto('${op}', this)"><span>+</span> ${op}</button>`;
-            });
-        } else {
-            htmlOpciones = `<div class="smart-options-title" style="color:var(--green-success);">✓ Condición auto-gestionable. No requiere plan adicional.</div>`;
-        }
-
-        panel.innerHTML = `
-            <h4 class="smart-panel-title"><span class="material-symbols-outlined">${data.icon}</span> ${data.titulo}</h4>
-            <div class="${data.claseAlerta}">
-                <strong>Recomendación Clínica:</strong><br>${data.rec}
-            </div>
-            ${htmlOpciones}
-        `;
-        
-        panel.style.display = 'block';
-    }
-
-    function agregarPlanAlPresupuesto(prestacionSeleccionada, btnElement) {
-        let piezaNum = "Pieza ?";
-        
-        // Extraer la pieza del SVG activo
-        const activeTooth = document.querySelector('g[data-fdi].selected'); 
-        if (activeTooth && activeTooth.dataset.fdi) {
-            piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
-        }
-
-        const tbody = document.getElementById('tbodyPresupuesto');
-        const filas = tbody.querySelectorAll('tr');
-        let insertada = false;
-        
-        if (filas.length === 1) {
-            const r = filas[0];
-            const empty = !r.querySelector('.input-diente').value && !r.querySelector('.input-diag').value && !r.querySelector('.input-tratamiento').value;
-            if (empty) {
-                r.querySelector('.input-diente').value = piezaNum;
-                r.querySelector('.input-diag').value = hallazgoActivoSeleccionado;
-                r.querySelector('.input-tratamiento').value = prestacionSeleccionada;
-                insertada = true;
-            }
-        }
-
-        if (!insertada) {
-            tbody.insertAdjacentHTML('beforeend', `
-                <tr>
-                    <td><input type="text" class="input-diente" value="${piezaNum}" placeholder="Ej: 1.4"></td>
-                    <td><input type="text" class="input-diag" value="${hallazgoActivoSeleccionado}" placeholder="Diagnóstico"></td>
-                    <td><input type="text" class="input-tratamiento" value="${prestacionSeleccionada}" placeholder="Prestación"></td>
-                    <td><input type="number" class="input-ref" placeholder="0" oninput="calcularFila(this)"></td>
-                    <td><input type="number" class="input-desc" placeholder="0" oninput="calcularFila(this)"></td>
-                    <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
-                </tr>
-            `);
-        }
-
-        // =========================================================
-        // NUEVO: REGISTRO AUTOMÁTICO EN EL TIMELINE (HISTORIAL DERECHO)
-        // =========================================================
-        const timelineRail = document.getElementById('odontogramaTimelineRail');
-        const emptyMsg = document.getElementById('odnTimelineEmpty');
-        if (emptyMsg) emptyMsg.style.display = 'none'; // Ocultamos el mensaje de "Vacío"
-
-        const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-        
-        // Lógica de colores según gravedad
-        let colorBadge = "var(--pixar-cyan)";
-        if (hallazgoActivoSeleccionado.includes('Caries') || hallazgoActivoSeleccionado.includes('Pulpitis') || hallazgoActivoSeleccionado.includes('Necrosis')) {
-            colorBadge = "#ef4444"; // Alerta Roja
-        } else if (hallazgoActivoSeleccionado.includes('Sano') || prestacionSeleccionada.includes('Preventivo')) {
-            colorBadge = "#10b981"; // Verde Estable
-        } else if (hallazgoActivoSeleccionado.includes('Mancha') || hallazgoActivoSeleccionado.includes('Rehabilitación')) {
-            colorBadge = "#f59e0b"; // Naranja Advertencia
-        }
-
-        // Recuperamos la recomendación actual de la IA que está en pantalla
-        const aiRecomendacion = document.querySelector('.smart-recommendation').innerText;
-
-        // Inyectamos la tarjeta al inicio del historial
-        const cardTimeline = document.createElement('div');
-        cardTimeline.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease;";
-        cardTimeline.style.borderLeft = "5px solid " + colorBadge;
-        cardTimeline.innerHTML = `
-            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
-                <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
-            </div>
-            <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${hallazgoActivoSeleccionado}</div>
-            <div style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><span class="material-symbols-outlined icon-prestacion-dyn" style="font-size: 0.9rem; vertical-align: middle;">medical_services</span> ${prestacionSeleccionada}</div>
-            <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
-                ${aiRecomendacion}
-            </div>
-        `;
-        const iconPrestacion = cardTimeline.querySelector('.icon-prestacion-dyn');
-        if (iconPrestacion) iconPrestacion.style.color = colorBadge;
-
-        timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
-
-        if (btnElement) {
-            btnElement.style.background = "var(--green-success)";
-            btnElement.style.color = "white";
-            btnElement.style.borderColor = "var(--green-success)";
-            btnElement.innerHTML = `<span>✓</span> Agregado y Registrado`;
-        }
-        
-        setTimeout(() => {
-            document.getElementById('smartPanelContainer').style.display = 'none';
-        }, 800);
-    }
-
-    // =========================================================
-    // NUEVO: ACTIVADOR DE SELECCIÓN DE CARAS EN EL SVG
-    // =========================================================
-    document.addEventListener('DOMContentLoaded', () => {
-        const svgContenedor = document.getElementById('odontogramaSVG');
-        if (svgContenedor) {
-            svgContenedor.addEventListener('click', (e) => {
-                // Buscamos si el clic fue en un polígono o ruta del diente
-                const targetCara = e.target.closest('polygon, path');
-                if (targetCara) {
-                    // Alternar color de la cara clicleada
-                    targetCara.classList.toggle('selected');
-                    
-                    // Identificamos a qué grupo (diente completo) pertenece esa cara
-                    const grupoPieza = targetCara.closest('g[data-fdi]');
-                    if (grupoPieza) {
-                        // Limpiamos la selección del diente anterior para no confundir al sistema
-                        document.querySelectorAll('g[data-fdi].selected').forEach(el => {
-                            if(el !== grupoPieza) el.classList.remove('selected');
-                        });
-                        // Marcamos el diente actual como "Diente Activo" para que la tabla lea su número
-                        grupoPieza.classList.add('selected');
-                    }
-                }
-            });
-        }
-    });
-
-    // Pequeño script para manejar los menús desplegables del nuevo panel (Acordeones)
-    document.querySelectorAll('.odn-finding-group__head').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const body = this.nextElementSibling;
-            const icon = this.querySelector('.odn-finding-group__chevron');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
-            this.setAttribute('aria-expanded', !isExpanded);
-            if(isExpanded) {
-                body.style.display = 'none';
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                body.style.display = 'block';
-                icon.style.transform = 'rotate(180deg)';
-            }
-            // Al cambiar de categoría, ocultamos el panel inteligente si estaba abierto
-            document.getElementById('smartPanelContainer').style.display = 'none';
-        });
-    });
-    // ==========================================
-        // EMITIR PRESUPUESTO INDEPENDIENTE (SÓLO COTIZACIÓN)
-        // ==========================================
-        async function emitirPresupuestoPDF() {
-            const dentistaId = localStorage.getItem('midental_user_id');
-            if (!dentistaId) return alert("Error de sesión.");
-
-            // Validar que la tabla no esté vacía
-           document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-                    const piezaVal = tr.querySelector('.input-diente').value.trim();
-                    const diagVal = tr.querySelector('.input-diag').value.trim();
-                    const tratVal = tr.querySelector('.input-tratamiento').value.trim();
-                    const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
-                    const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
-                    
-                    let totalInput = 0;
-                    const elTotal = tr.querySelector('.input-total');
-                    if(elTotal.dataset.valorReal) totalInput = parseFloat(elTotal.dataset.valorReal);
-                    else if (elTotal.value) totalInput = parseFloat(elTotal.value);
-
-                    // Validamos con los valores reales. Si la fila está virgen, la ignoramos y no se imprime.
-                    if (!piezaVal && !diagVal && !tratVal && refInput === 0 && totalInput === 0) return;
-
-                    const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
-                    
-                    // Al guardarla para imprimir, le ponemos el guion si no escribieron el diente o el diagnóstico
-                    tableRows.push([piezaVal || '-', diagVal || '-', tratVal || '-', `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
-                });
-
-            if (!hayPresupuesto) return alert("Debes agregar al menos una prestación con valor al presupuesto.");
-
-            const btn = document.getElementById('btnEmitirPresupuestoSolo');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Documento...';
-            btn.disabled = true;
-
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                // 1. Obtener info profesional
-                const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-                const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
-                
-                // 2. Cabecera PDF
-                doc.setFontSize(22);
-                doc.setTextColor(0, 180, 216); // Pixar Cyan
-                doc.text("MiDental", 14, 20);
-                doc.setFontSize(10);
-                doc.setTextColor(100, 116, 139);
-                doc.text("Red de Salud Digital", 14, 26);
-
-                doc.setFontSize(16);
-                doc.setTextColor(30, 58, 138); // Blue Elegant
-                doc.text("Presupuesto Dental", 200, 20, { align: "right" });
-                doc.setFontSize(10);
-                doc.setTextColor(85, 85, 85);
-                doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
-
-                doc.setDrawColor(200, 200, 200);
-                doc.line(14, 30, 200, 30);
-
-                // 3. Datos Paciente y Doctor
-                doc.setFontSize(12);
-                doc.setTextColor(30, 58, 138);
-                doc.text("Datos del Paciente", 14, 40);
-                doc.setFontSize(10);
-                doc.setTextColor(50, 50, 50);
-                doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47);
-                doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
-
-                doc.setFontSize(12);
-                doc.setTextColor(30, 58, 138);
-                doc.text("Profesional Tratante", 110, 40);
-                doc.setFontSize(10);
-                doc.setTextColor(50, 50, 50);
-                doc.text(`Dentista: ${drName}`, 110, 47);
-                if(dr) doc.text(`RUT: ${dr.rut}`, 110, 53);
-
-                // 4. Armar Tabla de Presupuesto
-                const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
-                const tableRows = [];
-                
-                document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-                    const pieza = tr.querySelector('.input-diente').value || '-';
-                    const diag = tr.querySelector('.input-diag').value || '-';
-                    const trat = tr.querySelector('.input-tratamiento').value || '-';
-                    const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
-                    const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
-                    
-                    let totalInput = 0;
-                    const elTotal = tr.querySelector('.input-total');
-                    if(elTotal.dataset.valorReal) totalInput = parseFloat(elTotal.dataset.valorReal);
-                    else if (elTotal.value) totalInput = parseFloat(elTotal.value);
-
-                    if (!pieza && !diag && !trat && refInput === 0 && totalInput === 0) return;
-
-                    const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
-                    tableRows.push([pieza, diag, trat, `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
-                });
-
-                doc.autoTable({
-                    startY: 65,
-                    head: [tableColumn],
-                    body: tableRows,
-                    theme: 'grid',
-                    headStyles: { fillColor: [30, 58, 138] },
-                    styles: { fontSize: 9 }
-                });
-
-                // 5. Total Final
-                const finalY = doc.lastAutoTable.finalY || 70;
-                doc.setFontSize(14);
-                doc.setTextColor(30, 58, 138);
-                doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
-
-                // 6. Descarga y Subida a Supabase
-                const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
-                const nombreArchivo = `Presupuesto_Comercial_${nombrePuro}_${Date.now()}.pdf`;
-                
-                doc.save(nombreArchivo); // Descarga local inmediata
-
-                if (!isLocal) {
-                    const pdfBlob = doc.output('blob');
-                    const { error: uploadError } = await window.midental.storage
-                        .from('documentos_clinicos')
-                        .upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
-
-                    if (!uploadError) {
-                        await window.midental.from('documentos_pacientes').insert([{
-                            paciente_id: pacienteIdURL,
-                            dentista_id: dentistaId,
-                            nombre_archivo: `Presupuesto Cotización ${new Date().toLocaleDateString('es-CL')}.pdf`,
-                            tipo: 'pdf',
-                            archivo_url: nombreArchivo 
-                        }]);
-                        // Refrescar la vista de documentos para que aparezca al instante
-                        if(typeof cargarDocumentosPaciente === 'function') cargarDocumentosPaciente(); 
-                    }
-                }
-                
-                alert("✅ Presupuesto generado y resguardado con éxito en los documentos del paciente.");
-                
-            } catch (err) {
-                alert("Error al generar el presupuesto: " + err.message);
-                console.error(err);
-            } finally {
-                btn.innerHTML = textoOriginal;
-                btn.disabled = false;
-            }
-        }
-</script>
 </body>
 </html>
