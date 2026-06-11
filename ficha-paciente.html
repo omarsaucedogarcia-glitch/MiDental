@@ -208,9 +208,9 @@
                 <h2>MiDental</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
-                <a href="agenda-dentista.html" class="nav-item active"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
-                <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
+                <a href="Dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
+                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
+                <a href="mis-pacientes.html" class="nav-item active"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
             </nav>
         </aside>
 
@@ -224,9 +224,6 @@
                 </div>
             </header>
 
-            <!-- ============================================================== -->
-            <!-- ODONTOGRAMA · CTA con contadores en vivo (atajo: Alt+O)          -->
-            <!-- ============================================================== -->
             <section class="odn-launcher-strip" aria-label="Acceso al odontograma clínico">
                 <div class="odn-launcher-strip__info">
                     <p class="odn-launcher-strip__title">
@@ -256,12 +253,11 @@
                     </span>
                 </div>
 
-                <button type="button" class="odn-launcher" id="btnAbrirOdontograma"
-                        onclick="abrirOdontograma()" aria-controls="odontogramaModal" aria-expanded="false">
-                    <span class="material-symbols-outlined" aria-hidden="true">grid_on</span>
-                    Abrir Odontograma
+                <button type="button" class="odn-launcher" id="btnAbrirOdontograma" onclick="abrirOdontograma()" aria-controls="odontogramaModal" aria-expanded="false">
+                    <span class="material-symbols-outlined" aria-hidden="true">grid_on</span> Abrir Odontograma
                 </button>
             </section>
+
             <div class="premium-ai-card" id="tarjetaInteligenciaClinica">
                 <div class="ai-header">
                     <span class="material-symbols-outlined" style="color: #8b5cf6; font-size: 2rem;">psychology</span>
@@ -269,7 +265,6 @@
                     <span class="ai-risk-badge" id="aiNivelRiesgo">Calculando...</span>
                 </div>
                 <div class="ai-content">
-                    <!-- Desglose por área (Cariología × Periodoncia) -->
                     <div id="aiDesgloseGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 10px 0 14px;">
                         <div class="ai-area-card" id="aiAreaCaries" style="background:#fff; border:1px solid #e2e8f0; border-left:5px solid #94a3b8; border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start;">
                             <span class="material-symbols-outlined" style="color:#0ea5e9; font-size:1.6rem; flex-shrink:0;">dentistry</span>
@@ -294,16 +289,12 @@
                     </div>
                     <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">lightbulb</span> Recomendación combinada:</strong> <span id="aiRecomendacion"></span></p>
                     <p><strong><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">event_upcoming</span> Próximo Control Sugerido:</strong> En <span id="aiMesesControl"></span> meses (<span id="aiFechaControl"></span>).</p>
-
                     <button class="btn-premium-action" onclick="programarRecallPremium()">
                         <span class="material-symbols-outlined">schedule_send</span> Programar Mensaje Automático
                     </button>
                 </div>
             </div>
 
-            <!-- =================================================== -->
-            <!-- MÓDULO SALDO CORRIENTE: CONTROL DE PRESUPUESTO       -->
-            <!-- =================================================== -->
             <div class="control-presupuesto-card" id="controlPresupuestoContainer" style="background: white; border: 1px solid #e2e8f0; border-left: 6px solid var(--green-success); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.08);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">
                     <h3 style="margin: 0; color: var(--blue-elegant); font-size: 1.15rem; display: flex; align-items: center; gap: 8px; font-weight: 900;">
@@ -311,17 +302,16 @@
                         Control de Presupuesto Integral
                     </h3>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button class="btn-text" id="btnEditarPresupuesto" onclick="togglePresupuestoEdit()" style="color: var(--blue-elegant); font-size: 0.8rem; padding: 6px 10px; background: #eff6ff; border-radius: 8px; font-weight: bold; border: 1px solid #bfdbfe; cursor: pointer;">Editar Presupuesto</button>
-                        <button class="btn-pixar btn-small" id="btnNuevoPresupuesto" onclick="nuevoPresupuesto()" title="Archiva los tratamientos planificados y comienza un nuevo ciclo. NO afecta el historial de pagos." style="padding: 6px 12px; font-size: 0.85rem; background: var(--blue-elegant); border-radius: 8px;">
-                            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">restart_alt</span> Nuevo Presupuesto
+                        <button class="btn-text" id="btnEditarPresupuesto" onclick="togglePresupuestoEdit()" style="color: var(--blue-elegant); font-size: 0.85rem; padding: 8px 16px; background: white; border-radius: 8px; font-weight: bold; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s;">Editar Presupuesto</button>
+                        <button class="btn-pixar btn-small" style="padding: 8px 16px; font-size: 0.85rem; background: var(--blue-elegant); border-radius: 8px; border: none; color: white; display: flex; align-items: center; gap: 5px;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem;">refresh</span> Nuevo Presupuesto
                         </button>
-                        <button class="btn-pixar btn-small" onclick="abrirModalRegistrarPagoFicha()" style="padding: 6px 12px; font-size: 0.85rem; background: var(--green-success); border-radius: 8px;">
-                            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">add_circle</span> Registrar Pago
+                        <button class="btn-pixar btn-small" onclick="abrirModalRegistrarPagoFicha()" style="padding: 8px 16px; font-size: 0.85rem; background: var(--blue-elegant); border-radius: 8px; border: none; color: white; display: flex; align-items: center; gap: 5px;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem;">add_circle</span> Registrar Pago
                         </button>
                     </div>
                 </div>
 
-                <!-- Vista de stats -->
                 <div id="vistaPresupuesto" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                     <div style="text-align: center; padding: 12px; background: #eff6ff; border-radius: 10px; border: 1px solid #bfdbfe;">
                         <small style="color: #64748b; font-size: 0.7rem; text-transform: uppercase; font-weight: bold;">Presupuesto Total</small>
@@ -337,7 +327,6 @@
                     </div>
                 </div>
 
-                <!-- Modo edición -->
                 <div id="edicionPresupuesto" style="display: none;">
                     <label style="font-size: 0.85rem; color: #475569; font-weight: bold;">Presupuesto Integral del Tratamiento ($)</label>
                     <div style="display: flex; gap: 10px; margin-top: 8px;">
@@ -348,20 +337,47 @@
             </div>
 
             <div class="ficha-layout">
+                
                 <div class="historial-panel">
-                    <div class="historial-header">
-                        <button class="btn-interconsulta-flotante" onclick="abrirModalInterconsulta()">
-                            <span class="material-symbols-outlined">move_up</span> Derivar
+                    <div class="historial-header" style="background: var(--blue-elegant); color: white; padding: 30px 20px; text-align: center; border-radius: 20px 20px 0 0; position: relative;">
+                        <button class="btn-interconsulta-flotante" onclick="abrirModalInterconsulta()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <span class="material-symbols-outlined" style="font-size: 1rem;">move_up</span> Derivar
                         </button>
                         
-                        <div class="ficha-avatar-container">
-                            <img src="" id="panelAvatarImg" class="ficha-avatar-img" onerror="this.style.display='none'; document.getElementById('panelAvatarText').style.display='flex';">
-                            <div id="panelAvatarText" class="ficha-avatar-text">--</div>
+                        <div class="ficha-avatar-container" style="width: 80px; height: 80px; margin: 0 auto 15px;">
+                            <img src="" id="panelAvatarImg" class="ficha-avatar-img" onerror="this.style.display='none'; document.getElementById('panelAvatarText').style.display='flex';" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.9); box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: none; background: white;">
+                            <div id="panelAvatarText" class="ficha-avatar-text" style="width: 100%; height: 100%; border-radius: 50%; background: transparent; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: white;">--</div>
                         </div>
 
-                        <h2 id="panelNombrePaciente" style="margin: 0; font-size: 1.4rem; font-weight: 900;">Cargando paciente...</h2>
-                        <p id="panelRutPaciente" style="margin: 8px 0 0 0; font-size: 0.95rem; opacity: 0.9;">RUT: --</p>
-                        <p id="panelTelefonoPaciente" style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.8; font-weight: bold;">--</p>
+                        <div id="vistaDatosPaciente">
+                            <h2 id="panelNombrePaciente" style="margin: 0; font-size: 1.4rem; font-weight: 900; text-transform: uppercase;">Cargando paciente...</h2>
+                            <p id="panelRutPaciente" style="margin: 5px 0 0 0; font-size: 0.95rem; opacity: 0.9;">RUT: --</p>
+                            <p id="panelNacimientoPaciente" style="margin: 2px 0 0 0; font-size: 0.85rem; opacity: 0.8;">Nacimiento: --</p>
+                            <p id="panelTelefonoPaciente" style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.8; font-weight: bold;">--</p>
+                            
+                            <button class="btn-text" id="btnActivarEdicionPaciente" onclick="toggleEdicionPaciente()" style="color: white; margin-top: 12px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.4); padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.1); transition: 0.2s;">
+                                <span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle;">edit</span> Editar Datos
+                            </button>
+                        </div>
+
+                        <div id="edicionDatosPaciente" style="display: none; text-align: left; margin-top: 15px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px;">
+                            <label style="font-size: 0.75rem; color: rgba(255,255,255,0.8); font-weight: bold;">Nombre Completo</label>
+                            <input type="text" id="editNombrePaciente" class="apple-input-modal" style="width: 100%; margin-bottom: 8px; font-size: 0.85rem; padding: 8px;">
+                            
+                            <label style="font-size: 0.75rem; color: rgba(255,255,255,0.8); font-weight: bold;">RUT</label>
+                            <input type="text" id="editRutPaciente" class="apple-input-modal" style="width: 100%; margin-bottom: 8px; font-size: 0.85rem; padding: 8px;">
+                            
+                            <label style="font-size: 0.75rem; color: rgba(255,255,255,0.8); font-weight: bold;">Fecha Nacimiento</label>
+                            <input type="date" id="editNacimientoPaciente" class="apple-input-modal" style="width: 100%; margin-bottom: 8px; font-size: 0.85rem; padding: 8px;">
+                            
+                            <label style="font-size: 0.75rem; color: rgba(255,255,255,0.8); font-weight: bold;">Teléfono</label>
+                            <input type="text" id="editTelefonoPaciente" class="apple-input-modal" style="width: 100%; margin-bottom: 15px; font-size: 0.85rem; padding: 8px;">
+                            
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-pixar btn-small" id="btnGuardarEdicionPaciente" onclick="guardarDatosPaciente()" style="flex: 1; padding: 8px; font-size: 0.85rem; background: var(--green-success); border: none;">Guardar</button>
+                                <button class="btn-login-outline btn-small" onclick="toggleEdicionPaciente()" style="flex: 1; padding: 8px; font-size: 0.85rem; color: white; border-color: rgba(255,255,255,0.5);">Cancelar</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="alerta-clinica" id="alertaClinicaContainer">
@@ -369,13 +385,11 @@
                             <h4 style="margin: 0;"><span class="material-symbols-outlined">warning</span> Alerta Médica</h4>
                             <button class="btn-text" id="btnEditarAlerta" onclick="toggleEdicionAlerta()" style="color: #b91c1c; font-size: 0.8rem; padding: 4px 8px; background: rgba(255,255,255,0.6); border-radius: 6px; font-weight: bold; border: 1px solid #fecaca; transition: 0.2s;">Editar Antecedentes</button>
                         </div>
-
                         <div id="vistaAlertaMedica">
                             <p class="alerta-item"><strong>Crónicas:</strong> <span id="txtCrónicas">--</span></p>
                             <p class="alerta-item"><strong>Medicamentos:</strong> <span id="txtMedicamentos">--</span></p>
                             <p class="alerta-item"><strong>Alergias:</strong> <span id="txtAlergias">--</span></p>
                         </div>
-
                         <div id="edicionAlertaMedica" style="display: none; flex-direction: column; gap: 8px;">
                             <div>
                                 <label style="font-size: 0.8rem; color: #7f1d1d; font-weight: bold;">Enfermedades Crónicas / Sistémicas</label>
@@ -401,9 +415,7 @@
                                 </strong>
                                 <button class="btn-text" id="btnEditarNotas" onclick="toggleEdicionNotasPrivadas()" style="color: #b91c1c; font-size: 0.8rem; padding: 4px 8px; background: rgba(255,255,255,0.6); border-radius: 6px; font-weight: bold; border: 1px solid #fecaca; transition: 0.2s;">Editar</button>
                             </div>
-                            
                             <div id="vistaNotasPrivadas" class="alerta-item" style="color: #7f1d1d; font-style: italic; background: rgba(255,255,255,0.4); padding: 8px; border-radius: 6px; min-height: 20px;">Sin notas internas registradas.</div>
-                            
                             <div id="edicionNotasPrivadas" style="display: none; margin-top: 5px;">
                                 <textarea id="inputNotasPrivadas" class="apple-input-modal" style="width: 100%; min-height: 70px; font-size: 0.85rem; padding: 10px; border: 1px solid #fca5a5; background: #fff; border-radius: 8px; resize: vertical; color: #7f1d1d; box-sizing: border-box;" placeholder="Escribe aquí anotaciones privadas (ej: fobia a las agujas, consideraciones de pago, etc.)..."></textarea>
                                 <div style="text-align: right; margin-top: 8px;">
@@ -420,14 +432,12 @@
                             <h3 style="margin: 0; font-size: 1.05rem; color: var(--blue-elegant); display: flex; align-items: center; gap: 8px;">
                                 <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">folder_open</span> Archivos y Exámenes
                             </h3>
-                            
                             <label class="btn-upload-doc" id="labelBtnSubidaDoc">
                                 <span class="material-symbols-outlined" style="font-size: 1rem;">cloud_upload</span> Subir
                                 <input type="file" accept="image/*,.pdf" style="display: none;" onchange="procesarSubidaDocumentoDentista(event)">
                             </label>
                         </div>
-                        
-                        <div id="contenedorDocumentosPaciente" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; max-height: 200px; overflow-y: auto; padding-bottom: 5px;">
+                        <div id="contenedorDocumentosPaciente">
                             <p style="color: #64748b; font-size: 0.9rem; text-align: center; grid-column: 1/-1;">Cargando archivos...</p>
                         </div>
                     </div>
@@ -475,27 +485,24 @@
                     
                     <div class="total-final-box">TOTAL PRESUPUESTO: $ <span id="granTotalPagar">0</span></div>
                     
-                    <div class="btn-group-dual mt-20" style="margin-top: 30px;">
-                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalReceta()" style="padding: 15px; border-radius: 12px; font-weight: bold; color: var(--pixar-cyan); border-color: var(--pixar-cyan);">
-                            <span class="material-symbols-outlined">prescriptions</span> Emitir Receta
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px;">
+                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalReceta()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: var(--pixar-cyan); border-color: var(--pixar-cyan); font-size: 0.85rem; transition: 0.2s;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">prescriptions</span> Receta
                         </button>
-                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalConsentimiento()" style="padding: 12px 10px; border-radius: 12px; font-weight: bold; color: #8b5cf6; border-color: #8b5cf6; font-size: 0.9rem;">
-                            <span class="material-symbols-outlined">gavel</span> Consentimiento
+                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalConsentimiento()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: #8b5cf6; border-color: #8b5cf6; font-size: 0.85rem; transition: 0.2s;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">gavel</span> Legal
                         </button>
-                        <button type="button" class="btn-login-outline btn-full" onclick="soloPrevisualizarPDF()" style="padding: 12px 10px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;">
-                            <span class="material-symbols-outlined">visibility</span> Presupuesto
+                        <button type="button" class="btn-login-outline btn-full" onclick="emitirPresupuestoPDF()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: var(--pixar-orange); border-color: var(--pixar-orange); font-size: 0.85rem; transition: 0.2s;">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">request_quote</span> PDF Ppto.
                         </button>
                     </div>
 
-                    <button type="button" class="btn-pixar btn-full mt-20" id="btnGuardarFicha" onclick="guardarFichaYPresupuestoOficial()" style="padding: 18px; font-size: 1.15rem; border-radius: 15px;">
-                        <span class="material-symbols-outlined">save</span> Firmar y Guardar Ficha Oficial
+                    <button type="button" class="btn-pixar btn-full" id="btnGuardarFicha" onclick="guardarFichaYPresupuestoOficial()" style="padding: 18px; font-size: 1.15rem; border-radius: 15px; margin-top: 20px;">
+                        <span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Firmar y Guardar Ficha Oficial
                     </button>
                 </div>
             </div>
 
-            <!-- =================================================== -->
-            <!-- MÓDULO SALDO CORRIENTE: HISTORIAL DE PAGOS           -->
-            <!-- =================================================== -->
             <div class="historial-pagos-section" id="historialPagosContainer" style="background: white; border: 1px solid #e2e8f0; border-radius: 15px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
                 <h3 style="margin: 0 0 15px; color: var(--blue-elegant); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
                     <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">receipt_long</span> Historial de Pagos
@@ -1130,10 +1137,12 @@
                     document.getElementById('panelAvatarText').innerText = pacienteActual.nombre.charAt(0).toUpperCase();
                     
                     document.getElementById('alertaClinicaContainer').style.display = 'none';
+                    document.getElementById('btnActivarEdicionPaciente').style.display = 'none'; // No se edita si es local
                 } else {
                     // MODO PACIENTE REGISTRADO OFICIAL
                     const { data: paciente, error } = await window.midental.from('perfiles_pacientes')
-                        .select('nombre_completo, rut, telefono, enfermedades_cronicas, medicamentos, alergias, avatar_url, notas_privadas')
+                        // ---> AGREGAMOS fecha_nacimiento A LA CONSULTA <---
+                        .select('nombre_completo, rut, telefono, fecha_nacimiento, enfermedades_cronicas, medicamentos, alergias, avatar_url, notas_privadas')
                         .eq('id', pacienteIdURL).single();
                         
                     if (error) throw error;
@@ -1142,12 +1151,28 @@
                         pacienteActual.nombre = paciente.nombre_completo || "Sin Nombre";
                         pacienteActual.rut = paciente.rut || "No registrado";
                         pacienteActual.telefono = paciente.telefono || "";
+                        pacienteActual.fecha_nacimiento = paciente.fecha_nacimiento || "";
 
+                        // Llenar vista de lectura
                         document.getElementById('headerNombrePaciente').innerText = pacienteActual.nombre;
                         document.getElementById('panelNombrePaciente').innerText = pacienteActual.nombre;
                         document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut}`;
                         document.getElementById('panelTelefonoPaciente').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">call</span> ${pacienteActual.telefono || 'Sin teléfono'}`;
                         document.getElementById('derivarPcteNombre').innerText = pacienteActual.nombre;
+                        
+                        // Formatear fecha de nacimiento si existe
+                        if (pacienteActual.fecha_nacimiento) {
+                            const [year, month, day] = pacienteActual.fecha_nacimiento.split('-');
+                            document.getElementById('panelNacimientoPaciente').innerText = `Nacimiento: ${day}/${month}/${year}`;
+                        } else {
+                            document.getElementById('panelNacimientoPaciente').innerText = `Nacimiento: No registrado`;
+                        }
+
+                        // Preparar los inputs del modo edición
+                        document.getElementById('editNombrePaciente').value = pacienteActual.nombre;
+                        document.getElementById('editRutPaciente').value = pacienteActual.rut !== "No registrado" ? pacienteActual.rut : "";
+                        document.getElementById('editTelefonoPaciente').value = pacienteActual.telefono;
+                        document.getElementById('editNacimientoPaciente').value = pacienteActual.fecha_nacimiento;
 
                         const imgEl = document.getElementById('panelAvatarImg');
                         const txtEl = document.getElementById('panelAvatarText');
@@ -1188,6 +1213,134 @@
 
             } catch (err) {
                 console.error("Error al cargar paciente:", err);
+            }
+        }
+        // ==========================================
+        // HISTORIAL CLÍNICO Y DOCUMENTOS
+        // ==========================================
+        async function cargarHistorialPaciente() {
+            const dentistaId = localStorage.getItem('midental_user_id');
+            const contenedor = document.getElementById('contenedorHistorial');
+            if (!dentistaId) return;
+
+            try {
+                let query = window.midental.from('fichas_clinicas').select('*').order('created_at', { ascending: false });
+                
+                if (isLocal && pacienteActual.rut && pacienteActual.rut !== "No registrado") query = query.eq('paciente_rut', pacienteActual.rut);
+                else if (!isLocal) query = query.eq('paciente_id', pacienteIdURL);
+                else query = query.eq('paciente_nombre', pacienteActual.nombre);
+
+                const { data: historial, error } = await query;
+                if (error) throw error;
+                contenedor.innerHTML = "";
+
+                if (!historial || historial.length === 0) {
+                    contenedor.innerHTML = `<div style="text-align: center; color: #94a3b8; margin-top: 40px; font-size: 0.95rem;"><span class="material-symbols-outlined" style="font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.5;">history</span>No hay atenciones previas registradas.</div>`;
+                    return;
+                }
+
+                historial.forEach(ficha => {
+                    const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const histoJson = ficha.historial_json || {};
+                    const motivoStr = histoJson.motivo || ficha.motivo_consulta || 'Sin especificar';
+                    const diagStr = histoJson.diagnostico || 'Revisar detalle clínico';
+                    const accionStr = histoJson.tratamiento || ficha.accion_realizada || 'Sin registro';
+                    const presupuestoNum = ficha.presupuesto_total || 0;
+
+                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, diagnostico: diagStr, accion: accionStr, presupuesto: presupuestoNum }));
+
+                    contenedor.innerHTML += `
+                        <div class="evolucion-card" onclick="abrirBovedaPasada('${dataFichaStr}')" title="Clic para ver detalle completo">
+                            <div class="evo-date"><span>Atención Médica</span><span>${fechaAtencion}</span></div>
+                            <div class="evo-title" style="color: var(--blue-elegant); font-size: 0.8rem; font-weight: bold;">Motivo Principal:</div>
+                            <div class="evo-text" style="font-size: 0.8rem;">${motivoStr.length > 50 ? motivoStr.substring(0, 50) + '...' : motivoStr}</div>
+                            ${presupuestoNum > 0 ? `<div class="evo-price">Costo Presupuestado: $${presupuestoNum.toLocaleString('es-CL')}</div>` : ''}
+                        </div>
+                    `;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        // ==========================================
+        // EDICIÓN DE IDENTIDAD DEL PACIENTE
+        // ==========================================
+        function toggleEdicionPaciente() {
+            const vista = document.getElementById('vistaDatosPaciente');
+            const edicion = document.getElementById('edicionDatosPaciente');
+            
+            if (edicion.style.display === 'none') {
+                vista.style.display = 'none';
+                edicion.style.display = 'block';
+            } else {
+                vista.style.display = 'block';
+                edicion.style.display = 'none';
+                // Resetear campos si cancela
+                document.getElementById('editNombrePaciente').value = pacienteActual.nombre;
+                document.getElementById('editRutPaciente').value = pacienteActual.rut !== "No registrado" ? pacienteActual.rut : "";
+                document.getElementById('editTelefonoPaciente').value = pacienteActual.telefono;
+                document.getElementById('editNacimientoPaciente').value = pacienteActual.fecha_nacimiento;
+            }
+        }
+
+        async function guardarDatosPaciente() {
+            const nuevoNombre = document.getElementById('editNombrePaciente').value.trim();
+            const nuevoRut = document.getElementById('editRutPaciente').value.trim();
+            const nuevoTelefono = document.getElementById('editTelefonoPaciente').value.trim();
+            const nuevoNacimiento = document.getElementById('editNacimientoPaciente').value;
+
+            if (!nuevoNombre) return alert("El nombre del paciente no puede estar vacío.");
+
+            const btn = document.getElementById('btnGuardarEdicionPaciente');
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            try {
+                // Actualizamos Supabase
+                const { error } = await window.midental.from('perfiles_pacientes')
+                    .update({
+                        nombre_completo: nuevoNombre,
+                        rut: nuevoRut || null,
+                        telefono: nuevoTelefono || null,
+                        fecha_nacimiento: nuevoNacimiento || null
+                    })
+                    .eq('id', pacienteIdURL);
+
+                if (error) throw error;
+
+                // Actualizamos la variable global
+                pacienteActual.nombre = nuevoNombre;
+                pacienteActual.rut = nuevoRut || "No registrado";
+                pacienteActual.telefono = nuevoTelefono;
+                pacienteActual.fecha_nacimiento = nuevoNacimiento;
+
+                // Actualizamos la vista visualmente
+                document.getElementById('headerNombrePaciente').innerText = nuevoNombre;
+                document.getElementById('panelNombrePaciente').innerText = nuevoNombre;
+                document.getElementById('panelRutPaciente').innerText = `RUT: ${pacienteActual.rut}`;
+                document.getElementById('panelTelefonoPaciente').innerHTML = `<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">call</span> ${pacienteActual.telefono || 'Sin teléfono'}`;
+                document.getElementById('derivarPcteNombre').innerText = nuevoNombre;
+                
+                if (nuevoNacimiento) {
+                    const [year, month, day] = nuevoNacimiento.split('-');
+                    document.getElementById('panelNacimientoPaciente').innerText = `Nacimiento: ${day}/${month}/${year}`;
+                } else {
+                    document.getElementById('panelNacimientoPaciente').innerText = `Nacimiento: No registrado`;
+                }
+
+                // Cambiamos la letra del Avatar en caso de que hayan corregido la inicial del nombre
+                const txtEl = document.getElementById('panelAvatarText');
+                if (txtEl.style.display !== 'none') {
+                    txtEl.innerText = nuevoNombre.charAt(0).toUpperCase();
+                }
+
+                // Cerramos el modo edición
+                toggleEdicionPaciente();
+
+            } catch (err) {
+                alert("Error al actualizar los datos: " + err.message);
+            } finally {
+                btn.innerText = "Guardar";
+                btn.disabled = false;
             }
         }
 
@@ -1506,63 +1659,31 @@
         }
 
         // ==========================================
-        // HISTORIAL CLÍNICO Y DOCUMENTOS
+        // DOCUMENTOS CLÍNICOS Y ARCHIVOS (CORREGIDO)
         // ==========================================
-        async function cargarHistorialPaciente() {
-            const dentistaId = localStorage.getItem('midental_user_id');
-            const contenedor = document.getElementById('contenedorHistorial');
-            if (!dentistaId) return;
-
-            try {
-                let query = window.midental.from('fichas_clinicas').select('*').order('created_at', { ascending: false });
-                
-                if (isLocal && pacienteActual.rut && pacienteActual.rut !== "No registrado") query = query.eq('paciente_rut', pacienteActual.rut);
-                else if (!isLocal) query = query.eq('paciente_id', pacienteIdURL);
-                else query = query.eq('paciente_nombre', pacienteActual.nombre);
-
-                const { data: historial, error } = await query;
-                if (error) throw error;
-                contenedor.innerHTML = "";
-
-                if (!historial || historial.length === 0) {
-                    contenedor.innerHTML = `<div style="text-align: center; color: #94a3b8; margin-top: 40px; font-size: 0.95rem;"><span class="material-symbols-outlined" style="font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.5;">history</span>No hay atenciones previas registradas.</div>`;
-                    return;
-                }
-
-                historial.forEach(ficha => {
-                    const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
-                    const histoJson = ficha.historial_json || {};
-                    const motivoStr = histoJson.motivo || ficha.motivo_consulta || 'Sin especificar';
-                    const diagStr = histoJson.diagnostico || 'Revisar detalle clínico';
-                    const accionStr = histoJson.tratamiento || ficha.accion_realizada || 'Sin registro';
-                    const presupuestoNum = ficha.presupuesto_total || 0;
-
-                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, diagnostico: diagStr, accion: accionStr, presupuesto: presupuestoNum }));
-
-                    contenedor.innerHTML += `
-                        <div class="evolucion-card" onclick="abrirBovedaPasada('${dataFichaStr}')" title="Clic para ver detalle completo">
-                            <div class="evo-date"><span>Atención Médica</span><span>${fechaAtencion}</span></div>
-                            <div class="evo-title" style="color: var(--blue-elegant); font-size: 0.8rem; font-weight: bold;">Motivo Principal:</div>
-                            <div class="evo-text" style="font-size: 0.8rem;">${motivoStr.length > 50 ? motivoStr.substring(0, 50) + '...' : motivoStr}</div>
-                            ${presupuestoNum > 0 ? `<div class="evo-price">Costo Presupuestado: $${presupuestoNum.toLocaleString('es-CL')}</div>` : ''}
-                        </div>
-                    `;
-                });
-            } catch (err) { console.error(err); }
-        }
-
         async function cargarDocumentosPaciente() {
             const contenedor = document.getElementById('contenedorDocumentosPaciente');
             if (!contenedor) return;
+
+            // 1. Forzamos los estilos de grilla directamente en el contenedor padre
+            contenedor.style.display = "grid";
+            contenedor.style.gridTemplateColumns = "repeat(auto-fill, minmax(130px, 1fr))";
+            contenedor.style.gap = "15px";
+            contenedor.style.maxHeight = "250px";
+            contenedor.style.overflowY = "auto";
+            contenedor.style.padding = "10px";
+
             if (isLocal) {
                 contenedor.innerHTML = '<p style="color: #f59e0b; font-size: 0.85rem; grid-column: 1/-1; text-align: center; margin-top:10px;"><b>Atención:</b> La carga de archivos no está disponible para Fichas Locales.</p>';
-                document.getElementById('labelBtnSubidaDoc').style.display = 'none';
+                const btnSubir = document.getElementById('labelBtnSubidaDoc');
+                if (btnSubir) btnSubir.style.display = 'none';
                 return;
             }
             
             try {
                 const { data: docs, error } = await window.midental.from('documentos_pacientes').select('*').eq('paciente_id', pacienteIdURL).order('created_at', { ascending: false });
                 if (error) throw error;
+                
                 contenedor.innerHTML = "";
 
                 if (!docs || docs.length === 0) {
@@ -1582,27 +1703,40 @@
                         urlSegura = signedData?.signedUrl || '#';
                     }
 
+                    // Lógica para definir el ícono y color de la tarjeta
                     const esImagen = archivoRef.match(/\.(jpeg|jpg|gif|png)$/i) != null;
-                    const esPresupuesto = doc.nombre_archivo && doc.nombre_archivo.toLowerCase().includes('presupuesto');
-                    const iconSymbol = esPresupuesto ? 'request_quote' : (esImagen ? 'image' : 'description');
+                    const nombreMinuscula = (doc.nombre_archivo || '').toLowerCase();
+                    
+                    let iconSymbol = 'description'; // Icono genérico (PDF)
+                    let bgIcon = 'rgba(2, 132, 199, 0.1)'; // Fondo celeste suave
+                    let colorIcon = 'var(--pixar-cyan)'; // Icono celeste
 
-                    const cardDoc = document.createElement('div');
-                    cardDoc.style.cssText = "background: #f8fafc; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; transition: 0.2s;";
-                    cardDoc.innerHTML = `
-                        <div class="doc-thumb-icon" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
-                            <span class="material-symbols-outlined" style="font-size: 1.8rem;">${iconSymbol}</span>
-                        </div>
-                        <p style="font-size: 0.75rem; margin: 0 0 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155; font-weight: bold;" title="${doc.nombre_archivo}">${doc.nombre_archivo || 'Documento Adjunto'}</p>
-                        <a href="${urlSegura}" target="_blank" style="font-size: 0.75rem; color: white; background: var(--pixar-orange); padding: 6px 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box; display: block;">Ver Archivo</a>
-                    `;
-                    const thumbIcon = cardDoc.querySelector('.doc-thumb-icon');
-                    if (esPresupuesto) {
-                        thumbIcon.style.color = 'white';
-                        thumbIcon.style.background = 'var(--pixar-cyan)';
-                    } else {
-                        thumbIcon.style.color = 'var(--pixar-cyan)';
+                    if (nombreMinuscula.includes('presupuesto')) {
+                        iconSymbol = 'request_quote';
+                        bgIcon = 'var(--pixar-cyan)';
+                        colorIcon = 'white';
+                    } else if (nombreMinuscula.includes('consentimiento')) {
+                        iconSymbol = 'gavel';
+                        bgIcon = '#8b5cf6'; // Morado legal
+                        colorIcon = 'white';
+                    } else if (esImagen) {
+                        iconSymbol = 'image';
+                    } else if (nombreMinuscula.includes('receta')) {
+                        iconSymbol = 'prescriptions';
                     }
-                    contenedor.appendChild(cardDoc);
+
+                    // Inyección limpia y estructurada de la tarjeta
+                    contenedor.innerHTML += `
+                        <div style="background: white; padding: 15px 10px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; transition: transform 0.2s;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; background: ${bgIcon}; color: ${colorIcon};">
+                                <span class="material-symbols-outlined" style="font-size: 1.6rem;">${iconSymbol}</span>
+                            </div>
+                            <p style="font-size: 0.75rem; margin: 0 0 12px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; color: #334155; font-weight: 700;" title="${doc.nombre_archivo}">
+                                ${doc.nombre_archivo || 'Documento'}
+                            </p>
+                            <a href="${urlSegura}" target="_blank" style="font-size: 0.75rem; color: white; background: var(--pixar-orange); padding: 8px 10px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 100%; box-sizing: border-box; display: block; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);">Abrir</a>
+                        </div>
+                    `;
                 }
             } catch (err) {
                 contenedor.innerHTML = '<p style="color: #ef4444; font-size: 0.85rem; grid-column: 1/-1; text-align: center;">Error al cargar archivos.</p>';
