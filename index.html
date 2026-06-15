@@ -299,25 +299,56 @@
             <div class="modal-body-scroll">
                 <h2 class="modal-title">Registro Paciente</h2>
                 <form class="form-registro" id="formRegistroPaciente">
-                    <div class="input-group-modal"><span class="material-symbols-outlined">fingerprint</span><input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="if(typeof formatearRutInput === 'function') formatearRutInput(this)" required></div>
-                    <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regPacienteNombre" placeholder="Nombre Completo" class="apple-input-modal" required></div>
-                    <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
-                    <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regPacienteEmail" placeholder="correo@ejemplo.com (Vital para recuperar clave)" class="apple-input-modal" required></div>
-                    
-                    <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
-                        <input type="password" id="regPacientePassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
-                    </div>
-                    <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
-                        <input type="password" id="regPacientePasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
-                    </div>
-                    
-                    <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 5px; display: flex; align-items: start; gap: 10px;">
-                        <input type="checkbox" id="regPacienteTyC" required style="margin-top: 4px; cursor: pointer;">
-                        <label for="regPacienteTyC" style="font-size: 0.85rem; color: #4a5568;">
-                            He leído y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCPaciente')" style="color: var(--pixar-cyan); text-decoration: underline;">Términos y Condiciones</a>.
-                        </label>
-                    </div>
-                </form>
+    
+    <div style="display: flex; gap: 20px; margin-bottom: 10px; padding: 5px 15px;">
+        <label style="font-size: 0.95rem; color: #475569; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <input type="radio" name="tipoCuenta" value="personal" checked onchange="toggleTipoCuenta()" style="accent-color: var(--pixar-cyan);">
+            Para mí
+        </label>
+        <label style="font-size: 0.95rem; color: #475569; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <input type="radio" name="tipoCuenta" value="familiar" onchange="toggleTipoCuenta()" style="accent-color: var(--pixar-cyan);">
+            Para un familiar
+        </label>
+    </div>
+
+    <div id="alertaFamiliar" style="display: none; background: #e0f2fe; padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--pixar-cyan);">
+        <p style="margin: 0; font-size: 0.85rem; color: #0369a1; line-height: 1.4;">
+            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: bottom;">info</span>
+            Usaremos tu correo como <strong>cuenta principal</strong> para iniciar sesión, pero esta ficha médica quedará a nombre de tu familiar.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <div class="input-group-modal" style="margin-bottom: 5px;">
+            <span class="material-symbols-outlined">fingerprint</span>
+            <input type="text" id="regPacienteRUT" placeholder="RUT (ej: 12.345.678-9)" class="apple-input-modal" oninput="manejarInputDocumento(this)" required>
+        </div>
+        <div style="text-align: right; padding-right: 5px;">
+            <label style="font-size: 0.8rem; color: #64748b; cursor: pointer;">
+                <input type="checkbox" id="chkExtranjero" onchange="toggleExtranjero()" style="vertical-align: middle; margin-right: 4px;">
+                No tengo RUT chileno (Pasaporte/DNI)
+            </label>
+        </div>
+    </div>
+
+    <div class="input-group-modal"><span class="material-symbols-outlined">person</span><input type="text" id="regPacienteNombre" placeholder="Nombre Completo" class="apple-input-modal" required></div>
+    <div class="input-group-modal"><span class="material-symbols-outlined">call</span><input type="tel" id="regPacienteTelefono" placeholder="Ej: 56912345678" class="apple-input-modal" oninput="if(typeof formatearTelefonoInput === 'function') formatearTelefonoInput(this)" required></div>
+    <div class="input-group-modal"><span class="material-symbols-outlined">mail</span><input type="email" id="regPacienteEmail" placeholder="correo@ejemplo.com (Para inicio de sesión)" class="apple-input-modal" required></div>
+    
+    <div class="input-group-modal"><span class="material-symbols-outlined">lock</span>
+        <input type="password" id="regPacientePassword" placeholder="Crea tu contraseña" class="apple-input-modal" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Debe contener al menos 6 caracteres, incluyendo letras y números" required>
+    </div>
+    <div class="input-group-modal"><span class="material-symbols-outlined">lock_reset</span>
+        <input type="password" id="regPacientePasswordConfirm" placeholder="Confirma tu contraseña" class="apple-input-modal" required>
+    </div>
+    
+    <div class="input-group-modal checkbox-group" style="margin-top: 15px; margin-bottom: 5px; display: flex; align-items: start; gap: 10px;">
+        <input type="checkbox" id="regPacienteTyC" required style="margin-top: 4px; cursor: pointer;">
+        <label for="regPacienteTyC" style="font-size: 0.85rem; color: #4a5568;">
+            He leído y acepto los <a href="javascript:void(0)" onclick="abrirModal('modalTyCPaciente')" style="color: var(--pixar-cyan); text-decoration: underline;">Términos y Condiciones</a>.
+        </label>
+    </div>
+</form>
             </div>
             
             <div class="modal-footer-fixed">
@@ -803,6 +834,58 @@
             });
             element.classList.toggle('active');
         }
+        // ==========================================
+// CONTROL DE UX: CUENTAS FAMILIARES Y EXTRANJEROS
+// ==========================================
+
+// Alterna entre RUT chileno y Pasaporte extranjero
+function toggleExtranjero() {
+    const isExtranjero = document.getElementById('chkExtranjero').checked;
+    const inputDoc = document.getElementById('regPacienteRUT');
+    
+    if (isExtranjero) {
+        inputDoc.placeholder = "N° de Pasaporte o Documento de Identidad";
+        // Al ser extranjero, limpiamos cualquier formato de RUT previo
+        inputDoc.value = inputDoc.value.replace(/[^a-zA-Z0-9]/g, ''); 
+    } else {
+        inputDoc.placeholder = "RUT (ej: 12.345.678-9)";
+        if(typeof formatearRutInput === 'function') formatearRutInput(inputDoc);
+    }
+}
+
+// Decide si aplica el formateador de RUT según el checkbox
+function manejarInputDocumento(input) {
+    const isExtranjero = document.getElementById('chkExtranjero').checked;
+    if (!isExtranjero && typeof formatearRutInput === 'function') {
+        formatearRutInput(input);
+    } else {
+        // Para extranjeros, permitimos letras y números pero sin formato estricto
+        input.value = input.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    }
+}
+
+// Cambia los textos si se selecciona cuenta familiar
+function toggleTipoCuenta() {
+    const isFamiliar = document.querySelector('input[name="tipoCuenta"]:checked').value === 'familiar';
+    const alertaFamiliar = document.getElementById('alertaFamiliar');
+    const inputNombre = document.getElementById('regPacienteNombre');
+    const inputDoc = document.getElementById('regPacienteRUT');
+
+    if (isFamiliar) {
+        alertaFamiliar.style.display = 'block';
+        inputNombre.placeholder = "Nombre completo del familiar (Ej: Juan Pérez)";
+        // Mantenemos el placeholder de RUT pero podemos darle contexto
+        if(!document.getElementById('chkExtranjero').checked) {
+            inputDoc.placeholder = "RUT del familiar";
+        }
+    } else {
+        alertaFamiliar.style.display = 'none';
+        inputNombre.placeholder = "Tu Nombre Completo";
+        if(!document.getElementById('chkExtranjero').checked) {
+            inputDoc.placeholder = "RUT (ej: 12.345.678-9)";
+        }
+    }
+}
     </script>
 </body>
 </html>

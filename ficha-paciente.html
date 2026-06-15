@@ -444,16 +444,28 @@
                 </div>
 
                 <div class="nueva-evo-panel">
-                    <h3 class="form-section-title"><span class="material-symbols-outlined">edit_document</span> Registrar Evolución Médica</h3>
-                    
-                    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Motivo de Consulta</label>
-                    <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude por dolor agudo al masticar..."></textarea>
+    <h3 class="form-section-title"><span class="material-symbols-outlined">edit_document</span> Registrar Evolución Médica</h3>
+    
+    <div style="background: linear-gradient(to right, #f8fafc, #f1f5f9); padding: 20px; border-radius: 12px; border: 1px dashed #cbd5e1; margin-bottom: 25px;">
+        <label class="input-label" style="font-weight: bold; color: #009ee3; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">smart_toy</span> Asistente IA (Borrador Rápido)
+        </label>
+        <textarea id="notasRapidasIA" class="textarea-clinico" rows="2" placeholder="Ej: Dolor 46 frío, caries oclusal, anestesia, resina... Escribe rápido y la IA lo estructurará." style="margin-bottom: 15px;"></textarea>
 
-                    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Diagnóstico</label>
-                    <textarea id="fichaDiagnostico" class="textarea-clinico" placeholder="Ej: Pulpitis irreversible asintomática en pieza 1.4..."></textarea>
+        <button id="btn-generar-ia" type="button" onclick="generarEvolucionIA()" style="width: 100%; background: linear-gradient(135deg, #FFD700, #FDB931); color: #453814; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(253, 185, 49, 0.2); transition: transform 0.2s;">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">auto_awesome</span>
+            Estructurar con IA (Exclusivo PRO)
+        </button>
+    </div>
 
-                    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Procedimiento Realizado</label>
-                    <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación, extirpación pulpar e irrigación..."></textarea>
+    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Motivo de Consulta</label>
+    <textarea id="fichaMotivo" class="textarea-clinico" placeholder="Ej: Paciente acude por dolor agudo al masticar..."></textarea>
+
+    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Diagnóstico</label>
+    <textarea id="fichaDiagnostico" class="textarea-clinico" placeholder="Ej: Pulpitis irreversible asintomática en pieza 1.4..."></textarea>
+
+    <label class="input-label" style="font-weight: bold; color: #475569; font-size: 0.95rem;">Procedimiento Realizado</label>
+    <textarea id="fichaAccion" class="textarea-clinico" placeholder="Ej: Se realiza trepanación, extirpación pulpar e irrigación..."></textarea>
 
                     <h3 class="form-section-title mt-20"><span class="material-symbols-outlined">request_quote</span> Presupuesto Inteligente</h3>
                     <div class="presupuesto-table-wrapper">
@@ -3056,6 +3068,132 @@ const vademecumDB = [
                 document.getElementById('smartPanelContainer').style.display = 'none';
             });
         });
-    </script>
+        </script>
+
+<style>
+    .paywall-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
+    .paywall-overlay.activo { display: flex; opacity: 1; }
+    .paywall-box { background: #ffffff; border-radius: 16px; width: 90%; max-width: 450px; padding: 30px; text-align: center; position: relative; transform: translateY(20px); transition: transform 0.3s ease; }
+    .paywall-overlay.activo .paywall-box { transform: translateY(0); }
+    .paywall-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+    .paywall-icon { background: linear-gradient(135deg, #FFD700, #FDB931); width: 70px; height: 70px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto; color: #453814; }
+    .paywall-features { text-align: left; margin: 20px 0; padding: 0; list-style: none; }
+    .paywall-features li { margin-bottom: 12px; font-size: 0.95rem; color: #475569; display: flex; align-items: center; gap: 10px; }
+    .paywall-features li span { color: #10b981; font-weight: bold; }
+</style>
+
+<div class="paywall-overlay" id="modalPaywall">
+    <div class="paywall-box">
+        <button class="paywall-close" onclick="cerrarPaywall()"><span class="material-symbols-outlined">close</span></button>
+        <div class="paywall-icon"><span class="material-symbols-outlined" style="font-size: 2.5rem;">workspace_premium</span></div>
+        <h2 style="margin: 0 0 10px 0; color: #0f172a; font-weight: 900;">Actualiza a PRO</h2>
+        <p id="paywallMensajeDinamico" style="color: #64748b; font-size: 0.95rem; margin-bottom: 20px;">Lleva tu clínica al siguiente nivel.</p>
+        <ul class="paywall-features">
+            <li><span class="material-symbols-outlined">check_circle</span> Pacientes y fichas ilimitadas</li>
+            <li><span class="material-symbols-outlined">check_circle</span> Atrae pacientes de Urgencia 24/7</li>
+            <li><span class="material-symbols-outlined">check_circle</span> Inteligencia Artificial Clínica</li>
+            <li><span class="material-symbols-outlined">check_circle</span> Arriendo de boxes sin comisión</li>
+        </ul>
+        <div style="margin: 25px 0;">
+            <h3 style="font-size: 1.8rem; margin: 0; color: #0f172a;">$29.990<span style="font-size: 1rem; color: #94a3b8; font-weight: normal;"> /mes</span></h3>
+        </div>
+        <button id="btn-paywall-suscribir" style="width: 100%; padding: 14px; background: #009ee3; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
+            Suscribirme ahora con Mercado Pago
+        </button>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // CONEXIÓN CON INTELIGENCIA ARTIFICIAL (GEMINI)
+    // ==========================================
+    async function generarEvolucionIA() {
+        // 1. Simulación temporal: Eres PRO para poder probar la IA
+        const planUsuarioActual = 'pro'; 
+
+        // 2. EL BLOQUEO: Paywall si es Básico
+        if (planUsuarioActual !== 'pro') {
+            abrirPaywall("La Inteligencia Artificial que redacta tus fichas clínicas en segundos es una herramienta exclusiva del Plan PRO.");
+            return; 
+        }
+
+        // 3. Validar que el borrador no esté vacío
+        const notas = document.getElementById('notasRapidasIA').value;
+        if (!notas.trim()) {
+            alert("Por favor, escribe algunas notas rápidas en el borrador primero.");
+            return;
+        }
+
+        // 4. Cambiar botón a estado de carga
+        const btn = document.getElementById('btn-generar-ia');
+        const contenidoOriginal = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Pensando...';
+        btn.disabled = true;
+
+        try {
+            // 5. LLAMADA A TU EDGE FUNCTION DE SUPABASE (GEMINI)
+            const respuesta = await fetch('http://127.0.0.1:54321/functions/v1/asistente-clinico-ia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notas: notas })
+            });
+
+            const datosEstructurados = await respuesta.json();
+
+            if (datosEstructurados.error) throw new Error(datosEstructurados.error);
+
+            // 6. Inyectamos los textos técnicos creados por Gemini
+            document.getElementById('fichaMotivo').value = datosEstructurados.motivo || '';
+            document.getElementById('fichaDiagnostico').value = datosEstructurados.diagnostico || '';
+            document.getElementById('fichaAccion').value = datosEstructurados.procedimiento || '';
+
+        } catch (error) {
+            console.error("Error conectando con la IA:", error);
+            alert("Error al contactar al motor de Inteligencia Artificial. Revisa que tu Edge Function esté corriendo.");
+        } finally {
+            // Restauramos el botón
+            btn.innerHTML = contenidoOriginal;
+            btn.disabled = false;
+        }
+    }
+    function abrirPaywall(mensajePersonalizado) {
+        if(mensajePersonalizado) {
+            document.getElementById('paywallMensajeDinamico').innerText = mensajePersonalizado;
+        }
+        document.getElementById('modalPaywall').classList.add('activo');
+    }
+
+    function cerrarPaywall() {
+        document.getElementById('modalPaywall').classList.remove('activo');
+    }
+
+    async function procesarSuscripcionPro(botonElemento) {
+        const contenidoOriginal = botonElemento.innerHTML;
+        botonElemento.innerHTML = 'Procesando...';
+        botonElemento.disabled = true;
+
+        try {
+            const datosPrueba = { dentista_id: "ID_PRUEBA_001", email_dentista: "usuario_fantasma@gmail.com" };
+            const respuesta = await fetch('http://127.0.0.1:54321/functions/v1/crear-checkout-suscripcion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosPrueba)
+            });
+            const resultado = await respuesta.json();
+            
+            if (resultado.init_point) window.location.href = resultado.init_point;
+            else { alert("Error al generar el enlace."); botonElemento.innerHTML = contenidoOriginal; botonElemento.disabled = false; }
+        } catch (error) {
+            alert("Error de conexión con el servidor local.");
+            botonElemento.innerHTML = contenidoOriginal; botonElemento.disabled = false;
+        }
+    }
+
+    const btnPaywall = document.getElementById('btn-paywall-suscribir');
+    if (btnPaywall) {
+        btnPaywall.addEventListener('click', function() { procesarSuscripcionPro(this); });
+    }
+</script>
+
 </body>
 </html>
