@@ -622,8 +622,9 @@
             const nombreInput = document.getElementById('regPacienteNombre').value.trim();
             const telefonoInput = document.getElementById('regPacienteTelefono').value.trim();
             
-            // Usamos el formateador estricto para asegurar consistencia
-            const rutLimpio = window.formatearRutEstricto(rutInput);
+            // NUEVO: Verificamos si es extranjero para no romper el formato del pasaporte
+            const isExtranjero = document.getElementById('chkExtranjero').checked;
+            const rutLimpio = isExtranjero ? rutInput : window.formatearRutEstricto(rutInput);
 
             if (pwd1 !== pwd2) return alert("Las contraseñas no coinciden.");
 

@@ -603,8 +603,9 @@
     <!-- ======================================================= -->
     <div id="odontogramaModal" class="odn-modal" role="dialog" aria-modal="true" aria-labelledby="odnTitulo">
         <div class="odn-shell">
-            <header class="odn-topbar">
-                <div class="odn-topbar__left">
+            <header class="odn-topbar" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%;">
+                
+                <div class="odn-topbar__left" style="justify-self: start;">
                     <div class="odn-patient-chip">
                         <div class="odn-patient-chip__avatar" id="odnAvatar">--</div>
                         <div style="display:flex;flex-direction:column;min-width:0;">
@@ -612,20 +613,15 @@
                             <span class="odn-patient-chip__meta" id="odnRutPaciente">RUT: --</span>
                         </div>
                     </div>
-                    <select class="odn-select" id="odnDenticionSelect" aria-label="Tipo de dentición">
-                        <option value="permanent">Dentición permanente</option>
-                        <option value="temporary">Dentición temporal</option>
-                        <option value="mixed">Dentición mixta</option>
-                    </select>
                 </div>
 
-                <div class="odn-topbar__title" id="odnTitulo">
-                    <span class="material-symbols-outlined" aria-hidden="true">dentistry</span>
+                <div class="odn-topbar__title" id="odnTitulo" style="justify-self: center; display: flex; align-items: center; justify-content: center; gap: 8px; text-transform: uppercase;">
+                    <span class="material-symbols-outlined" aria-hidden="true" style="color: #60a5fa;">dentistry</span>
                     Odontograma Clínico
                 </div>
 
-                <div class="odn-topbar__right">
-                    <button type="button" class="odn-btn-icon" id="odnBtnExport" title="Exportar historial del odontograma a PDF">
+                <div class="odn-topbar__right" style="justify-self: end; display: flex; gap: 6px;">
+                    <button type="button" class="odn-btn-icon" id="odnBtnExport" onclick="exportarOdontogramaPDF()" title="Exportar historial del odontograma a PDF">
                         <span class="material-symbols-outlined" aria-hidden="true">picture_as_pdf</span>
                     </button>
                     <button type="button" class="odn-btn-icon" id="odnBtnSave" title="Guardar snapshot local">
@@ -649,52 +645,72 @@
                     </div>
                     <div class="odn-toolpanel__scroll">
 
-                        <section class="odn-finding-group" data-collapsed="false" data-color="completed">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                        <section class="odn-finding-group" data-collapsed="true" data-color="completed">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
                                 <span class="odn-finding-group__dot" aria-hidden="true"></span>
                                 <span class="odn-finding-group__name">Condición Base & Preventiva</span>
                                 <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
-                            <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn" data-state="control-ok" data-scope="surface" data-code="sano" data-label="Sano / Preventivo" onclick="lanzarAsistenteClinico('sano')">Sano / Preventivo</button>
-                                <button type="button" class="odn-finding-btn" data-state="historic" data-scope="whole-tooth" data-code="ausente" data-label="Pieza Ausente" onclick="lanzarAsistenteClinico('ausente')">Pieza Ausente</button>
-                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="surface" data-code="restauracion" data-label="Restauración Existente" onclick="lanzarAsistenteClinico('restauracion')">Restauración Existente</button>
-                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="rehabilitacion" data-label="Rehabilitación Protésica" onclick="lanzarAsistenteClinico('rehabilitacion')">Rehabilitación Protésica</button>
-                                <button type="button" class="odn-finding-btn" data-state="historic" data-scope="whole-tooth" data-code="extraccion" data-label="Indicación de Extracción" onclick="lanzarAsistenteClinico('extraccion')">Indicación de Extracción</button>
+                            <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="surface" data-code="sano" data-label="Sano / Preventivo" onclick="lanzarAsistenteClinico('sano')">Sano / Preventivo</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="surface" data-code="resina_existente" data-label="Restauración de Resina" onclick="lanzarAsistenteClinico('resina_existente')">Restauración de Resina</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="surface" data-code="amalgama_existente" data-label="Restauración de Amalgama" onclick="lanzarAsistenteClinico('amalgama_existente')">Restauración de Amalgama</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="endodoncia_existente" data-label="Endodoncia" onclick="lanzarAsistenteClinico('endodoncia_existente')">Endodoncia</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="protesis_fija_existente" data-label="Prótesis Fija / Incrustación" onclick="lanzarAsistenteClinico('protesis_fija_existente')">Prótesis Fija / Incrustación</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="intermediario_existente" data-label="Intermediario Protésico" onclick="lanzarAsistenteClinico('intermediario_existente')">Intermediario Protésico</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="fractura_existente" data-label="Fractura Coronal" onclick="lanzarAsistenteClinico('fractura_existente')">Fractura Coronal</button>
+                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="ausente" data-label="Pieza Ausente" onclick="lanzarAsistenteClinico('ausente')">Pieza Ausente</button>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding: 12px; background: rgba(30, 58, 138, 0.04); border-radius: 10px; border: 1px dashed rgba(30, 58, 138, 0.15);">
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #334155; cursor: pointer; font-weight: 600; user-select: none;">
+                                        <input type="checkbox" id="baseProtesisRemovible" onchange="toggleAparatologiaGlobal('aparato_removible', this.checked); if(this.checked) lanzarAsistenteClinico('aparato_removible');" style="accent-color: var(--blue-elegant); width: 16px; height: 16px;">
+                                        Prótesis Removible Presente
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #334155; cursor: pointer; font-weight: 600; user-select: none;">
+                                        <input type="checkbox" id="baseAparatoOrtodontico" onchange="toggleAparatologiaGlobal('aparato_ortodoncia', this.checked); if(this.checked) lanzarAsistenteClinico('aparato_ortodoncia');" style="accent-color: var(--blue-elegant); width: 16px; height: 16px;">
+                                        Aparato Ortodóntico Presente
+                                    </label>
+                                </div>
                             </div>
                         </section>
 
-                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                        <section class="odn-finding-group" data-collapsed="true" data-color="active">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
                                 <span class="odn-finding-group__dot" aria-hidden="true"></span>
                                 <span class="odn-finding-group__name">Condiciones Periodontales</span>
                                 <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
-                            <div class="odn-finding-group__body">
-                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cal_leve" data-label="CAL leve/moderada (1–4 mm)" onclick="lanzarAsistenteClinico('cal_leve')">CAL leve/moderada (1–4 mm)</button>
-                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="cal_severa" data-label="CAL severa (≥ 5 mm)" onclick="lanzarAsistenteClinico('cal_severa')">CAL severa (≥ 5 mm)</button>
-                            </div>
-                        </section>
-
-                        <section class="odn-finding-group" data-collapsed="true" data-color="planned">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
-                                <span class="odn-finding-group__dot" aria-hidden="true" style="background:#f59e0b;"></span>
-                                <span class="odn-finding-group__name">Riesgo Biomecánico</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
-                            </button>
-                            <div class="odn-finding-group__body" style="display:none;">
-                                <button type="button" class="odn-finding-btn" data-state="planned" data-scope="whole-tooth" data-code="fractura" data-label="Fractura Coronal" onclick="lanzarAsistenteClinico('fractura')">Fractura Coronal</button>
+                            <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="pnic_leve" data-label="PNIC Leve/Moderada (1-4mm)" onclick="lanzarAsistenteClinico('pnic_leve')">PNIC Leve/Moderada (1-4mm)</button>
+                                <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="pnic_severa" data-label="PNIC Severa (≥ 5mm)" onclick="lanzarAsistenteClinico('pnic_severa')">PNIC Severa (≥ 5mm)</button>
                                 <button type="button" class="odn-finding-btn" data-state="active" data-scope="whole-tooth" data-code="movilidad" data-label="Movilidad Dental" onclick="lanzarAsistenteClinico('movilidad')">Movilidad Dental</button>
+
+                                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding: 12px; background: rgba(239, 68, 68, 0.04); border-radius: 10px; border: 1px dashed rgba(239, 68, 68, 0.2);">
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #7f1d1d; cursor: pointer; font-weight: 600; user-select: none;">
+                                        <input type="checkbox" id="perioPlaca" onchange="toggleAparatologiaGlobal('placa_visible', this.checked); if(this.checked) lanzarAsistenteClinico('placa_visible');" style="accent-color: #ef4444; width: 16px; height: 16px;">
+                                        Placa Bacteriana Visible
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #7f1d1d; cursor: pointer; font-weight: 600; user-select: none;">
+                                        <input type="checkbox" id="perioSangrado" onchange="toggleAparatologiaGlobal('sangrado_sondaje', this.checked); if(this.checked) lanzarAsistenteClinico('sangrado_sondaje');" style="accent-color: #ef4444; width: 16px; height: 16px;">
+                                        Sangrado al Sondaje (BOP)
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #7f1d1d; cursor: pointer; font-weight: 600; user-select: none;">
+                                        <input type="checkbox" id="perioFumador" onchange="toggleAparatologiaGlobal('fumador_activo', this.checked); if(this.checked) lanzarAsistenteClinico('fumador_activo');" style="accent-color: #ef4444; width: 16px; height: 16px;">
+                                        Fumador Activo
+                                    </label>
+                                </div>
                             </div>
                         </section>
 
-                        <section class="odn-finding-group" data-collapsed="false" data-color="active">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="true">
+                        
+                        <section class="odn-finding-group" data-collapsed="true" data-color="active">
+                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
                                 <span class="odn-finding-group__dot" aria-hidden="true"></span>
                                 <span class="odn-finding-group__name">Cariología (ICCMS)</span>
                                 <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
                             </button>
-                            <div class="odn-finding-group__body">
+                            <div class="odn-finding-group__body" style="display:none;">
                                 <button type="button" class="odn-finding-btn" data-state="active" data-scope="surface" data-code="iccms_1" data-label="Mancha Blanca" onclick="lanzarAsistenteClinico('iccms_1')">Mancha Blanca (Código 1)</button>
                                 <button type="button" class="odn-finding-btn" data-state="active" data-scope="surface" data-code="iccms_3" data-label="Caries Superficial" onclick="lanzarAsistenteClinico('iccms_3')">Caries Superficial (Código 3)</button>
                                 <button type="button" class="odn-finding-btn" data-state="active" data-scope="surface" data-code="iccms_5" data-label="Caries Dentinaria" onclick="lanzarAsistenteClinico('iccms_5')">Caries Dentinaria (Código 5)</button>
@@ -725,18 +741,7 @@
                             </div>
                         </section>
 
-                        <section class="odn-finding-group" data-collapsed="true" data-color="completed">
-                            <button type="button" class="odn-finding-group__head" aria-expanded="false">
-                                <span class="odn-finding-group__dot" aria-hidden="true" style="background:#3b82f6;"></span>
-                                <span class="odn-finding-group__name">Aparatología Clínica</span>
-                                <span class="material-symbols-outlined odn-finding-group__chevron">expand_more</span>
-                            </button>
-                            <div class="odn-finding-group__body" style="display:none;">
-                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="removible" data-label="Prótesis Removible" onclick="lanzarAsistenteClinico('aparato_removible')">Portador Prótesis Removible</button>
-                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="ortodoncia" data-label="Aparato Ortodóntico" onclick="lanzarAsistenteClinico('aparato_ortodoncia')">Portador Aparato Ortodóntico</button>
-                                <button type="button" class="odn-finding-btn" data-state="completed" data-scope="whole-tooth" data-code="contensor" data-label="Contensor Post-Orto" onclick="lanzarAsistenteClinico('aparato_contensor')">Portador Contensor Post-Orto</button>
-                            </div>
-                        </section>
+                        
 
                         <div class="odn-finding-actions" style="margin-top:20px;">
                             <button type="button" class="odn-finding-btn odn-finding-btn--eraser" data-state="existing" data-scope="surface" data-code="borrar" data-label="Borrar marcado">
@@ -810,66 +815,109 @@
                     </h4>
 
                     <div class="odn-perio-card__scroll">
-                        <!-- Global Switches/Toggles -->
-                        <div class="odn-perio-switches" style="margin-bottom: 16px;">
-                            <label class="odn-perio-switch">
-                                <input type="checkbox" data-perio="placa">
-                                <span>Placa bacteriana visible</span>
-                            </label>
-                            <label class="odn-perio-switch">
-                                <input type="checkbox" data-perio="bop">
-                                <span>Sangrado al sondaje (BOP)</span>
-                            </label>
-                            <label class="odn-perio-switch" data-tone="smoker">
-                                <input type="checkbox" data-perio="fumador">
-                                <span>Fumador activo (Grado C)</span>
-                            </label>
-                        </div>
+                        
+                        <div class="odn-treatment-groups" style="display:flex; flex-direction:column; gap:16px;">
 
                         <!-- Categorías de Tratamiento -->
                         <div class="odn-treatment-groups" style="display:flex; flex-direction:column; gap:16px;">
+                            
                             <!-- Tratamiento Periodontal -->
-                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
-                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento Periodontal</div>
-                                <button type="button" class="odn-treatment-btn" data-tx="destartraje" onclick="lanzarAsistenteClinico('destartraje')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Destartraje Supragingival y Pulido Coronal</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="pulido_radicular" onclick="lanzarAsistenteClinico('pulido_radicular')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Pulido Radicular</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="reevaluacion" onclick="lanzarAsistenteClinico('reevaluacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Reevaluación</button>
-                            </div>
+                            <section class="odn-finding-group" data-collapsed="true" style="background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md);">
+                                <button type="button" class="odn-finding-group__head" aria-expanded="false" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px; border: none; background: transparent; cursor: pointer;">
+                                    <span style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px;">Tratamiento Periodontal</span>
+                                    <span class="material-symbols-outlined odn-finding-group__chevron" style="color: var(--odn-text-soft); transition: transform 0.2s;">expand_more</span>
+                                </button>
+                                <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('destartraje_supra')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Destartraje Supragingival y Pulido Coronal</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('destartraje_sub')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Destartraje Subgingival y Pulido Radicular</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('reevaluacion_perio')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:0; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Reevaluación Periodontal</button>
+                                </div>
+                            </section>
 
                             <!-- Tratamiento de Operatoria -->
-                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
-                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento de Operatoria</div>
-                                <button type="button" class="odn-treatment-btn" data-tx="resina_simple" onclick="lanzarAsistenteClinico('resina_simple')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración resina Simple (1 cara)</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="resina_compleja" onclick="lanzarAsistenteClinico('resina_compleja')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración resina Compleja (2+ caras)</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="restauracion_cervical" onclick="lanzarAsistenteClinico('restauracion_cervical')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración Cervical</button>
-                            </div>
+                            <section class="odn-finding-group" data-collapsed="true" style="background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md);">
+                                <button type="button" class="odn-finding-group__head" aria-expanded="false" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px; border: none; background: transparent; cursor: pointer;">
+                                    <span style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px;">Tratamiento de Operatoria</span>
+                                    <span class="material-symbols-outlined odn-finding-group__chevron" style="color: var(--odn-text-soft); transition: transform 0.2s;">expand_more</span>
+                                </button>
+                                <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('resina_simple')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración resina Simple (1 cara)</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('resina_compleja')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración resina Compleja (2+ caras)</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('restauracion_cervical')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración Cervical</button>
+                                    
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('vidrio_ionomero')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Restauración en Vidrio Ionómero</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('base_cavitaria')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Base Cavitaria / Recubrimiento</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('inactivacion_caries')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:0; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Inactivación de Caries (ART)</button>
+                                </div>
+                            </section>
 
                             <!-- Tratamiento de Endodoncia -->
-                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
-                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento de Endodoncia</div>
-                                <button type="button" class="odn-treatment-btn" data-tx="endo_convencional" onclick="lanzarAsistenteClinico('endo_convencional')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Endodoncia convencional</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="endo_mecanizada" onclick="lanzarAsistenteClinico('endo_mecanizada')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Endodoncia mecanizada</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="trepanacion" onclick="lanzarAsistenteClinico('trepanacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Trepanación</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="recubrimiento_ind" onclick="lanzarAsistenteClinico('recubrimiento_ind')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Recubrimiento pulpar indirecto</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="recubrimiento_dir" onclick="lanzarAsistenteClinico('recubrimiento_dir')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Recubrimiento pulpar directo</button>
-                            </div>
+                            <section class="odn-finding-group" data-collapsed="true" style="background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md);">
+                                <button type="button" class="odn-finding-group__head" aria-expanded="false" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px; border: none; background: transparent; cursor: pointer;">
+                                    <span style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px;">Tratamiento de Endodoncia</span>
+                                    <span class="material-symbols-outlined odn-finding-group__chevron" style="color: var(--odn-text-soft); transition: transform 0.2s;">expand_more</span>
+                                </button>
+                                <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                    <button type="button" class="odn-treatment-btn" data-tx="endo_convencional" onclick="lanzarAsistenteClinico('endo_convencional')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Endodoncia convencional</button>
+                                    <button type="button" class="odn-treatment-btn" data-tx="endo_mecanizada" onclick="lanzarAsistenteClinico('endo_mecanizada')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Endodoncia mecanizada</button>
+                                    <button type="button" class="odn-treatment-btn" data-tx="trepanacion" onclick="lanzarAsistenteClinico('trepanacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Trepanación</button>
+                                    <button type="button" class="odn-treatment-btn" data-tx="recubrimiento_ind" onclick="lanzarAsistenteClinico('recubrimiento_ind')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Recubrimiento pulpar indirecto</button>
+                                    <button type="button" class="odn-treatment-btn" data-tx="recubrimiento_dir" onclick="lanzarAsistenteClinico('recubrimiento_dir')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:0; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Recubrimiento pulpar directo</button>
+                                </div>
+                            </section>
 
                             <!-- Tratamiento Rehabilitador -->
-                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md); padding:10px;">
-                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento Rehabilitador</div>
-                                <button type="button" class="odn-treatment-btn" data-tx="incrustacion" onclick="lanzarAsistenteClinico('incrustacion')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Incrustación</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="pfu" onclick="lanzarAsistenteClinico('pfu')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Prótesis fija unitaria</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="intermediario" onclick="lanzarAsistenteClinico('intermediario')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Intermediario de prótesis fija plural</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="implante" onclick="lanzarAsistenteClinico('implante')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Implante dental</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="removible" onclick="lanzarAsistenteClinico('removible')" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Prótesis Removible</button>
-                            </div>
+                            <section class="odn-finding-group" data-collapsed="true" style="background:#f8fafc; border:1px solid var(--odn-border); border-radius:var(--odn-radius-md);">
+                                <button type="button" class="odn-finding-group__head" aria-expanded="false" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px; border: none; background: transparent; cursor: pointer;">
+                                    <span style="font-size:0.8rem; font-weight:700; color:var(--odn-text-soft); text-transform:uppercase; letter-spacing:0.5px;">Tratamiento Rehabilitador</span>
+                                    <span class="material-symbols-outlined odn-finding-group__chevron" style="color: var(--odn-text-soft); transition: transform 0.2s;">expand_more</span>
+                                </button>
+                                <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('incrustacion_ceromero')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Incrustación Cerómero</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('incrustacion_ceramica')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Incrustación de Cerámica</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('pfu_metal_porcelana')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">PFU Metal/Porcelana</button>
+                                    <button type="button" class="heading-sub-concept odn-treatment-btn" onclick="registrarPlanificacionManual('pfu_libre_metal')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">PFU Libre de Metal</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('carilla_ceromero')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Carilla de Cerómero</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('carilla_ceramica')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Carilla de Cerámica</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('perno_colado')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Perno muñón Colado</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('perno_fibra')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Perno muñón de fibra</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('implante_osteo')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Implante Osteointegrado</button>
+                                    <button type="button" class="odn-treatment-btn" onclick="registrarPlanificacionManual('injerto_oseo')" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Injerto Óseo</button>
 
-                            <!-- Tratamiento de Exodoncia -->
-                            <div class="odn-treatment-group" style="display:flex; flex-direction:column; gap:6px; background:#fef2f2; border:1px solid #fecaca; border-radius:var(--odn-radius-md); padding:10px;">
-                                <div class="odn-treatment-group-title" style="font-size:0.8rem; font-weight:700; color:#b91c1c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Tratamiento de Exodoncia</div>
-                                <button type="button" class="odn-treatment-btn" data-tx="exodoncia_simple" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Extracción simple</button>
-                                <button type="button" class="odn-treatment-btn" data-tx="exodoncia_compleja" style="display:block; width:100%; text-align:left; padding:8px 12px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Extracción compleja</button>
-                            </div>
+                                    <!-- Checkboxes para Prótesis Removibles Planificadas (Boca Completa / Arcada) -->
+                                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding: 12px; background: rgba(245, 158, 11, 0.04); border-radius: 10px; border: 1px dashed rgba(245, 158, 11, 0.2);">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #b45309; cursor: pointer; font-weight: 600; user-select: none;">
+                                            <input type="checkbox" onchange="if(this.checked) registrarPlanificacionManual('pr_acrilica');" style="accent-color: #f59e0b; width: 16px; height: 16px;">
+                                            Prótesis Removible Superior/Inferior Acrílica
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #b45309; cursor: pointer; font-weight: 600; user-select: none;">
+                                            <input type="checkbox" onchange="if(this.checked) registrarPlanificacionManual('pr_metalica');" style="accent-color: #f59e0b; width: 16px; height: 16px;">
+                                            Prótesis Removible Superior/Inferior Metálica
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #b45309; cursor: pointer; font-weight: 600; user-select: none;">
+                                            <input type="checkbox" onchange="if(this.checked) registrarPlanificacionManual('pr_valplast');" style="accent-color: #f59e0b; width: 16px; height: 16px;">
+                                            Prótesis Removible Superior/Inferior Valplast
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #b45309; cursor: pointer; font-weight: 600; user-select: none;">
+                                            <input type="checkbox" onchange="if(this.checked) registrarPlanificacionManual('pr_sobredentadura');" style="accent-color: #f59e0b; width: 16px; height: 16px;">
+                                            Prótesis Removible Superior/Inferior Sobredentadura
+                                        </label>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Tratamiento de Exodoncia (Color Rojo) -->
+                            <section class="odn-finding-group" data-collapsed="true" style="background:#fef2f2; border:1px solid #fecaca; border-radius:var(--odn-radius-md);">
+                                <button type="button" class="odn-finding-group__head" aria-expanded="false" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 10px; border: none; background: transparent; cursor: pointer;">
+                                    <span style="font-size:0.8rem; font-weight:700; color:#b91c1c; text-transform:uppercase; letter-spacing:0.5px;">Tratamiento de Exodoncia</span>
+                                    <span class="material-symbols-outlined odn-finding-group__chevron" style="color: #b91c1c; transition: transform 0.2s;">expand_more</span>
+                                </button>
+                                <div class="odn-finding-group__body" style="display:none; padding: 0 10px 10px 10px;">
+                                    <button type="button" class="odn-treatment-btn" data-tx="exodoncia_simple" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:6px; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Extracción simple</button>
+                                    <button type="button" class="odn-treatment-btn" data-tx="exodoncia_compleja" style="display:block; width:100%; text-align:left; padding:8px 12px; margin-bottom:0; background:#ffffff; border:1px solid var(--odn-border); border-radius:var(--odn-radius-sm); font-size:0.85rem; color:var(--odn-text); cursor:pointer;">Extracción compleja</button>
+                                </div>
+                            </section>
+
                         </div>
 
                         <div class="odn-perio-diag-out" id="odnPerioDiagOut" data-diagnosticado="false">
@@ -2913,30 +2961,346 @@ const vademecumDB = [
     
     <script>
         const arbolClinico = {
-            'sano': { titulo: 'Pieza Sana', claseAlerta: 'smart-recommendation', icon: 'health_and_safety', rec: 'Manejo Preventivo.', opciones: [] },
-            'restauracion': { titulo: 'Restauración Existente', claseAlerta: 'smart-recommendation', icon: 'info', rec: 'Control radiográfico preventivo.', opciones: ['Restauración en Resina', 'Restauración en Amalgama'] },
-            'ausente': { titulo: 'Pieza Ausente', claseAlerta: 'smart-recommendation warning', icon: 'visibility_off', rec: 'Determine la causa.', opciones: ['Pérdida por Caries', 'Ortodoncia', 'Agenesia'] },
-            'rehabilitacion': { titulo: 'Rehabilitación Protésica', claseAlerta: 'smart-recommendation warning', icon: 'architecture', rec: 'Evaluar estado de los pilares.', opciones: ['PFU', 'PPR'] },
-            'fractura': { titulo: 'Fractura Coronal', claseAlerta: 'smart-recommendation alert', icon: 'personal_injury', rec: 'Evaluar compromiso pulpar.', opciones: ['Fractura Parcial', 'Fractura Compleja'] },
-            'movilidad': { titulo: 'Movilidad Dental', claseAlerta: 'smart-recommendation alert', icon: 'air', rec: 'Evaluar estado periodontal.', opciones: ['Grado 1', 'Grado 2', 'Grado 3'] },
-            'iccms_1': { titulo: 'Mancha Blanca', claseAlerta: 'smart-recommendation warning', icon: 'water_drop', rec: 'Recetar flúor.', opciones: ['Sellantes', 'Flúor Barniz'] },
-            'iccms_3': { titulo: 'Caries Superficial', claseAlerta: 'smart-recommendation warning', icon: 'radio_button_checked', rec: 'Rx Bite Wing.', opciones: ['Sellantes', 'Flúor Barniz'] },
-            'iccms_5': { titulo: 'Caries Dentinaria', claseAlerta: 'smart-recommendation alert', icon: 'coronavirus', rec: 'Rx Bite Wing obligatoria.', opciones: ['Resina Simple', 'Resina Compleja'] },
-            'iccms_6': { titulo: 'Caries Profunda', claseAlerta: 'smart-recommendation alert', icon: 'warning', rec: 'Evaluación de vitalidad pulpar.', opciones: ['Rx Periapical', 'Recubrimiento Pulpar', 'Resina'] },
-            'pulpitis_rev': { titulo: 'Pulpitis Reversible', claseAlerta: 'smart-recommendation warning', icon: 'thermostat', rec: 'Evaluar sensibilidad.', opciones: ['Protección Pulpar', 'Resina'] },
-            'pulpitis_irrev_sint': { titulo: 'Pulpitis Irrev. Sintomática', claseAlerta: 'smart-recommendation alert', icon: 'emergency', rec: 'Dolor agudo.', opciones: ['Trepanación', 'Endodoncia'] },
-            'pulpitis_irrev_asint': { titulo: 'Pulpitis Irrev. Asintomática', claseAlerta: 'smart-recommendation alert', icon: 'healing', rec: 'Riesgo reagudización.', opciones: ['Trepanación', 'Endodoncia'] },
-            'necrosis': { titulo: 'Necrosis Pulpar', claseAlerta: 'smart-recommendation alert', icon: 'skull', rec: 'Pérdida de vitalidad.', opciones: ['Trepanación', 'Endodoncia'] },
-            'pre_iniciado': { titulo: 'Previamente Iniciado', claseAlerta: 'smart-recommendation warning', icon: 'construction', rec: 'Tratamiento en curso.', opciones: ['Endodoncia'] },
-            'perio_apical_sint': { titulo: 'Periodontitis Apical Sint.', claseAlerta: 'smart-recommendation alert', icon: 'bolt', rec: 'Evaluar Trauma.', opciones: ['Desgaste Oclusal', 'Endodoncia'] },
-            'perio_apical_asint': { titulo: 'Periodontitis Apical Asint.', claseAlerta: 'smart-recommendation alert', icon: 'radio_button_unchecked', rec: 'Intervenir.', opciones: ['Endodoncia'] },
-            'absceso_agudo': { titulo: 'Absceso Agudo', claseAlerta: 'smart-recommendation alert', icon: 'medication', rec: 'Antibióticos.', opciones: ['Trepanación', 'Drenaje'] },
-            'absceso_cronico': { titulo: 'Absceso Crónico', claseAlerta: 'smart-recommendation warning', icon: 'medication', rec: 'Fístula.', opciones: ['Fistulografía', 'Endodoncia'] },
-            'osteitis': { titulo: 'Osteítis Condensante', claseAlerta: 'smart-recommendation warning', icon: 'lens_blur', rec: 'Reacción ósea.', opciones: ['Endodoncia'] },
-            'aparato_removible': { titulo: 'Prótesis Removible', claseAlerta: 'smart-recommendation', icon: 'check_box', rec: 'Control 3 meses.', opciones: [] },
-            'aparato_ortodoncia': { titulo: 'Ortodoncia', claseAlerta: 'smart-recommendation', icon: 'check_box', rec: 'Control 3 meses.', opciones: [] },
-            'aparato_contensor': { titulo: 'Contensor', claseAlerta: 'smart-recommendation', icon: 'check_box', rec: 'Control 3 meses.', opciones: [] }
-        };
+    // ==========================================
+    // 1. CONDICIONES BASE & PREVENTIVAS (AZUL OSCURO)
+    // ==========================================
+    'sano': { 
+        titulo: 'Sano / Preventivo', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'health_and_safety', 
+        rec: 'Pieza sana. Se sugiere manejo preventivo habitual, control de higiene e indicación de sellantes según riesgo.', 
+        opciones: [] 
+    },
+    'resina_existente': { 
+        titulo: 'Restauración de Resina', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'info', 
+        rec: 'Restauración estética activa. Monitorear integridad clínica en citas de control transclínico.', 
+        opciones: [] 
+    },
+    'amalgama_existente': { 
+        titulo: 'Restauración de Amalgama', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'info', 
+        rec: 'Obturación metálica funcional. Inspeccionar posibles líneas de fisura adamantina o microfiltración marginal.', 
+        opciones: [] 
+    },
+    'endodoncia_existente': { 
+        titulo: 'Endodoncia', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'shield_heart', 
+        rec: 'Tratamiento de conducto previo. Se sugiere realizar control radiográfico periódico de la evolución periapical.', 
+        opciones: [] 
+    },
+    'protesis_fija_existente': { 
+        titulo: 'Prótesis Fija / Incrustación', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'architecture', 
+        rec: 'Rehabilitación cementada fija. Controlar oclusión, adaptación de márgenes y salud de los tejidos periféricos.', 
+        opciones: [] 
+    },
+    'intermediario_existente': { 
+        titulo: 'Intermediario Protésico', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'link', 
+        rec: 'Póntico o pilar estructural de puente. Mantener una higienización rigurosa bajo el conector protésico.', 
+        opciones: [] 
+    },
+    'fractura_existente': { 
+        titulo: 'Fractura Coronal', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'personal_injury', 
+        rec: 'Pérdida de continuidad esmalte/dentina. Evaluar vitalidad pulpar y planificar reconstrucción estructural.', 
+        opciones: ['Restauración Directa', 'Perno Muñón y Corona'] 
+    },
+    'ausente': { 
+        titulo: 'Pieza Ausente', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'visibility_off', 
+        rec: 'Espacio edéntulo. Evaluar si compromete la estabilidad oclusal y analizar opciones de implante o prótesis.', 
+        opciones: [] 
+    },
+
+    // ==========================================
+    // 2. PATOLOGÍAS Y CONDICIONES CLÍNICAS EN CURSO
+    // ==========================================
+    'pnic_leve': { 
+        titulo: 'PNIC Leve/Moderada (1-4mm)', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'straighten', 
+        rec: 'Pérdida de Nivel de Inserción Clínica moderada. Indicar instrucción de higiene y terapia periodontal básica.', 
+        opciones: ['Destartraje Supragingival y Pulido Coronal', 'Pulido Radicular'] 
+    },
+    'pnic_severa': { 
+        titulo: 'PNIC Severa (≥ 5mm)', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'warning', 
+        rec: 'Pérdida de Nivel de Inserción Clínica severa. Riesgo de pérdida dentaria. Planificar pulido radicular profundo y reevaluación.', 
+        opciones: ['Pulido Radicular', 'Reevaluación'] 
+    },
+    'movilidad': { 
+        titulo: 'Movilidad Dental', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'air', 
+        rec: 'Evaluar estado periodontal, soporte óseo radiográfico y posibles interferencias oclusales.', 
+        opciones: ['Grado 1', 'Grado 2', 'Grado 3'] 
+    },
+    'iccms_1': { 
+        titulo: 'Mancha Blanca', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'water_drop', 
+        rec: 'Caries incipiente activa/inactiva. Aplicar protocolos de remineralización y flúor barniz localizado.', 
+        opciones: ['Sellantes', 'Flúor Barniz'] 
+    },
+    'iccms_3': { 
+        titulo: 'Caries Superficial', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'radio_button_checked', 
+        rec: 'Pérdida de continuidad superficial. Control Bite-Wing estratégico e intervención mínimamente invasiva.', 
+        opciones: ['Sellantes', 'Flúor Barniz'] 
+    },
+    'iccms_5': { 
+        titulo: 'Caries Dentinaria', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'coronavirus', 
+        rec: 'Lesión con compromiso estructural de dentina. Rx Bite-Wing obligatoria para resguardar la pulpa.', 
+        opciones: ['Resina Simple', 'Resina Compleja'] 
+    },
+    'iccms_6': { 
+        titulo: 'Caries Profunda', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'warning', 
+        rec: 'Lesión profunda. Control estricto de sintomatología clínica antes de realizar remoción selectiva.', 
+        opciones: ['Rx Periapical', 'Recubrimiento Pulpar', 'Resina'] 
+    },
+    'pulpitis_rev': { 
+        titulo: 'Pulpitis Reversible', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'thermostat', 
+        rec: 'Inflamación pulpar transitoria. Aplicar protección dentino-pulpar y restaurar herméticamente.', 
+        opciones: ['Protección Pulpar', 'Resina'] 
+    },
+    'pulpitis_irrev_sint': { 
+        titulo: 'Pulpitis Irrev. Sintomática', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'emergency', 
+        rec: 'Dolor agudo espontáneo persistente. Requiere tratamiento endodóntico de urgencia inmediato.', 
+        opciones: ['Trepanación', 'Endodoncia'] 
+    },
+    'pulpitis_irrev_asint': { 
+        titulo: 'Pulpitis Irrev. Asintomática', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'healing', 
+        rec: 'Compromiso pulpar severo sin dolor activo. Alto riesgo latente de reagudización o necrosis celular.', 
+        opciones: ['Trepanación', 'Endodoncia'] 
+    },
+    'necrosis': { 
+        titulo: 'Necrosis Pulpar', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'skull', 
+        rec: 'Muerte del tejido pulpar. Indispensable realizar desinfección y preparación biomecánica de conductos.', 
+        opciones: ['Trepanación', 'Endodoncia'] 
+    },
+    'pre_iniciado': { 
+        titulo: 'Previamente Iniciado', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'construction', 
+        rec: 'Conductos abiertos o con medicación provisional. Planificar finalización de la terapia endodóntica.', 
+        opciones: ['Endodoncia'] 
+    },
+    'perio_apical_sint': { 
+        titulo: 'Periodontitis Apical Sint.', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'bolt', 
+        rec: 'Dolor severo a la percusión o masticación. Descartar trauma oclusal directo o infección activa.', 
+        opciones: ['Desgaste Oclusal', 'Endodoncia'] 
+    },
+    'perio_apical_asint': { 
+        titulo: 'Periodontitis Apical Asint.', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'radio_button_unchecked', 
+        rec: 'Zona radiolúcida periapical de carácter crónico. Planificar descontaminación endodóntica.', 
+        opciones: ['Endodoncia'] 
+    },
+    'absceso_agudo': { 
+        titulo: 'Absceso Agudo', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'medication', 
+        rec: 'Colección purulenta localizada con compromiso de tejidos blandos. Evaluar terapia farmacológica.', 
+        opciones: ['Trepanación', 'Drenaje'] 
+    },
+    'absceso_cronico': { 
+        titulo: 'Absceso Crónico', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'medication', 
+        rec: 'Presencia de fístula con drenaje intermitente. Localizar origen mediante examen clínico.', 
+        opciones: ['Fistulografía', 'Endodoncia'] 
+    },
+    'osteitis': { 
+        titulo: 'Osteítis Condensante', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'lens_blur', 
+        rec: 'Reacción ósea esclerosante focalizada secundaria a inflamación crónica de baja intensidad.', 
+        opciones: ['Endodoncia'] 
+    },
+    'aparato_removible': { 
+        titulo: 'Portador de Prótesis Removible', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'check_box', 
+        rec: 'Paciente portador de aparatología removible. Evaluar estabilidad oclusal, estado de ganchos retenedores y soporte mucoso. Indicar e instruir sobre higiene estricta de la prótesis fuera de la cavidad bucal.', 
+        opciones: [] 
+    },
+    'aparato_ortodoncia': { 
+        titulo: 'Portador de Aparato Ortodóntico', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'check_box', 
+        rec: 'Paciente en tratamiento activo de ortodoncia. Monitorear estado de arcos, brackets o alineadores. Reforzar técnicas de cepillado e indicar uso obligatorio de cepillos interproximales para prevenir descalcificaciones.', 
+        opciones: [] 
+    },
+    'placa_visible': { 
+        titulo: 'Placa Bacteriana Visible', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'coronavirus', 
+        rec: 'Presencia de biofilm dental evidente. Indica deficiencia en la técnica de higiene oral. Requiere profilaxis clínica.', 
+        opciones: ['Destartraje Supragingival y Pulido Coronal'] 
+    },
+    'sangrado_sondaje': { 
+        titulo: 'Sangrado al Sondaje (BOP)', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'bloodtype', 
+        rec: 'Signo patognomónico de inflamación gingival activa (gingivitis/periodontitis). Necesidad de terapia periodontal básica.', 
+        opciones: ['Destartraje Supragingival y Pulido Coronal', 'Pulido Radicular'] 
+    },
+    'fumador_activo': { 
+        titulo: 'Fumador Activo', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'smoking_rooms', 
+        rec: 'Factor de riesgo que enmascara el sangrado, acelera la pérdida ósea y retrasa la cicatrización. Aconsejar fuertemente la cesación tabáquica.', 
+        opciones: [] 
+    },
+    'destartraje_supra': { 
+        titulo: 'Destartraje Supragingival y Pulido Coronal', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'cleaning_services', 
+        rec: 'Terapia mecánica superficial planificada. Seleccione la prestación abajo para inyectarla en el presupuesto de manera independiente.', 
+        opciones: ['Destartraje Supragingival y Pulido Coronal'] 
+    },
+    'destartraje_sub': { 
+        titulo: 'Destartraje Subgingival y Pulido Radicular', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'cleaning_services', 
+        rec: 'Terapia mecánica profunda planificada. Seleccione la prestación abajo para inyectarla en el presupuesto de manera independiente.', 
+        opciones: ['Destartraje Subgingival y Pulido Radicular'] 
+    },
+    'reevaluacion_perio': { 
+        titulo: 'Reevaluación Periodontal', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'fact_check', 
+        rec: 'Control clínico planificado. Seleccione la prestación abajo para inyectarla en el presupuesto de manera independiente.', 
+        opciones: ['Reevaluación Periodontal'] 
+    },
+    'resina_simple': { 
+        titulo: 'Restauración Resina Simple', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'layers', 
+        rec: 'Restauración directa de 1 cara planificada. Permite recuperar la función y estética básica del esmalte afectado.', 
+        opciones: ['Restauración resina Simple (1 cara)'] 
+    },
+    'resina_compleja': { 
+        titulo: 'Restauración Resina Compleja', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'layers', 
+        rec: 'Restauración directa de 2 o más caras planificada. Puede requerir matriz y cuñas para correcta adaptación proximal.', 
+        opciones: ['Restauración resina Compleja (2+ caras)'] 
+    },
+    'restauracion_cervical': { 
+        titulo: 'Restauración Cervical', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'layers', 
+        rec: 'Tratamiento de lesión no cariogénica o caries radicular en el tercio gingival planificado.', 
+        opciones: ['Restauración Cervical'] 
+    },
+    'vidrio_ionomero': { 
+        titulo: 'Restauración en Vidrio Ionómero', 
+        claseAlerta: 'smart-recommendation', 
+        icon: 'layers', 
+        rec: 'Restauración con material bioactivo planificada. Liberación constante de flúor para detener el avance cariogénico.', 
+        opciones: ['Restauración en Vidrio Ionómero'] 
+    },
+    'base_cavitaria': { 
+        titulo: 'Base Cavitaria / Recubrimiento', 
+        claseAlerta: 'smart-recommendation warning', 
+        icon: 'shield_plus', 
+        rec: 'Protección dentino-pulpar planificada para aislar térmica y eléctricamente el órgano pulpar en cavidades profundas.', 
+        opciones: ['Base Cavitaria / Recubrimiento'] 
+    },
+    'inactivacion_caries': { 
+        titulo: 'Inactivación de Caries (ART)', 
+        claseAlerta: 'smart-recommendation alert', 
+        icon: 'healing', 
+        rec: 'Tratamiento Restaurativo Atraumático planificado. Detiene el progreso de la lesión en pacientes de alto riesgo.', 
+        opciones: ['Inactivación de Caries (ART)'] 
+    },
+    // --- REHABILITACIÓN UNITARIA (REQUERIDA) ---
+    'incrustacion_ceromero': { 
+        titulo: 'Incrustación Cerómero', claseAlerta: 'smart-recommendation', icon: 'architecture', 
+        rec: 'Restauración indirecta estética en polímero reforzado planificada.', opciones: ['Incrustación Cerómero'] 
+    },
+    'incrustacion_ceramica': { 
+        titulo: 'Incrustación de Cerámica', claseAlerta: 'smart-recommendation', icon: 'architecture', 
+        rec: 'Restauración indirecta rígida en porcelana pura planificada.', opciones: ['Incrustación de Cerámica'] 
+    },
+    'pfu_metal_porcelana': { 
+        titulo: 'PFU Metal / Porcelana', claseAlerta: 'smart-recommendation', icon: 'architecture', 
+        rec: 'Prótesis Fija Unitaria con estructura metálica periférica planificada.', opciones: ['PFU Metal/Porcelana'] 
+    },
+    'pfu_libre_metal': { 
+        titulo: 'PFU Libre de Metal', claseAlerta: 'smart-recommendation', icon: 'architecture', 
+        rec: 'Prótesis Fija Unitaria puramente estética (Zirconio / E-max) planificada.', opciones: ['PFU Libre de Metal'] 
+    },
+    'carilla_ceromero': { 
+        titulo: 'Carilla de Cerómero', claseAlerta: 'smart-recommendation', icon: 'brush', 
+        rec: 'Frente estético indirecto de resina compuesta de laboratorio planificado.', opciones: ['Carilla de Cerómero'] 
+    },
+    'carilla_ceramica': { 
+        titulo: 'Carilla de Cerámica', claseAlerta: 'smart-recommendation', icon: 'brush', 
+        rec: 'Frente estético de porcelana de alta resistencia y mimetismo planificado.', opciones: ['Carilla de Cerámica'] 
+    },
+    'perno_colado': { 
+        titulo: 'Perno Muñón Colado', claseAlerta: 'smart-recommendation warning', icon: 'hardware', 
+        rec: 'Anclaje intrarradicular metálico colado a medida planificado. Requiere remoción previa de gutapercha.', opciones: ['Perno muñón Colado'] 
+    },
+    'perno_fibra': { 
+        titulo: 'Perno Muñón de Fibra', claseAlerta: 'smart-recommendation warning', icon: 'hardware', 
+        rec: 'Anclaje intrarradicular estético cementado con resina dual planificado.', opciones: ['Perno muñón de fibra'] 
+    },
+    'implante_osteo': { 
+        titulo: 'Implante Osteointegrado', claseAlerta: 'smart-recommendation', icon: 'gavel', 
+        rec: 'Fijación quirúrgica de titanio intramaxilar planificada en zona edéntula.', opciones: ['Implante Osteointegrado'] 
+    },
+    'injerto_oseo': { 
+        titulo: 'Injerto Óseo', claseAlerta: 'smart-recommendation warning', icon: 'bone', 
+        rec: 'Procedimiento de regeneración ósea guiada planificado para aumentar volumen alveolar.', opciones: ['Injerto Óseo'] 
+    },
+
+    // --- REHABILITACIÓN REMOVIBLE (GLOBALES) ---
+    'pr_acrilica': { 
+        titulo: 'Prótesis Removible Superior/Inferior Acrílica', claseAlerta: 'smart-recommendation', icon: 'check_box', 
+        rec: 'Rehabilitación removible mucodentada planificada en acrílico de alto impacto.', opciones: ['Prótesis Removible Superior/Inferior Acrílica'] 
+    },
+    'pr_metalica': { 
+        titulo: 'Prótesis Removible Superior/Inferior Metálica', claseAlerta: 'smart-recommendation', icon: 'check_box', 
+        rec: 'Rehabilitación removible planificada con base esquelética de cromo-cobalto.', opciones: ['Prótesis Removible Superior/Inferior Metálica'] 
+    },
+    'pr_valplast': { 
+        titulo: 'Prótesis Removible Superior/Inferior Valplast', claseAlerta: 'smart-recommendation', icon: 'check_box', 
+        rec: 'Rehabilitación removible estética flexible planificada libre de ganchos metálicos.', opciones: ['Prótesis Removible Superior/Inferior Valplast'] 
+    },
+    'pr_sobredentadura': { 
+        titulo: 'Prótesis Removible Superior/Inferior Sobredentadura', claseAlerta: 'smart-recommendation', icon: 'check_box', 
+        rec: 'Rehabilitación removible implantosoportada o dentosoportada mediante sistemas de retención planificada.', opciones: ['Prótesis Removible Sobredentadura'] 
+    }
+};
 
         let hallazgoActivoSeleccionado = null;
 
@@ -3193,6 +3557,143 @@ const vademecumDB = [
     if (btnPaywall) {
         btnPaywall.addEventListener('click', function() { procesarSuscripcionPro(this); });
     }
+
+    // ==========================================
+        // CONTROL DE ESTADOS GLOBALES (PERIO Y APARATOLOGÍA)
+        // ==========================================
+        function toggleAparatologiaGlobal(codigoKey, isChecked) {
+            if (!isChecked) return; 
+
+            // 1. Limpiamos selección de diente individual para tratamientos de Boca Completa
+            document.querySelectorAll('g[data-fdi].selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            const timelineRail = document.getElementById('odontogramaTimelineRail');
+            const emptyMsg = document.getElementById('odnTimelineEmpty');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+
+            const data = arbolClinico[codigoKey];
+            if (!data) return;
+
+            const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+            
+            // 2. Definición dinámica del color de borde en el timeline según la categoría
+            let colorBorde = "var(--blue-elegant)"; // Azul corporativo para condiciones base
+            if (codigoKey === 'placa_visible' || codigoKey === 'sangrado_sondaje') {
+                colorBorde = "#ef4444"; // Rojo de alerta para condiciones periodontales
+            } else if (codigoKey === 'fumador_activo') {
+                colorBorde = "#f59e0b"; // Naranja de advertencia
+            }
+
+            const cardTimeline = document.createElement('div');
+            cardTimeline.style.cssText = `background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease; border-left: 5px solid ${colorBorde};`;
+            cardTimeline.innerHTML = `
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">Boca Completa</strong>
+                </div>
+                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${data.titulo}</div>
+                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                    ${data.rec}
+                </div>
+            `;
+            
+            timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
+            
+            if(typeof mostrarToastFicha === 'function') {
+                mostrarToastFicha(`✓ ${data.titulo} registrado.`);
+            }
+        }
+        // ==========================================
+        // PLANIFICACIÓN MANUAL (BYPASS DEL MOTOR)
+        // ==========================================
+        function registrarPlanificacionManual(codigoKey) {
+            // 1. Abrimos el Asistente Clínico (Panel Derecho Inteligente)
+            lanzarAsistenteClinico(codigoKey);
+
+            const data = arbolClinico[codigoKey];
+            if (!data) return;
+
+            let piezaNum = "Boca Completa";
+            
+            // 2. Evaluamos si el tratamiento es Periodontal (Boca Completa)
+            const esBocaCompleta = ['destartraje_supra', 'destartraje_sub', 'reevaluacion_perio', 'pr_acrilica', 'pr_metalica', 'pr_valplast', 'pr_sobredentadura'].includes(codigoKey);
+
+            if (esBocaCompleta) {
+                // Desmarcamos preventivamente cualquier diente seleccionado para que quede como tratamiento general
+                document.querySelectorAll('g[data-fdi].selected').forEach(el => {
+                    el.classList.remove('selected');
+                });
+            } else {
+                // Si es un tratamiento unitario (como futuras resinas o coronas), pintamos la pieza
+                const activeTooth = document.querySelector('g[data-fdi].selected');
+                if (activeTooth) {
+                    piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
+                    
+                    // Forzamos el color amarillo mostaza en el SVG 
+                    activeTooth.querySelectorAll('polygon, path').forEach(p => {
+                        // Solo pintamos si no está marcado en rojo por otra patología grave
+                        if (p.style.fill !== 'rgb(239, 68, 68)' && p.style.fill !== '#ef4444') {
+                            p.style.fill = '#fcd34d'; // Amarillo mostaza
+                            p.style.stroke = '#d97706';
+                        }
+                    });
+                } else {
+                    // Si intenta planificar algo que NO es de boca completa sin seleccionar diente, lo detenemos
+                    return alert("Por favor, selecciona una pieza dental en el odontograma antes de asignar este tratamiento unitario.");
+                }
+            }
+
+            // 3. Inyectamos la tarjeta visible en el Historial Principal (Planilla)
+            const planList = document.getElementById('odnPlanList');
+            const emptyMsg = document.getElementById('odnPlanEmpty');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+
+            const card = document.createElement('div');
+            card.style.cssText = "background: white; border: 1px solid #fde68a; border-left: 5px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); animation: fadeIn 0.4s ease;";
+            
+            card.innerHTML = `
+                <div>
+                    <div style="font-size: 0.95rem; font-weight: bold; color: #1e293b; margin-bottom: 4px;">${data.titulo}</div>
+                    <div style="font-size: 0.8rem; color: #64748b;">
+                        <span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle; color: #f59e0b;">engineering</span> 
+                        Planificado - <strong>${piezaNum}</strong>
+                    </div>
+                </div>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer;" title="Eliminar de la lista">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            `;
+
+            planList.insertBefore(card, planList.firstChild);
+
+            // 4. También lo inyectamos en el Timeline colapsable
+            const timelineRail = document.getElementById('odontogramaTimelineRail');
+            const emptyTimeline = document.getElementById('odnTimelineEmpty');
+            if (emptyTimeline) emptyTimeline.style.display = 'none';
+
+            const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+            
+            const cardTimeline = document.createElement('div');
+            cardTimeline.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid #f59e0b;";
+            cardTimeline.innerHTML = `
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
+                </div>
+                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${data.titulo}</div>
+                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                    ${data.rec}
+                </div>
+            `;
+            timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
+
+            if(typeof mostrarToastFicha === 'function') {
+                mostrarToastFicha(`✓ ${data.titulo} agregado al historial.`);
+            }
+        }
+        
 </script>
 
 </body>
