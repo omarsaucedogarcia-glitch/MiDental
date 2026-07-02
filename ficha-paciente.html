@@ -424,7 +424,9 @@
                             </div>
                         </div>
                     </div>
-                    
+                    <button type="button" class="btn-login-outline btn-full" onclick="generarEpicrisisImprimiblePDF()" style="margin-top: 10px; padding: 12px; border-radius: 12px; font-weight: bold; color: #475569; border-color: #cbd5e1; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: 0.2s; background: #fff;">
+    <span class="material-symbols-outlined" style="font-size: 1.2rem; color: #64748b;">print_connect</span> Generar Informe de Atenciones / Epicrisis Completa
+</button>
                     <div class="historial-body" id="contenedorHistorial"></div>
 
                     <div style="padding: 20px; border-top: 1px solid #e2e8f0; background: white; border-radius: 0 0 20px 20px;">
@@ -497,17 +499,21 @@
                     
                     <div class="total-final-box">TOTAL PRESUPUESTO: $ <span id="granTotalPagar">0</span></div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px;">
-                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalReceta()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: var(--pixar-cyan); border-color: var(--pixar-cyan); font-size: 0.85rem; transition: 0.2s;">
-                            <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">prescriptions</span> Receta
-                        </button>
-                        <button type="button" class="btn-login-outline btn-full" onclick="abrirModalConsentimiento()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: #8b5cf6; border-color: #8b5cf6; font-size: 0.85rem; transition: 0.2s;">
-                            <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">gavel</span> Legal
-                        </button>
-                        <button type="button" class="btn-login-outline btn-full" onclick="emitirPresupuestoPDF()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: var(--pixar-orange); border-color: var(--pixar-orange); font-size: 0.85rem; transition: 0.2s;">
-                            <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">request_quote</span> PDF Ppto.
-                        </button>
-                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 25px;">
+    <button type="button" class="btn-login-outline btn-full" onclick="abrirModalReceta()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: var(--pixar-cyan); border-color: var(--pixar-cyan); font-size: 0.85rem; transition: 0.2s;">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">prescriptions</span> Receta
+    </button>
+    <button type="button" class="btn-login-outline btn-full" onclick="abrirModalConsentimiento()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: #8b5cf6; border-color: #8b5cf6; font-size: 0.85rem; transition: 0.2s;">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">gavel</span> Legal
+    </button>
+    <button type="button" class="btn-login-outline btn-full" onclick="emitirPresupuestoPDF()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: var(--pixar-orange); border-color: var(--pixar-orange); font-size: 0.85rem; transition: 0.2s;">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">request_quote</span> PDF Ppto.
+    </button>
+    <button type="button" class="btn-login-outline btn-full" onclick="abrirModalCertificado()" style="padding: 12px 5px; border-radius: 12px; font-weight: bold; color: #0ea5e9; border-color: #0ea5e9; font-size: 0.85rem; transition: 0.2s;">
+        <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">verified_user</span> Certificado
+    </button>
+</div>
+
 
                     <button type="button" class="btn-pixar btn-full" id="btnGuardarFicha" onclick="guardarFichaYPresupuestoOficial()" style="padding: 18px; font-size: 1.15rem; border-radius: 15px; margin-top: 20px;">
                         <span class="material-symbols-outlined" style="vertical-align: middle;">save</span> Firmar y Guardar Ficha Oficial
@@ -1155,6 +1161,37 @@
             </button>
         </div>
     </div>
+    <div id="modalCertificado" class="modal-overlay" style="display:none; z-index: 1000;">
+    <div class="modal-content" style="max-width: 500px; border-radius: 20px; background: white; padding: 30px;">
+        <button class="btn-close" onclick="document.getElementById('modalCertificado').style.display='none'"><span class="material-symbols-outlined">close</span></button>
+        
+        <h2 style="color: var(--blue-elegant); margin: 0 0 5px 0; font-size: 1.6rem; display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 2rem; color: #0ea5e9;">verified_user</span> Certificado Dental
+        </h2>
+        <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 25px;">Emitir comprobante de atención para <strong id="certNombrePaciente">--</strong>.</p>
+        
+        <div class="input-group-modal">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Diagnóstico Principal</label>
+            <input type="text" id="certDiagnostico" class="apple-input-modal" placeholder="Ej: Pulpitis irreversible, Exodoncia...">
+        </div>
+
+        <div class="input-group-modal" style="margin-top: 15px;">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Observaciones / Reposo (Opcional)</label>
+            <textarea id="certObservaciones" class="apple-input-modal" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; resize: vertical; font-size: 0.85rem; background: #fff;" placeholder="Ej: Se sugiere reposo relativo por 48 horas."></textarea>
+        </div>
+
+        <div style="background: #f0fdfa; border-left: 4px solid #0ea5e9; padding: 15px; border-radius: 8px; margin-top: 20px; margin-bottom: 25px;">
+            <p style="margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.5;">
+                <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle; color: #0ea5e9;">info</span>
+                La ubicación del centro médico, el RUT del paciente y la firma profesional se inyectarán automáticamente en el PDF.
+            </p>
+        </div>
+
+        <button type="button" class="btn-pixar btn-full" id="btnEmitirCertificado" style="background: #0ea5e9; border: none;" onclick="emitirYGuardarCertificadoPDF()">
+            <span class="material-symbols-outlined">picture_as_pdf</span> Generar Certificado
+        </button>
+    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
@@ -2102,88 +2139,99 @@
         }
 
         async function emitirPresupuestoPDF() {
-            const dentistaId = localStorage.getItem('midental_user_id');
-            if (!dentistaId) return alert("Error de sesión.");
+    const dentistaId = localStorage.getItem('midental_user_id');
+    if (!dentistaId) return alert("Error de sesión.");
 
-            let hayPresupuesto = false;
-            document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-                const ref = parseFloat(tr.querySelector('.input-ref').value) || 0;
-                if (ref > 0) hayPresupuesto = true;
-            });
+    let hayPresupuesto = false;
+    document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
+        const ref = parseFloat(tr.querySelector('.input-ref').value) || 0;
+        if (ref > 0) hayPresupuesto = true;
+    });
 
-            if (!hayPresupuesto) return alert("Debes agregar al menos una prestación con valor al presupuesto.");
+    if (!hayPresupuesto) return alert("Debes agregar al menos una prestación con valor al presupuesto.");
 
-            const btn = document.getElementById('btnEmitirPresupuestoSolo');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Documento...';
-            btn.disabled = true;
+    // SOLUCIÓN 1: Captura el botón mediante su atributo onclick sin requerir ID en el HTML
+    const btn = document.querySelector('button[onclick="emitirPresupuestoPDF()"]');
+    const textoOriginal = btn ? btn.innerHTML : '<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">request_quote</span> PDF Ppto.';
+    
+    if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Documento...';
+        btn.disabled = true;
+    }
 
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-                // Se asegura de extraer el nombre de la sede también aquí para mantener consistencia
-                const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
-                
-                const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
-                const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre) ? sedes[0].nombre : 'Presupuesto Dental';
-                
-                doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
-                doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
-                
-                // Aplicación del nombre del centro médico en lugar del título genérico
-                doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
-                doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
-                doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
+        
+        // SOLUCIÓN 2: Corregido 'nombre' por 'nombre_sede' para mantener la consistencia con la tabla
+        const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
+        
+        const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
+        const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede : 'Presupuesto Dental';
+        
+        doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
+        doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
+        
+        doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
+        doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
+        doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
 
-                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 40);
-                doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47); doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
+        doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 40);
+        doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47); doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
 
-                doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 40);
-                doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Dentista: ${drName}`, 110, 47); if(dr) doc.text(`RUT: ${dr.rut}`, 110, 53);
+        doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 40);
+        doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Dentista: ${drName}`, 110, 47); if(dr) doc.text(`RUT: ${dr.rut}`, 110, 53);
 
-                const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
-                const tableRows = [];
-                
-                document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-                    const piezaVal = tr.querySelector('.input-diente').value.trim();
-                    const diagVal = tr.querySelector('.input-diag').value.trim();
-                    const tratVal = tr.querySelector('.input-tratamiento').value.trim();
-                    const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
-                    const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
-                    
-                    let totalInput = 0;
-                    const elTotal = tr.querySelector('.input-total');
-                    if(elTotal.dataset.valorReal) totalInput = parseFloat(elTotal.dataset.valorReal);
-                    else if (elTotal.value) totalInput = parseFloat(elTotal.value);
+        const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
+        const tableRows = [];
+        
+        document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
+            const piezaVal = tr.querySelector('.input-diente').value.trim();
+            const diagVal = tr.querySelector('.input-diag').value.trim();
+            const tratVal = tr.querySelector('.input-tratamiento').value.trim();
+            const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
+            const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
+            
+            let totalInput = 0;
+            const elTotal = tr.querySelector('.input-total');
+            if(elTotal.dataset.valorReal) totalInput = parseFloat(elTotal.dataset.valorReal);
+            else if (elTotal.value) totalInput = parseFloat(elTotal.value);
 
-                    if (!piezaVal && !diagVal && !tratVal && refInput === 0 && totalInput === 0) return;
+            if (!piezaVal && !diagVal && !tratVal && refInput === 0 && totalInput === 0) return;
 
-                    const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
-                    tableRows.push([piezaVal || '-', diagVal || '-', tratVal || '-', `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
-                });
+            const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
+            tableRows.push([piezaVal || '-', diagVal || '-', tratVal || '-', `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
+        });
 
-                doc.autoTable({ startY: 65, head: [tableColumn], body: tableRows, theme: 'grid', headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 9 } });
+        doc.autoTable({ startY: 65, head: [tableColumn], body: tableRows, theme: 'grid', headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 9 } });
 
-                const finalY = doc.lastAutoTable.finalY || 70;
-                doc.setFontSize(14); doc.setTextColor(30, 58, 138); doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
+        const finalY = doc.lastAutoTable.finalY || 70;
+        doc.setFontSize(14); doc.setTextColor(30, 58, 138); doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
 
-                const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
-                const nombreArchivo = `Presupuesto_Comercial_${nombrePuro}_${Date.now()}.pdf`;
-                doc.save(nombreArchivo); 
+        const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
+        const nombreArchivo = `Presupuesto_Comercial_${nombrePuro}_${Date.now()}.pdf`;
+        doc.save(nombreArchivo); 
 
-                if (!isLocal) {
-                    const pdfBlob = doc.output('blob');
-                    const { error: uploadError } = await window.midental.storage.from('documentos_clinicos').upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
-                    if (!uploadError) {
-                        await window.midental.from('documentos_pacientes').insert([{ paciente_id: pacienteIdURL, dentista_id: dentistaId, nombre_archivo: `Presupuesto Cotización ${new Date().toLocaleDateString('es-CL')}.pdf`, tipo: 'pdf', archivo_url: nombreArchivo }]);
-                        if(typeof cargarDocumentosPaciente === 'function') cargarDocumentosPaciente(); 
-                    }
-                }
-                alert("✅ Presupuesto generado y resguardado con éxito en los documentos del paciente.");
-            } catch (err) { alert("Error al generar el presupuesto: " + err.message); console.error(err); } 
-            finally { btn.innerHTML = textoOriginal; btn.disabled = false; }
+        if (!isLocal) {
+            const pdfBlob = doc.output('blob');
+            const { error: uploadError } = await window.midental.storage.from('documentos_clinicos').upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
+            if (!uploadError) {
+                await window.midental.from('documentos_pacientes').insert([{ paciente_id: pacienteIdURL, dentista_id: dentistaId, nombre_archivo: `Presupuesto Cotización ${new Date().toLocaleDateString('es-CL')}.pdf`, tipo: 'pdf', archivo_url: nombreArchivo }]);
+                if(typeof cargarDocumentosPaciente === 'function') cargarDocumentosPaciente(); 
+            }
         }
+        alert("✅ Presupuesto generado y resguardado con éxito en los documentos del paciente.");
+    } catch (err) { 
+        alert("Error al generar el presupuesto: " + err.message); 
+        console.error(err); 
+    } finally { 
+        if (btn) {
+            btn.innerHTML = textoOriginal; 
+            btn.disabled = false; 
+        }
+    }
+}
 
       // ==========================================
 // RECETAS MÉDICAS Y VADEMÉCUM
@@ -2720,7 +2768,276 @@ const vademecumDB = [
             } catch (err) { alert("Error al emitir el consentimiento: " + err.message); console.error(err); } 
             finally { btn.innerHTML = '<span class="material-symbols-outlined">picture_as_pdf</span> Generar y Guardar Documento'; btn.disabled = false; }
         }
+        // ==========================================
+// MOTOR DE CERTIFICADO DE ATENCIÓN
+// ==========================================
 
+function abrirModalCertificado() {
+    document.getElementById('certNombrePaciente').innerText = pacienteActual.nombre;
+    // Auto-completar el diagnóstico desde la ficha si ya escribieron algo
+    document.getElementById('certDiagnostico').value = document.getElementById('fichaDiagnostico').value.trim();
+    document.getElementById('certObservaciones').value = '';
+    document.getElementById('modalCertificado').style.display = 'flex';
+}
+
+async function emitirYGuardarCertificadoPDF() {
+    if (isLocal) return alert("Esta acción no está disponible para Fichas Locales temporales.");
+
+    const diagnostico = document.getElementById('certDiagnostico').value.trim();
+    const observaciones = document.getElementById('certObservaciones').value.trim();
+    const dentistaId = localStorage.getItem('midental_user_id');
+
+    if (!diagnostico) return alert("Debes ingresar el diagnóstico clínico para emitir el certificado.");
+
+    const btn = document.getElementById('btnEmitirCertificado');
+    btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Documento...';
+    btn.disabled = true;
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Obtener datos del Dentista y Centro Médico
+        const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut').eq('id', dentistaId).single();
+        const { data: sedes } = await window.midental.from('sedes_dentistas').select('direccion, comuna, nombre_sede').eq('dentista_id', dentistaId).limit(1);
+
+        const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo.toUpperCase()}` : 'Profesional Tratante';
+        const drRut = dr ? dr.rut : '';
+        const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede : 'Centro Odontológico Privado';
+        const direccionCentro = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
+
+        // Estructura de cabecera (La mantenemos arriba como membrete oficial)
+        doc.setFontSize(22); doc.setTextColor(2, 132, 199); doc.text("MiDental", 14, 20);
+        doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
+        
+        doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
+        doc.setFontSize(9); doc.setTextColor(85, 85, 85); doc.text(`Sede: ${direccionCentro}`, 200, 26, { align: "right" });
+        doc.setDrawColor(200, 200, 200); doc.line(14, 32, 200, 32);
+
+        // Título del documento (Lo bajamos al centro superior de la hoja)
+        doc.setFontSize(15); doc.setFont("helvetica", "bold"); doc.setTextColor(30, 58, 138);
+        doc.text("CERTIFICADO DE ATENCIÓN DENTAL", 105, 80, { align: "center" });
+
+        // Párrafo principal (Más espaciado y posicionado más abajo)
+        doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.setTextColor(30, 30, 30);
+        const fechaEspanol = new Date().toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        const parrafoPrincipal = `A quien corresponda:\n\nPor el presente documento, certifico que el paciente ${pacienteActual.nombre.toUpperCase()}, RUT ${pacienteActual.rut}, ha recibido atención odontológica el día de hoy, ${fechaEspanol}, en nuestras dependencias ubicadas en ${direccionCentro}.`;
+        const splitParrafo = doc.splitTextToSize(parrafoPrincipal, 180);
+        doc.text(splitParrafo, 14, 100);
+
+        // Aumentamos el espaciado dinámico
+        let startY = 100 + (splitParrafo.length * 6) + 15;
+
+        // Diagnóstico
+        doc.setFont("helvetica", "bold"); doc.text("Diagnóstico Clínico:", 14, startY);
+        doc.setFont("helvetica", "normal");
+        const splitDiag = doc.splitTextToSize(diagnostico, 140);
+        doc.text(splitDiag, 55, startY);
+        startY += (splitDiag.length * 6) + 15;
+
+        // Observaciones (Si existen)
+        if (observaciones) {
+            doc.setFont("helvetica", "bold"); doc.text("Observaciones:", 14, startY);
+            doc.setFont("helvetica", "normal");
+            const splitObs = doc.splitTextToSize(observaciones, 140);
+            doc.text(splitObs, 45, startY);
+            startY += (splitObs.length * 6) + 25;
+        } else {
+            startY += 15;
+        }
+
+        // Frase final solicitada
+        doc.setFont("helvetica", "italic"); doc.setTextColor(80, 80, 80);
+        const fraseCierre = "Se extiende el presente certificado para ser presentado en los establecimientos que el paciente requiera.";
+        const splitCierre = doc.splitTextToSize(fraseCierre, 180);
+        doc.text(splitCierre, 14, startY);
+
+        // Firma del profesional (Se mantiene anclada perfectamente al final de la página)
+        const finalPageY = doc.internal.pageSize.height;
+        doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0); doc.setFontSize(10);
+        doc.line(120, finalPageY - 35, 180, finalPageY - 35); 
+        doc.text(drName, 150, finalPageY - 30, { align: "center" });
+        if (drRut) doc.text(`RUT: ${drRut}`, 150, finalPageY - 25, { align: "center" });
+
+        // Guardado local y subida a la nube
+        const nombreArchivo = `Certificado_Atencion_${pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+        doc.save(nombreArchivo);
+
+        const pdfBlob = doc.output('blob');
+        const { error: uploadError } = await window.midental.storage.from('documentos_clinicos').upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
+        
+        if (!uploadError) {
+            await window.midental.from('documentos_pacientes').insert([{
+                paciente_id: pacienteIdURL, dentista_id: dentistaId,
+                nombre_archivo: `Certificado de Atención (${new Date().toLocaleDateString('es-CL')})`,
+                tipo: 'pdf', archivo_url: nombreArchivo 
+            }]);
+            cargarDocumentosPaciente();
+        }
+
+        alert("✅ Certificado de Atención generado y resguardado en la ficha del paciente.");
+        document.getElementById('certDiagnostico').value = '';
+        document.getElementById('certObservaciones').value = '';
+        document.getElementById('modalCertificado').style.display = 'none';
+
+    } catch (err) { 
+        alert("Error al emitir el certificado: " + err.message); 
+        console.error(err); 
+    } finally { 
+        btn.innerHTML = '<span class="material-symbols-outlined">picture_as_pdf</span> Generar Certificado'; 
+        btn.disabled = false; 
+    }
+}
+// ==========================================
+// MOTOR DE INFORME CLÍNICO / EPICRISIS COMPRESA
+// ==========================================
+async function generarEpicrisisImprimiblePDF() {
+    const dentistaId = localStorage.getItem('midental_user_id');
+    if (!dentistaId) return alert("Error de sesión.");
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // 1. Obtener datos del Profesional y su Sede
+        const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis, especialidad').eq('id', dentistaId).single();
+        const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
+
+        const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo.toUpperCase()}` : 'No especificado';
+        const drRut = dr ? dr.rut : '--';
+        const drSis = dr ? dr.registro_sis : '--';
+        const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede.toUpperCase() : 'CENTRO ODONTOLÓGICO';
+        const direccionCentro = (sedes && sedes.length > 0) ? `${sedes[0].direccion}, ${sedes[0].comuna}` : 'Atención Particular';
+
+        // 2. Obtener TODAS las atenciones clínicas del paciente
+        let query = window.midental.from('fichas_clinicas').select('*').order('created_at', { ascending: true });
+        
+        if (isLocal && pacienteActual.rut && pacienteActual.rut !== "No registrado") {
+            query = query.eq('paciente_rut', pacienteActual.rut);
+        } else if (!isLocal) {
+            query = query.eq('paciente_id', pacienteIdURL);
+        } else {
+            query = query.eq('paciente_nombre', pacienteActual.nombre);
+        }
+
+        const { data: historial, error: histError } = await query;
+        if (histError) throw histError;
+
+        if (!historial || historial.length === 0) {
+            return alert("El paciente no registra atenciones previas firmadas para generar el informe.");
+        }
+
+        // 3. Encabezado del Documento Estilo Clínico Institucional
+        doc.setFontSize(18); doc.setTextColor(30, 58, 138); doc.setFont("helvetica", "bold");
+        doc.text(nombreCentro, 14, 20);
+        doc.setFontSize(9); doc.setTextColor(100, 116, 139); doc.setFont("helvetica", "normal");
+        doc.text(`Ubicación: ${direccionCentro}`, 14, 25);
+
+        doc.setFontSize(14); doc.setTextColor(15, 23, 42); doc.setFont("helvetica", "bold");
+        doc.text("RESUMEN DE ATENCIONES CLÍNICAS (EPICRISIS)", 105, 40, { align: "center" });
+        doc.setDrawColor(200, 200, 200); doc.line(14, 44, 200, 44);
+
+        // Bloque informativo del Paciente y Profesional
+        doc.setFontSize(9); doc.setTextColor(50, 50, 50); doc.setFont("helvetica", "bold");
+        doc.text("ANTECEDENTES DEL PACIENTE", 14, 51);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Nombre: ${pacienteActual.nombre.toUpperCase()}`, 14, 56);
+        doc.text(`RUT: ${pacienteActual.rut}`, 14, 61);
+        if (pacienteActual.fecha_nacimiento) {
+            const [y, m, d] = pacienteActual.fecha_nacimiento.split('-');
+            doc.text(`F. Nacimiento: ${d}/${m}/${y}`, 14, 66);
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.text("PROFESIONAL RESPONSABLE", 110, 51);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Odontólogo: ${drName}`, 110, 56);
+        doc.text(`RUT: ${drRut} | Registro SIS: ${drSis}`, 110, 61);
+        doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 110, 66);
+
+        doc.line(14, 71, 200, 71);
+
+        // 4. Estructuración de la Tabla de Atenciones
+        const tableColumn = ["Fecha", "Motivo de Consulta", "Diagnóstico Clínico", "Procedimiento Realizado", "Monto"];
+        const tableRows = [];
+
+        historial.forEach(ficha => {
+            const fechaAtencion = new Date(ficha.ultima_atencion || ficha.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const histoJson = ficha.historial_json || {};
+            
+            const motivoStr = histoJson.motivo || ficha.motivo_consulta || 'Sin especificar';
+            const diagStr = histoJson.diagnostico || 'Revisar registro';
+            const accionStr = histoJson.tratamiento || ficha.accion_realizada || 'Sin registro';
+            const pptoStr = ficha.presupuesto_total > 0 ? `$${ficha.presupuesto_total.toLocaleString('es-CL')}` : '—';
+
+            tableRows.push([
+                fechaAtencion,
+                motivoStr,
+                diagStr,
+                accionStr,
+                pptoStr
+            ]);
+        });
+
+        // 5. Configuración de AutoTable optimizada para textos largos
+        doc.autoTable({
+            startY: 76,
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'grid',
+            headStyles: { 
+                fillColor: [30, 58, 138], 
+                fontSize: 8, 
+                fontStyle: 'bold', 
+                halign: 'left',
+                cellPadding: 3 
+            },
+            styles: { 
+                fontSize: 7.5, // Fuente un poco más pequeña para maximizar el espacio
+                cellPadding: 3, 
+                overflow: 'linebreak', // <-- SOLUCIÓN: Obliga al texto a bajar a la siguiente línea
+                valign: 'top',
+                textColor: [30, 30, 30]
+            },
+            columnStyles: {
+                0: { cellWidth: 18 }, // Fecha
+                1: { cellWidth: 35 }, // Motivo
+                2: { cellWidth: 35 }, // Diagnóstico
+                3: { cellWidth: 74 }, // Procedimiento (Ancho máximo otorgado a esta columna)
+                4: { cellWidth: 20, halign: 'right' } // Monto
+            },
+            margin: { left: 14, right: 14 }
+        });
+
+        // 6. Cierre Legal y Firmas Clínicas
+        const finalY = doc.lastAutoTable.finalY || 100;
+        const espacioRestante = doc.internal.pageSize.height - finalY;
+        
+        let signatureY = finalY + 25;
+        if (espacioRestante < 45) {
+            doc.addPage();
+            signatureY = 40;
+        }
+
+        doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.setTextColor(100, 116, 139);
+        doc.text("El presente documento consolida la historia clínica del tratamiento realizado en la plataforma de salud. Documento emitido a solicitud del interesado para los fines pertinentes.", 14, signatureY - 15);
+
+        doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.3);
+        doc.line(120, signatureY, 180, signatureY);
+        doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(0, 0, 0);
+        doc.text(drName, 150, signatureY + 5, { align: "center" });
+        doc.text(`Firma Profesional Odontólogo`, 150, signatureY + 10, { align: "center" });
+
+        // 7. Descarga Directa Única
+        const nombreArchivo = `Epicrisis_Total_${pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+        doc.save(nombreArchivo);
+
+    } catch (err) {
+        console.error("Error al generar la epicrisis:", err);
+        alert("Ocurrió un error al compilar el informe: " + err.message);
+    }
+}
         // ==========================================
         // ODONTOGRAMA: APERTURA Y CIERRE
         // ==========================================
