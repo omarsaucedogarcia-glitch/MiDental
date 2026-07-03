@@ -855,3 +855,62 @@ input:checked + .slider:before { transform: translateX(22px); }
     color: #d81b60;
     border: 1px solid #f8bbd0;
 }
+/* =========================================================
+   REFINAMIENTO DE BARRA LATERAL (MÁS FORMAL Y COMPACTA)
+   ========================================================= */
+
+/* 1. Reducimos el ancho de la columna izquierda a 190px */
+.dashboard-layout {
+    grid-template-columns: 190px 1fr !important; 
+}
+
+/* Forzamos el nuevo ancho en la barra lateral y ajustamos su padding */
+.sidebar {
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+    padding: 20px 12px !important; /* Menos padding horizontal para ganar espacio */
+}
+
+/* 2. Arreglamos la alineación del Logo y Título para que no se desordenen */
+.sidebar-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important; /* Alineación limpia a la izquierda */
+    gap: 8px !important; /* Espacio exacto entre logo y texto */
+    margin-bottom: 30px !important;
+    padding: 0 5px !important;
+}
+
+/* Reducimos el logo ligeramente para que quepa perfecto en los 190px */
+.sidebar-header .logo-img {
+    height: 30px !important; 
+    margin-right: 0 !important; /* Anulamos el margen antiguo que causaba el desorden */
+}
+
+/* Ajustamos el título "MiDental" (más elegante y proporcionado) */
+.sidebar-header h2 {
+    font-size: 1.3rem !important;
+    margin: 0 !important;
+    letter-spacing: -0.5px; /* Un espaciado más compacto y formal */
+    color: var(--blue-elegant) !important;
+}
+
+/* 3. Refinamos los botones del menú (Estilo más clínico) */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px !important; /* Menos separación vertical */
+}
+
+.sidebar-nav .nav-item {
+    padding: 10px 12px !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important; /* Bordes menos curvos dan un aspecto más serio/formal */
+}
+
+/* Ajustamos el tamaño de los íconos del menú para que hagan juego con la letra */
+.sidebar-nav .nav-item .material-symbols-outlined {
+    font-size: 1.1rem !important;
+}

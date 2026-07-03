@@ -200,15 +200,57 @@
                 -webkit-overflow-scrolling: touch; /* Scroll suave de iPhone */
             }
         }
+        /* =========================================================
+   FIJAR BARRA LATERAL EN LA AGENDA (DESKTOP)
+   ========================================================= */
+
+@media (min-width: 992px) {
+    /* 1. Ocultamos el ícono de hamburguesa (≡) porque la barra ya estará siempre visible */
+    /* Nota: Si tu botón tiene otra clase, agrégala aquí (ej. .btn-menu, .toggle-btn) */
+    .menu-toggle, 
+    .hamburger-btn,
+    .btn-toggle-sidebar,
+    [onclick*="toggleSidebar"] {
+        display: none !important;
+    }
+
+    /* 2. Forzamos el mismo Grid exacto que usamos en la ficha del paciente */
+    .dashboard-layout {
+        display: grid !important;
+        grid-template-columns: 190px 1fr !important;
+        height: 100vh;
+        overflow: hidden; /* Evita scroll doble */
+    }
+
+    /* 3. Forzamos a la barra lateral a estar visible, anulando cualquier ocultamiento previo */
+    .sidebar {
+        display: flex !important;
+        position: relative !important;
+        transform: translateX(0) !important; /* Anula el efecto que la esconde hacia la izquierda */
+        left: 0 !important;
+        width: 190px !important;
+        min-width: 190px !important;
+        height: 100vh !important;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.03) !important;
+        z-index: 100;
+    }
+
+    /* 4. Aseguramos que el contenido principal (el calendario) ocupe el resto del espacio y tenga su propio scroll */
+    .dashboard-content {
+        width: 100% !important;
+        height: 100vh;
+        overflow-y: auto;
+    }
+}
     </style>
 </head>
 <body>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="dashboard-layout">
         
-        <aside class="sidebar" id="appSidebar">
+        <aside class="sidebar">
             <div class="sidebar-header">
                 <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
                 <h2>MiDental</h2>
@@ -222,7 +264,17 @@
                 <a href="shorts-dentista.html" class="nav-item"><span class="material-symbols-outlined">play_circle</span> Shorts</a>
                 <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
             </nav>
-            <div class="sidebar-footer" style="padding: 15px;">
+            <hr style="border-top: 1px solid #e2e8f0; margin: 15px 20px;">
+
+            <div class="sidebar-plan-info" style="padding: 0 20px; margin-bottom: 20px;">
+                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; font-weight: bold;">PLAN ACTUAL</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span style="font-size: 0.9rem; font-weight: bold; color: #334155;">Básico</span>
+                    <span style="font-size: 0.75rem; background: #e2e8f0; padding: 3px 8px; border-radius: 12px; font-weight: bold;">45/50 Pacientes</span>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
                 <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
             </div>
         </aside>
