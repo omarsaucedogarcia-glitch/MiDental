@@ -11,9 +11,10 @@ body {
 
 .dashboard-layout {
     display: flex;
-    height: 100vh;
-    width: 100%; /* CAMBIO: Evita desbordes que causa el 100vw cuando aparece la barra de scroll */
-    min-width: 1200px; /* NUEVO: Protege las proporciones de tu barra de 190px y el contenido */
+    width: 100%;
+    min-width: 1200px;
+    height: 100vh; /* Mantiene la adaptabilidad en PC */
+    max-height: 950px; /* NUEVO: Frena el estiramiento en el celular */
 }
 
 /* ========================================== */
