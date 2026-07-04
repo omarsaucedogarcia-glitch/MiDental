@@ -6,12 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 MiDental App iniciada correctamente.");
     sincronizarDatosGlobales();
 
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal-overlay')) {
-            e.target.style.display = 'none';
-        }
     });
-});
 
 // ------------------------------------------
 // 1. FORMATOS EN VIVO (RUT y Teléfono)
@@ -334,10 +329,38 @@ window.cerrarSesionLocal = async function() {
     } catch (err) {
         console.error("Error al cerrar sesión en BD:", err);
     } finally {
+        // Limpiamos la persistencia al salir manualmente
         localStorage.removeItem('midental_user_id');
         localStorage.removeItem('midental_user_tipo');
         localStorage.removeItem('midental_user_name');
-        sessionStorage.removeItem('sesion_validada_hoy'); // Limpiamos la bandera de seguridad diaria
+        localStorage.removeItem('midental_paciente_rut'); 
+        
         window.location.href = 'index.html';
+    }
+}
+// Agrega esta función para proteger tus páginas privadas
+window.validarSesionActiva = async function() {
+    try {
+        // Le preguntamos a Supabase si hay una sesión válida guardada en el navegador
+        const { data: { session }, error } = await window.midental.auth.getSession();
+        
+        if (error || !session) {
+            console.warn("No hay sesión activa. Redirigiendo al login...");
+            // Solo si Supabase dice que la sesión expiró o no existe, lo sacamos
+            window.cerrarSesionLocal(); 
+            return false;
+        }
+
+        // Si la sesión es válida, nos aseguramos de que las variables locales existan
+        const userId = localStorage.getItem('midental_user_id');
+        if (!userId) {
+            // Restauramos el ID desde la sesión de Supabase por si se borró por error
+            localStorage.setItem('midental_user_id', session.user.id);
+        }
+
+        return true; // La sesión está viva y validada
+    } catch (err) {
+        console.error("Error validando sesión:", err);
+        window.cerrarSesionLocal();
     }
 }

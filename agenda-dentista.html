@@ -23,38 +23,7 @@
             padding: 15px 20px; 
         }
 
-        /* Blindaje del Sidebar para que NO se haga horizontal en celular */
-        .sidebar {
-            position: fixed !important;
-            left: -300px; 
-            top: 0 !important;
-            width: 260px !important;
-            height: 100vh !important;
-            z-index: 9999;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 5px 0 25px rgba(0,0,0,0.15);
-            display: flex !important;
-            flex-direction: column !important;
-            bottom: auto !important;
-            background: white !important;
-        }
-        .sidebar.open { left: 0 !important; }
         
-        .sidebar-nav {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 5px !important;
-        }
-        .sidebar .nav-item {
-            display: flex !important;
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            align-items: center !important;
-            width: 100% !important;
-            padding: 12px 20px !important;
-            height: auto !important;
-        }
-
         .sidebar-overlay {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
