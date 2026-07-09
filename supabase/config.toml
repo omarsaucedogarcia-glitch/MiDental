@@ -433,3 +433,14 @@ entrypoint = "./functions/asistente-clinico-ia/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/asistente-clinico-ia/*.html" ]
+
+[functions.generar-campana-ia]
+enabled = true
+verify_jwt = false
+import_map = "./functions/generar-campana-ia/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/generar-campana-ia/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/generar-campana-ia/*.html" ]
