@@ -318,12 +318,24 @@
     </div>
 
     <div id="modalAgendarManual" class="modal-overlay" style="display:none; z-index: 1000;">
-        <div class="modal-content" style="max-width: 500px;">
-            <button class="btn-close" onclick="cerrarModal('modalAgendarManual')"><span class="material-symbols-outlined">close</span></button>
-            <h2 class="modal-title" style="color: var(--pixar-cyan); display: flex; align-items: center; gap: 10px;">
+    <!-- Agregamos las clases modal-content-split para dividir cuerpo y botones -->
+    <div class="modal-content modal-content-split" style="max-width: 500px;">
+        <button class="btn-close" onclick="cerrarModal('modalAgendarManual')" style="position: absolute; top: 15px; right: 15px; z-index: 20;"><span class="material-symbols-outlined">close</span></button>
+        
+        <!-- Contenedor con Scroll para los inputs -->
+        <div class="modal-body-scroll">
+            <h2 class="modal-title" style="color: var(--pixar-cyan); display: flex; align-items: center; gap: 10px; margin-top: 0;">
                 <span class="material-symbols-outlined">person_add</span> Agendar Paciente
             </h2>
             <p style="color: #64748b; font-size: 0.9rem; margin-top: 0;">Bloque seleccionado: <strong id="lblBloqueManual" style="color: var(--blue-elegant);">--/--/----</strong></p>
+
+            <!-- CAJA DE RECORDATORIO CLÍNICO -->
+            <div id="cajaRecordatorioClinico" style="display: none; background: #fffbeb; border-left: 4px solid var(--pixar-orange); padding: 15px; border-radius: 8px; margin-top: 15px; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; gap: 8px; color: #b45309; font-weight: bold; margin-bottom: 5px;">
+                    <span class="material-symbols-outlined">assignment_late</span> Indicación de sesión anterior:
+                </div>
+                <p id="textoRecordatorioClinico" style="margin: 0; color: #92400e; font-size: 0.9rem; font-weight: 500;"></p>
+            </div>
 
             <div class="input-group-modal" style="margin-top: 20px;">
                 <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">RUT del Paciente</label>
@@ -359,8 +371,11 @@
                     <option value="120">120 min (4 bloques)</option>
                 </select>
             </div>
+        </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <!-- Botones Fijos en la parte inferior -->
+        <div class="modal-footer-fixed">
+            <div style="display: flex; gap: 10px;">
                 <button class="btn-login-outline btn-full" id="btnBloquearManual" onclick="bloquearSlotManual()" style="margin:0; border-color: #cbd5e1; color: #64748b; font-size: 0.9rem;">
                     <span class="material-symbols-outlined" style="vertical-align: middle;">block</span> Bloquear
                 </button>
@@ -370,6 +385,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- ======================================================= -->
     <!-- MODAL REGISTRO DE PAGO AL FINALIZAR CITA (MÓDULO SALDO) -->
@@ -645,6 +661,7 @@
         function abrirModalAgendarManual(slotRealId) {
             slotManualId = slotRealId;
             pacienteManualEncontradoId = null;
+            document.getElementById('cajaRecordatorioClinico').style.display = 'none';
             
             document.getElementById('lblBloqueManual').innerText = slotManualId.replace('-', ' a las ');
             document.getElementById('manualRut').value = "";
@@ -692,6 +709,7 @@
                     } else {
                         // ALERTA DE PRIVACIDAD: Es un paciente manual de OTRO dentista. Ocultamos sus datos.
                         pacienteManualEncontradoId = data.id; // Vinculamos el ID de forma invisible para no duplicar el RUT en la BD
+                        verificarRecordatorioPaciente(data.id);
                         document.getElementById('manualNombre').value = '';
                         document.getElementById('manualTelefono').value = '';
                         status.innerText = "Paciente registrado en otra clínica. Por favor ingresa su Nombre y Teléfono manualmente.";
@@ -1048,6 +1066,7 @@
 
         function seleccionarPacienteAutocompletado(paciente) {
             pacienteManualEncontradoId = paciente.id;
+            verificarRecordatorioPaciente(paciente.id);
             document.getElementById('manualNombre').value = paciente.nombre_completo || '';
             document.getElementById('manualRut').value = paciente.rut || '';
             document.getElementById('manualTelefono').value = paciente.telefono || '';
@@ -1139,6 +1158,45 @@
             cerrarModal('modalRegistrarPago');
             await actualizarEstadoCita('completada');
         }
+        async function verificarRecordatorioPaciente(pacienteId) {
+    const cajaRecordatorio = document.getElementById('cajaRecordatorioClinico');
+    const textoRecordatorio = document.getElementById('textoRecordatorioClinico');
+    const selectDuracion = document.getElementById('manualDuracion');
+    
+    if (!pacienteId) {
+        cajaRecordatorio.style.display = 'none';
+        return;
+    }
+
+    try {
+        const { data, error } = await window.midental
+            .from('perfiles_pacientes')
+            .select('proxima_sesion_nota, proxima_sesion_duracion_minutos')
+            .eq('id', pacienteId)
+            .single();
+
+        if (error && error.code !== 'PGRST116') throw error; // Ignorar si no hay datos
+
+        if (data && data.proxima_sesion_nota) {
+            cajaRecordatorio.style.display = 'block';
+            
+            let mensaje = data.proxima_sesion_nota;
+            if (data.proxima_sesion_duracion_minutos) {
+                mensaje += `<br><br>⏱️ <em>Tiempo sugerido: ${data.proxima_sesion_duracion_minutos} minutos.</em>`;
+                
+                // Auto-seleccionar la duración en el formulario
+                if(selectDuracion) {
+                    selectDuracion.value = data.proxima_sesion_duracion_minutos;
+                }
+            }
+            textoRecordatorio.innerHTML = mensaje;
+        } else {
+            cajaRecordatorio.style.display = 'none';
+        }
+    } catch (err) {
+        console.error("Error al buscar el recordatorio del paciente:", err);
+    }
+}
     </script>
 </body>
 </html>
