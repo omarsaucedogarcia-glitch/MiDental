@@ -4088,9 +4088,9 @@ async function generarEpicrisisImprimiblePDF() {
     .paywall-features { text-align: left; margin: 20px 0; padding: 0; list-style: none; }
     .paywall-features li { margin-bottom: 12px; font-size: 0.95rem; color: #475569; display: flex; align-items: center; gap: 10px; }
     .paywall-features li span { color: #10b981; font-weight: bold; }
-</style>
+ </style>
 
-<div class="paywall-overlay" id="modalPaywall">
+ <div class="paywall-overlay" id="modalPaywall">
     <div class="paywall-box">
         <button class="paywall-close" onclick="cerrarPaywall()"><span class="material-symbols-outlined">close</span></button>
         <div class="paywall-icon"><span class="material-symbols-outlined" style="font-size: 2.5rem;">workspace_premium</span></div>
@@ -4106,151 +4106,156 @@ async function generarEpicrisisImprimiblePDF() {
             <h3 style="font-size: 1.8rem; margin: 0; color: #0f172a;">$29.990<span style="font-size: 1rem; color: #94a3b8; font-weight: normal;"> /mes</span></h3>
         </div>
         <button id="btn-paywall-suscribir" style="width: 100%; padding: 14px; background: #009ee3; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
-            Suscribirme ahora con Mercado Pago
+      Suscribirme ahora con Mercado Pago
         </button>
     </div>
 </div>
 
+<!-- ========================================== -->
+<!-- AQUI ENVOLVEMOS EL CÓDIGO JS EN SU ETIQUETA -->
+<!-- ========================================== -->
+<script>
+    // ==========================================
+    // CONTROL DE ESTADOS GLOBALES (PERIO Y APARATOLOGÍA)
+    // ==========================================
+    function toggleAparatologiaGlobal(codigoKey, isChecked) {
+        if (!isChecked) return; 
+
+        // 1. Limpiamos selección de diente individual para tratamientos de Boca Completa
+        document.querySelectorAll('g[data-fdi].selected').forEach(el => {
+            el.classList.remove('selected');
+        });
+
+        const timelineRail = document.getElementById('odontogramaTimelineRail');
+        const emptyMsg = document.getElementById('odnTimelineEmpty');
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        const data = arbolClinico[codigoKey];
+        if (!data) return;
+
+        const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+        
+        // 2. Definición dinámica del color de borde en el timeline según la categoría
+        let colorBorde = "var(--blue-elegant)"; // Azul corporativo para condiciones base
+        if (codigoKey === 'placa_visible' || codigoKey === 'sangrado_sondaje') {
+            colorBorde = "#ef4444"; // Rojo de alerta para condiciones periodontales
+        } else if (codigoKey === 'fumador_activo') {
+            colorBorde = "#f59e0b"; // Naranja de advertencia
+        }
+
+        const cardTimeline = document.createElement('div');
+        cardTimeline.style.cssText = `background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease; border-left: 5px solid ${colorBorde};`;
+        cardTimeline.innerHTML = `
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">Boca Completa</strong>
+            </div>
+            <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${data.titulo}</div>
+            <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                ${data.rec}
+            </div>
+        `;
+        
+        timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
+        
+        if(typeof mostrarToastFicha === 'function') {
+            mostrarToastFicha(`✓ ${data.titulo} registrado.`);
+        }
+    }
 
     // ==========================================
-        // CONTROL DE ESTADOS GLOBALES (PERIO Y APARATOLOGÍA)
-        // ==========================================
-        function toggleAparatologiaGlobal(codigoKey, isChecked) {
-            if (!isChecked) return; 
+    // PLANIFICACIÓN MANUAL (BYPASS DEL MOTOR)
+    // ==========================================
+    function registrarPlanificacionManual(codigoKey) {
+        // 1. Abrimos el Asistente Clínico (Panel Derecho Inteligente)
+        lanzarAsistenteClinico(codigoKey);
 
-            // 1. Limpiamos selección de diente individual para tratamientos de Boca Completa
+        const data = arbolClinico[codigoKey];
+        if (!data) return;
+
+        let piezaNum = "Boca Completa";
+        
+        // 2. Evaluamos si el tratamiento es Periodontal (Boca Completa)
+        const esBocaCompleta = ['destartraje_supra', 'destartraje_sub', 'reevaluacion_perio', 'pr_acrilica', 'pr_metalica', 'pr_valplast', 'pr_sobredentadura'].includes(codigoKey);
+
+        if (esBocaCompleta) {
+            // Desmarcamos preventivamente cualquier diente seleccionado para que quede como tratamiento general
             document.querySelectorAll('g[data-fdi].selected').forEach(el => {
                 el.classList.remove('selected');
             });
-
-            const timelineRail = document.getElementById('odontogramaTimelineRail');
-            const emptyMsg = document.getElementById('odnTimelineEmpty');
-            if (emptyMsg) emptyMsg.style.display = 'none';
-
-            const data = arbolClinico[codigoKey];
-            if (!data) return;
-
-            const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-            
-            // 2. Definición dinámica del color de borde en el timeline según la categoría
-            let colorBorde = "var(--blue-elegant)"; // Azul corporativo para condiciones base
-            if (codigoKey === 'placa_visible' || codigoKey === 'sangrado_sondaje') {
-                colorBorde = "#ef4444"; // Rojo de alerta para condiciones periodontales
-            } else if (codigoKey === 'fumador_activo') {
-                colorBorde = "#f59e0b"; // Naranja de advertencia
-            }
-
-            const cardTimeline = document.createElement('div');
-            cardTimeline.style.cssText = `background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: fadeIn 0.4s ease; border-left: 5px solid ${colorBorde};`;
-            cardTimeline.innerHTML = `
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
-                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">Boca Completa</strong>
-                </div>
-                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${data.titulo}</div>
-                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
-                    ${data.rec}
-                </div>
-            `;
-            
-            timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
-            
-            if(typeof mostrarToastFicha === 'function') {
-                mostrarToastFicha(`✓ ${data.titulo} registrado.`);
-            }
-        }
-        // ==========================================
-        // PLANIFICACIÓN MANUAL (BYPASS DEL MOTOR)
-        // ==========================================
-        function registrarPlanificacionManual(codigoKey) {
-            // 1. Abrimos el Asistente Clínico (Panel Derecho Inteligente)
-            lanzarAsistenteClinico(codigoKey);
-
-            const data = arbolClinico[codigoKey];
-            if (!data) return;
-
-            let piezaNum = "Boca Completa";
-            
-            // 2. Evaluamos si el tratamiento es Periodontal (Boca Completa)
-            const esBocaCompleta = ['destartraje_supra', 'destartraje_sub', 'reevaluacion_perio', 'pr_acrilica', 'pr_metalica', 'pr_valplast', 'pr_sobredentadura'].includes(codigoKey);
-
-            if (esBocaCompleta) {
-                // Desmarcamos preventivamente cualquier diente seleccionado para que quede como tratamiento general
-                document.querySelectorAll('g[data-fdi].selected').forEach(el => {
-                    el.classList.remove('selected');
+        } else {
+            // Si es un tratamiento unitario (como futuras resinas o coronas), pintamos la pieza
+            const activeTooth = document.querySelector('g[data-fdi].selected');
+            if (activeTooth) {
+                piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
+                
+                // Forzamos el color amarillo mostaza en el SVG 
+                activeTooth.querySelectorAll('polygon, path').forEach(p => {
+                    // Solo pintamos si no está marcado en rojo por otra patología grave
+                    if (p.style.fill !== 'rgb(239, 68, 68)' && p.style.fill !== '#ef4444') {
+                        p.style.fill = '#fcd34d'; // Amarillo mostaza
+                        p.style.stroke = '#d97706';
+                    }
                 });
             } else {
-                // Si es un tratamiento unitario (como futuras resinas o coronas), pintamos la pieza
-                const activeTooth = document.querySelector('g[data-fdi].selected');
-                if (activeTooth) {
-                    piezaNum = `${activeTooth.dataset.fdi.charAt(0)}.${activeTooth.dataset.fdi.charAt(1)}`;
-                    
-                    // Forzamos el color amarillo mostaza en el SVG 
-                    activeTooth.querySelectorAll('polygon, path').forEach(p => {
-                        // Solo pintamos si no está marcado en rojo por otra patología grave
-                        if (p.style.fill !== 'rgb(239, 68, 68)' && p.style.fill !== '#ef4444') {
-                            p.style.fill = '#fcd34d'; // Amarillo mostaza
-                            p.style.stroke = '#d97706';
-                        }
-                    });
-                } else {
-                    // Si intenta planificar algo que NO es de boca completa sin seleccionar diente, lo detenemos
-                    return alert("Por favor, selecciona una pieza dental en el odontograma antes de asignar este tratamiento unitario.");
-                }
-            }
-
-            // 3. Inyectamos la tarjeta visible en el Historial Principal (Planilla)
-            const planList = document.getElementById('odnPlanList');
-            const emptyMsg = document.getElementById('odnPlanEmpty');
-            if (emptyMsg) emptyMsg.style.display = 'none';
-
-            const card = document.createElement('div');
-            card.style.cssText = "background: white; border: 1px solid #fde68a; border-left: 5px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); animation: fadeIn 0.4s ease;";
-            
-            card.innerHTML = `
-                <div>
-                    <div style="font-size: 0.95rem; font-weight: bold; color: #1e293b; margin-bottom: 4px;">${data.titulo}</div>
-                    <div style="font-size: 0.8rem; color: #64748b;">
-                        <span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle; color: #f59e0b;">engineering</span> 
-                        Planificado - <strong>${piezaNum}</strong>
-                    </div>
-                </div>
-                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer;" title="Eliminar de la lista">
-                    <span class="material-symbols-outlined">delete</span>
-                </button>
-            `;
-
-            planList.insertBefore(card, planList.firstChild);
-
-            // 4. También lo inyectamos en el Timeline colapsable
-            const timelineRail = document.getElementById('odontogramaTimelineRail');
-            const emptyTimeline = document.getElementById('odnTimelineEmpty');
-            if (emptyTimeline) emptyTimeline.style.display = 'none';
-
-            const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
-            
-            const cardTimeline = document.createElement('div');
-            cardTimeline.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid #f59e0b;";
-            cardTimeline.innerHTML = `
-                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
-                    <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
-                </div>
-                <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${data.titulo}</div>
-                <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
-                    ${data.rec}
-                </div>
-            `;
-            timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
-
-            if(typeof mostrarToastFicha === 'function') {
-                mostrarToastFicha(`✓ ${data.titulo} agregado al historial.`);
+                // Si intenta planificar algo que NO es de boca completa sin seleccionar diente, lo detenemos
+                return alert("Por favor, selecciona una pieza dental en el odontograma antes de asignar este tratamiento unitario.");
             }
         }
+
+        // 3. Inyectamos la tarjeta visible en el Historial Principal (Planilla)
+        const planList = document.getElementById('odnPlanList');
+        const emptyMsg = document.getElementById('odnPlanEmpty');
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        const card = document.createElement('div');
+        card.style.cssText = "background: white; border: 1px solid #fde68a; border-left: 5px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); animation: fadeIn 0.4s ease;";
         
+        card.innerHTML = `
+            <div>
+                <div style="font-size: 0.95rem; font-weight: bold; color: #1e293b; margin-bottom: 4px;">${data.titulo}</div>
+                <div style="font-size: 0.8rem; color: #64748b;">
+                    <span class="material-symbols-outlined" style="font-size: 0.9rem; vertical-align: middle; color: #f59e0b;">engineering</span> 
+                    Planificado - <strong>${piezaNum}</strong>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #ef4444; cursor: pointer;" title="Eliminar de la lista">
+                <span class="material-symbols-outlined">delete</span>
+            </button>
+        `;
+
+        planList.insertBefore(card, planList.firstChild);
+
+        // 4. También lo inyectamos en el Timeline colapsable
+        const timelineRail = document.getElementById('odontogramaTimelineRail');
+        const emptyTimeline = document.getElementById('odnTimelineEmpty');
+        if (emptyTimeline) emptyTimeline.style.display = 'none';
+
+        const fechaHora = new Date().toLocaleString('es-CL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+        
+        const cardTimeline = document.createElement('div');
+        cardTimeline.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid #f59e0b;";
+        cardTimeline.innerHTML = `
+            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span> ${fechaHora}</span>
+                <strong style="color: var(--blue-elegant); font-size: 1rem; background: #f8fafc; padding: 2px 8px; border-radius: 6px;">${piezaNum}</strong>
+            </div>
+            <div style="font-size: 0.95rem; color: #1e293b; font-weight: 900; margin-bottom: 6px;">${data.titulo}</div>
+            <div style="font-size: 0.8rem; color: #64748b; background: #f1f5f9; padding: 8px; border-radius: 6px; font-style: italic;">
+                ${data.rec}
+            </div>
+        `;
+        timelineRail.insertBefore(cardTimeline, timelineRail.firstChild);
+
+        if(typeof mostrarToastFicha === 'function') {
+            mostrarToastFicha(`✓ ${data.titulo} agregado al historial.`);
+        }
+    }
 </script>
+
+<!-- EL CÓDIGO HTML QUEDA FUERA DEL SCRIPT -->
 <!-- MODAL: FINALIZAR ATENCIÓN -->
-<div id="modalFinalizarAtencion" class="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1100; align-items: center; justify-content: center;">
+<div id="modalFinalizarAtencion" class="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1100; align-items: center; justify-content: center;">izarAtencion" class="modal-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1100; align-items: center; justify-content: center;">
     <div class="modal-content" style="background: white; width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
         <h2 style="color: var(--blue-elegant); display: flex; align-items: center; gap: 10px; margin-top: 0;">
             <span class="material-symbols-outlined" style="color: var(--green-success);">task_alt</span> Finalizar Atención
