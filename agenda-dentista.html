@@ -358,9 +358,22 @@
             </div>
             
             <div class="input-group-modal">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Motivo de Consulta</label>
-                <input type="text" id="manualMotivo" class="apple-input-modal" placeholder="Ej: Evaluación, Limpieza, Urgencia...">
-            </div>
+    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Motivo de Consulta</label>
+    <div style="display: flex; gap: 10px; margin-top: 5px;">
+        <!-- Selector de Especialidad -->
+        <select id="selEspecialidad" class="apple-input-modal" style="flex: 1; background: white; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; cursor: pointer; color: var(--blue-elegant); font-weight: 500;" onchange="actualizarAcciones()">
+            <option value="">Especialidad...</option>
+        </select>
+        
+        <!-- Selector de Acción (se llena dinámicamente) -->
+        <select id="selAccion" class="apple-input-modal" style="flex: 1; background: white; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; cursor: pointer; color: var(--blue-elegant); font-weight: 500;" onchange="sincronizarMotivoOculto()">
+            <option value="">Acción...</option>
+        </select>
+    </div>
+    
+    <!-- Input oculto para no romper tu función de guardado actual -->
+    <input type="hidden" id="manualMotivo" value="Diagnóstico y Prevención - Evaluación / Diagnóstico">
+</div>
 
             <div class="input-group-modal">
                 <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Duración de la atención</label>
@@ -1198,5 +1211,112 @@
     }
 }
     </script>
+    <script>
+    // ==========================================
+    // NORMALIZACIÓN DE MOTIVOS DE CONSULTA
+    // ==========================================
+    const categoriasMotivos = {
+        "Diagnóstico y Prevención": [
+            "Evaluación / Diagnóstico", 
+            "Radiografía / Imagenología", 
+            "Prevención y Limpieza"
+        ],
+        "Odontología Restauradora": [
+            "Restauración", 
+            "Blanqueamiento"
+        ],
+        "Endodoncia": [
+            "Endodoncia", 
+            "Urgencia Endodóntica / Fase Previa", 
+            "Control Endodóntico"
+        ],
+        "Rehabilitación Oral": [
+            "Prótesis Removible", 
+            "Prótesis Fija", 
+            "Control de Prótesis", 
+            "Trastornos Temporomandibulares (TTM)"
+        ],
+        "Cirugía Bucal y Maxilofacial": [
+            "Exodoncia", 
+            "Cirugía Menor", 
+            "Control Post-Exodoncia"
+        ],
+        "Periodoncia": [
+            "Tratamiento Periodontal", 
+            "Cirugía Periodontal", 
+            "Mantención Periodontal"
+        ],
+        "Implantología": [
+            "Fase Quirúrgica (Implante)", 
+            "Fase Protésica", 
+            "Mantención de Implantes"
+        ],
+        "Ortodoncia y Ortopedia": [
+            "Estudio Quirúrgico / Inicial", 
+            "Instalación", 
+            "Control de Ortodoncia", 
+            "Contención"
+        ],
+        "Odontopediatría": [
+            "Atención Odontopediatrica", 
+            "Pulpotomía / Pulpectomía"
+        ],
+        "Estética y Armonización Facial": [
+            "Estética Facial", 
+            "Control Estética"
+        ]
+    };
+
+    function inicializarEspecialidades() {
+        const selEspecialidad = document.getElementById('selEspecialidad');
+        if (!selEspecialidad) return;
+        
+        selEspecialidad.innerHTML = '<option value="">Especialidad...</option>';
+        for (const especialidad in categoriasMotivos) {
+            let option = document.createElement('option');
+            option.value = especialidad;
+            option.textContent = especialidad;
+            selEspecialidad.appendChild(option);
+        }
+    }
+
+    function actualizarAcciones() {
+        const selEspecialidad = document.getElementById('selEspecialidad');
+        const selAccion = document.getElementById('selAccion');
+        const especialidadSeleccionada = selEspecialidad.value;
+        
+        // Limpiamos las acciones anteriores
+        selAccion.innerHTML = '<option value="">Acción...</option>';
+        
+        // Llenamos con las nuevas acciones según la especialidad
+        if (especialidadSeleccionada && categoriasMotivos[especialidadSeleccionada]) {
+            categoriasMotivos[especialidadSeleccionada].forEach(accion => {
+                let option = document.createElement('option');
+                option.value = accion;
+                option.textContent = accion;
+                selAccion.appendChild(option);
+            });
+        }
+        sincronizarMotivoOculto();
+    }
+
+    function sincronizarMotivoOculto() {
+        const selEspecialidad = document.getElementById('selEspecialidad').value;
+        const selAccion = document.getElementById('selAccion').value;
+        const manualMotivo = document.getElementById('manualMotivo');
+        
+        // Formato final que se guardará en la base de datos: "Especialidad - Acción"
+        if (selEspecialidad && selAccion) {
+            manualMotivo.value = `${selEspecialidad} - ${selAccion}`;
+        } else if (selEspecialidad) {
+            manualMotivo.value = selEspecialidad;
+        } else {
+            manualMotivo.value = "Evaluación General"; // Fallback por defecto
+        }
+    }
+
+    // Inicializamos los selectores cuando la página cargue
+    document.addEventListener('DOMContentLoaded', inicializarEspecialidades);
+</script>
 </body>
 </html>
