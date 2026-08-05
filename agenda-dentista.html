@@ -4,250 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title id="pageTitle">MiDental - Mi Agenda</title>
+    
+    <!-- Fuentes e Íconos -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <!-- Estilos Base Globales -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
-    <style>
-        /* =========================================================
-           OVERRIDE: MODO PANTALLA COMPLETA Y MENÚ FLOTANTE
-           ========================================================= */
-        .dashboard-layout { display: block !important; height: 100vh; overflow: hidden; }
-        
-        .dashboard-content { 
-            margin-left: 0 !important; 
-            width: 100% !important; 
-            max-width: 100% !important; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 15px 20px; 
-        }
-
-        
-        .sidebar-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(2px);
-            z-index: 9998;
-            opacity: 0;
-            visibility: hidden;
-            transition: 0.3s ease-in-out;
-        }
-        .sidebar-overlay.active { opacity: 1; visibility: visible; }
-
-        .menu-toggle-btn {
-            background: transparent; border: none; color: var(--blue-elegant); cursor: pointer;
-            margin-right: 15px; display: flex; align-items: center; justify-content: center;
-            padding: 5px; border-radius: 8px; transition: 0.2s;
-        }
-        .menu-toggle-btn:hover { background: #f1f5f9; color: var(--pixar-cyan); }
-
-
-        /* =========================================================
-           DISEÑO DE GRILLA (Lienzo estático panorámico tipo Medilink/Dentalink)
-           ========================================================= */
-        .calendar-grid-container * { box-sizing: border-box; }
-
-        /* Filas de tiempo: alto fijo estricto de 40px (granularidad 30 min) */
-        .time-slot-label {
-            height: 40px !important; min-height: 40px !important; max-height: 40px !important;
-            overflow: hidden;
-        }
-        .time-block {
-            height: 40px !important; min-height: 40px !important; max-height: 40px !important;
-            position: relative; /* Permite que las citas largas se superpongan en absolute */
-        }
-        .time-header-spacer, .day-header {
-            height: 50px !important; min-height: 50px !important; max-height: 50px !important;
-            overflow: hidden;
-        }
-        /* Columna de horas: ancho fijo 60px */
-        .time-labels {
-            display: flex; flex-direction: column;
-            width: 60px; min-width: 60px; max-width: 60px;
-            border-right: 1px solid #e2e8f0;
-            position: sticky; left: 0; background: white; z-index: 20;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.02);
-        }
-        .time-header-spacer { border-bottom: 2px solid #cbd5e1; background: #f8fafc; position: sticky; top: 0; z-index: 30; }
-        .time-slot-label { display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: #64748b; border-bottom: 1px solid #e2e8f0; background: #fff; }
-
-        /* Columnas de día: ancho fijo 140px (no se aplastan en móvil) */
-        .days-container { display: grid; grid-template-columns: repeat(7, 140px); flex: 0 0 auto; min-width: max-content; }
-        .day-col { display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; width: 140px; min-width: 140px; max-width: 140px; }
-        .day-header { display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--blue-elegant); border-bottom: 2px solid #cbd5e1; background: #f8fafc; position: sticky; top: 0; z-index: 10; flex-direction: column; line-height: 1.1; }
-        .day-header small { font-weight: normal; font-size: 0.75rem; color: #64748b; margin-top: 2px;}
-        .time-block { border-bottom: 1px solid #e2e8f0; padding: 2px; }
-
-        .slot-workplace { background: #eafaea; border: 1px solid #cce8dd; width: 100%; height: 100%; border-radius: 4px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: 0 6px; cursor: pointer; transition: 0.2s; color: #166534; }
-        .slot-workplace:hover { background: #d1f4e0; border-color: #a7e0c4; }
-        .sede-text-mini { font-size: 0.7rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; text-align: left; margin-left: 4px; }
-
-        /* Evento posicionado en absolute: permite que cubra varios bloques verticalmente */
-        .event-base {
-            position: absolute; top: 0; left: 0; width: 100%; z-index: 10;
-            padding: 4px 6px; border-radius: 4px; cursor: pointer;
-            display: flex; flex-direction: column; justify-content: flex-start;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); line-height: 1.2;
-            overflow: hidden;
-        }
-        .event-pendiente { background-color: #fef3c7; border-left: 4px solid #f59e0b; color: #92400e; }
-        .event-Confirmado { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; } /* Ajustado a mayúscula por Dashboard */
-        .event-confirmada { background-color: #dcfce7; border-left: 4px solid #10b981; color: #065f46; } /* Respaldo */
-        .event-en_atencion { background-color: #e0e7ff; border-left: 4px solid #3b82f6; color: #1e40af; }
-        .event-completada { background-color: #f1f5f9; border-left: 4px solid #94a3b8; color: #475569; }
-        .event-bloqueado { background-color: #f8fafc; border-left: 4px solid #64748b; color: #475569; opacity: 0.9; }
-
-        .calendar-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0;}
-        .calendar-toolbar-compact { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-radius: 10px 10px 0 0; border: 1px solid #e2e8f0; border-bottom: none; flex-wrap: wrap; gap: 15px;}
-        .calendar-grid-container { flex: 1; overflow: auto; background: white; border: 1px solid #e2e8f0; display: flex; position: relative; border-radius: 0 0 10px 10px; -webkit-overflow-scrolling: touch; }
-
-        /* Autocompletado Inteligente de Pacientes */
-        .autocomplete-list {
-            position: absolute; z-index: 1000; background: white; border: 1px solid #e2e8f0;
-            border-radius: 8px; max-height: 160px; overflow-y: auto; width: 100%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: none; margin-top: 5px; top: 100%;
-        }
-        .autocomplete-item {
-            padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9;
-            font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 3px;
-        }
-        .autocomplete-item:hover { background: #f8fafc; }
-        .autocomplete-item strong { color: var(--blue-elegant); font-size: 0.95rem; }
-
-        /* =========================================================
-           ESTRUCTURA DE MODAL CON BOTONES INMÓVILES (FIXED FOOTER)
-           ========================================================= */
-        .modal-content-split {
-            display: flex; flex-direction: column; max-height: 90vh; 
-            padding: 0 !important; overflow: hidden;
-        }
-        .modal-body-scroll {
-            padding: 25px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch;
-        }
-        .modal-footer-fixed {
-            padding: 15px 25px 20px 25px; background: white; border-top: 1px solid #e2e8f0; 
-            flex-shrink: 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.03); z-index: 10;
-        }
-        /* =========================================================
-           MODO CELULAR: solo reflow de la barra superior.
-           La grilla mantiene tamaños fijos y se navega por scroll H/V
-           sobre el lienzo estático (estándar Medilink/Dentalink).
-           ========================================================= */
-        @media (max-width: 768px) {
-            .dashboard-content { padding: 10px 10px; }
-            .calendar-toolbar-compact { flex-direction: column; align-items: stretch; padding: 10px; }
-            .cal-nav-buttons { justify-content: space-between; width: 100%; }
-            #textoSemanaActual { font-size: 1rem; min-width: 150px;}
-            .cal-leyend-compact { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 0.7rem; }
-        }
-        /* =========================================================
-           PARCHE: AGENDA MÓVIL 100% ESTÁTICA Y NATIVA
-           ========================================================= */
-        @media (max-width: 768px) {
-            body { 
-                overflow: hidden !important; /* Bloquea que la página entera se mueva */
-                position: fixed; width: 100%; height: 100%; /* Inmoviliza el chasis */
-            }
-            .dashboard-layout, .dashboard-content { 
-                height: 100dvh !important; /* dvh = Altura Dinámica Real del celular */
-                display: flex !important; 
-                flex-direction: column !important; 
-                padding-bottom: 70px !important; /* Protege el espacio del menú inferior */
-            }
-            .calendar-wrapper { 
-                flex: 1 !important; 
-                display: flex !important; 
-                flex-direction: column !important; 
-                min-height: 0 !important; /* Magia CSS: obliga a que el scroll ocurra adentro */
-            }
-            .calendar-grid-container { 
-                flex: 1 !important; 
-                overflow-y: auto !important; 
-                overflow-x: auto !important; 
-                -webkit-overflow-scrolling: touch; /* Scroll suave de iPhone */
-            }
-        }
-        /* =========================================================
-   FIJAR BARRA LATERAL EN LA AGENDA (DESKTOP)
-   ========================================================= */
-
-@media (min-width: 992px) {
-    /* 1. Ocultamos el ícono de hamburguesa (≡) porque la barra ya estará siempre visible */
-    /* Nota: Si tu botón tiene otra clase, agrégala aquí (ej. .btn-menu, .toggle-btn) */
-    .menu-toggle, 
-    .hamburger-btn,
-    .btn-toggle-sidebar,
-    [onclick*="toggleSidebar"] {
-        display: none !important;
-    }
-
-    /* 2. Forzamos el mismo Grid exacto que usamos en la ficha del paciente */
-    .dashboard-layout {
-        display: grid !important;
-        grid-template-columns: 190px 1fr !important;
-        height: 100vh;
-        overflow: hidden; /* Evita scroll doble */
-    }
-
-    /* 3. Forzamos a la barra lateral a estar visible, anulando cualquier ocultamiento previo */
-    .sidebar {
-        display: flex !important;
-        position: relative !important;
-        transform: translateX(0) !important; /* Anula el efecto que la esconde hacia la izquierda */
-        left: 0 !important;
-        width: 190px !important;
-        min-width: 190px !important;
-        height: 100vh !important;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.03) !important;
-        z-index: 100;
-    }
-
-    /* 4. Aseguramos que el contenido principal (el calendario) ocupe el resto del espacio y tenga su propio scroll */
-    .dashboard-content {
-        width: 100% !important;
-        height: 100vh;
-        overflow-y: auto;
-    }
-}
-    </style>
+    
+    <!-- Tu nuevo CSS Modular extraído -->
+    <link rel="stylesheet" href="css/agenda-dentista.css">
+    
+    <!-- Componentes reutilizables -->
+    <script src="js/components.js"></script>
 </head>
 <body>
 
-   <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="dashboard-layout">
         
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
-                <h2>MiDental</h2>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
-                <a href="agenda-dentista.html" class="nav-item active"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
-                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
-                <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
-                <a href="generear.publicación-IA.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Generar Publicación IA</a>
-                <a href="Analisis Clinico IA.html" class="nav-item"><span class="material-symbols-outlined">insights</span> Análisis Clínico IA</a>
-                <a href="analisis de campañas y crm.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Analisis de CRM</a>
-            </nav>
-            <hr style="border-top: 1px solid #e2e8f0; margin: 15px 20px;">
-
-            <div class="sidebar-plan-info" style="padding: 0 20px; margin-bottom: 20px;">
-                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; font-weight: bold;">PLAN ACTUAL</p>
-                <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.9rem; font-weight: bold; color: #334155;">Básico</span>
-                    <span style="font-size: 0.75rem; background: #e2e8f0; padding: 3px 8px; border-radius: 12px; font-weight: bold;">45/50 Pacientes</span>
-                </div>
-            </div>
-
-            <div class="sidebar-footer">
-                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
-            </div>
-        </aside>
+        <midental-sidebar></midental-sidebar>
 
         <main class="dashboard-content">
             <header class="topbar" style="margin-bottom: 15px; padding: 10px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid #e2e8f0;">
@@ -292,10 +69,10 @@
         </main>
     </div>
 
+    <!-- Modales -->
     <div id="modalDetallePaciente" class="modal-overlay" style="display:none;">
         <div class="modal-content modal-content-split">
             <button class="btn-close" onclick="cerrarModal('modalDetallePaciente')" style="position: absolute; top: 15px; right: 15px; z-index: 20;"><span class="material-symbols-outlined">close</span></button>
-            
             <div class="modal-body-scroll">
                 <div class="patient-detail-header">
                     <div class="avatar-circle avatar-large" id="detalleAvatar">--</div>
@@ -310,7 +87,6 @@
                     <div class="info-row"><span class="material-symbols-outlined">call</span><span id="detalleTelefono">Teléfono</span></div>
                 </div>
             </div>
-            
             <div class="modal-footer-fixed">
                 <div id="contenedorBotonesAccion" style="display: flex; flex-direction: column; gap: 10px;"></div>
             </div>
@@ -318,91 +94,77 @@
     </div>
 
     <div id="modalAgendarManual" class="modal-overlay" style="display:none; z-index: 1000;">
-    <!-- Agregamos las clases modal-content-split para dividir cuerpo y botones -->
-    <div class="modal-content modal-content-split" style="max-width: 500px;">
-        <button class="btn-close" onclick="cerrarModal('modalAgendarManual')" style="position: absolute; top: 15px; right: 15px; z-index: 20;"><span class="material-symbols-outlined">close</span></button>
-        
-        <!-- Contenedor con Scroll para los inputs -->
-        <div class="modal-body-scroll">
-            <h2 class="modal-title" style="color: var(--pixar-cyan); display: flex; align-items: center; gap: 10px; margin-top: 0;">
-                <span class="material-symbols-outlined">person_add</span> Agendar Paciente
-            </h2>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0;">Bloque seleccionado: <strong id="lblBloqueManual" style="color: var(--blue-elegant);">--/--/----</strong></p>
+        <div class="modal-content modal-content-split" style="max-width: 500px;">
+            <button class="btn-close" onclick="cerrarModal('modalAgendarManual')" style="position: absolute; top: 15px; right: 15px; z-index: 20;"><span class="material-symbols-outlined">close</span></button>
+            <div class="modal-body-scroll">
+                <h2 class="modal-title" style="color: var(--pixar-cyan); display: flex; align-items: center; gap: 10px; margin-top: 0;">
+                    <span class="material-symbols-outlined">person_add</span> Agendar Paciente
+                </h2>
+                <p style="color: #64748b; font-size: 0.9rem; margin-top: 0;">Bloque seleccionado: <strong id="lblBloqueManual" style="color: var(--blue-elegant);">--/--/----</strong></p>
 
-            <!-- CAJA DE RECORDATORIO CLÍNICO -->
-            <div id="cajaRecordatorioClinico" style="display: none; background: #fffbeb; border-left: 4px solid var(--pixar-orange); padding: 15px; border-radius: 8px; margin-top: 15px; margin-bottom: 15px;">
-                <div style="display: flex; align-items: center; gap: 8px; color: #b45309; font-weight: bold; margin-bottom: 5px;">
-                    <span class="material-symbols-outlined">assignment_late</span> Indicación de sesión anterior:
+                <div id="cajaRecordatorioClinico" style="display: none; background: #fffbeb; border-left: 4px solid var(--pixar-orange); padding: 15px; border-radius: 8px; margin-top: 15px; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #b45309; font-weight: bold; margin-bottom: 5px;">
+                        <span class="material-symbols-outlined">assignment_late</span> Indicación de sesión anterior:
+                    </div>
+                    <p id="textoRecordatorioClinico" style="margin: 0; color: #92400e; font-size: 0.9rem; font-weight: 500;"></p>
                 </div>
-                <p id="textoRecordatorioClinico" style="margin: 0; color: #92400e; font-size: 0.9rem; font-weight: 500;"></p>
-            </div>
 
-            <div class="input-group-modal" style="margin-top: 20px;">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">RUT del Paciente</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="manualRut" class="apple-input-modal" placeholder="Ej: 12345678-9" oninput="formatearRutInput(this)">
-                    <button class="btn-pixar" style="padding: 10px;" onclick="buscarPacienteRed()"><span class="material-symbols-outlined">search</span></button>
+                <div class="input-group-modal" style="margin-top: 20px;">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">RUT del Paciente</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="manualRut" class="apple-input-modal" placeholder="Ej: 12345678-9" oninput="formatearRutInput(this)">
+                        <button class="btn-pixar" style="padding: 10px;" onclick="buscarPacienteRed()"><span class="material-symbols-outlined">search</span></button>
+                    </div>
+                    <small id="statusBusquedaRut" style="color:var(--pixar-orange); display: block; margin-top: 5px;"></small>
                 </div>
-                <small id="statusBusquedaRut" style="color:var(--pixar-orange); display: block; margin-top: 5px;"></small>
-            </div>
-            
-            <div class="input-group-modal" style="position: relative;">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Nombre Completo</label>
-                <input type="text" id="manualNombre" class="apple-input-modal" placeholder="Escribe para buscar o ingresa uno nuevo..." oninput="buscarPacientePorNombre()" autocomplete="off">
-                <div id="listaAutocompletadoNombre" class="autocomplete-list"></div>
-            </div>
-            
-            <div class="input-group-modal">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Teléfono (WhatsApp)</label>
-                <input type="text" id="manualTelefono" class="apple-input-modal" placeholder="Ej: 56912345678">
-            </div>
-            
-            <div class="input-group-modal">
-    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Motivo de Consulta</label>
-    <div style="display: flex; gap: 10px; margin-top: 5px;">
-        <!-- Selector de Especialidad -->
-        <select id="selEspecialidad" class="apple-input-modal" style="flex: 1; background: white; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; cursor: pointer; color: var(--blue-elegant); font-weight: 500;" onchange="actualizarAcciones()">
-            <option value="">Especialidad...</option>
-        </select>
-        
-        <!-- Selector de Acción (se llena dinámicamente) -->
-        <select id="selAccion" class="apple-input-modal" style="flex: 1; background: white; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; cursor: pointer; color: var(--blue-elegant); font-weight: 500;" onchange="sincronizarMotivoOculto()">
-            <option value="">Acción...</option>
-        </select>
-    </div>
-    
-    <!-- Input oculto para no romper tu función de guardado actual -->
-    <input type="hidden" id="manualMotivo" value="Diagnóstico y Prevención - Evaluación / Diagnóstico">
-</div>
+                
+                <div class="input-group-modal" style="position: relative;">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Nombre Completo</label>
+                    <input type="text" id="manualNombre" class="apple-input-modal" placeholder="Escribe para buscar o ingresa uno nuevo..." oninput="buscarPacientePorNombre()" autocomplete="off">
+                    <div id="listaAutocompletadoNombre" class="autocomplete-list"></div>
+                </div>
+                
+                <div class="input-group-modal">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Teléfono (WhatsApp)</label>
+                    <input type="text" id="manualTelefono" class="apple-input-modal" placeholder="Ej: 56912345678">
+                </div>
+                
+                <div class="input-group-modal">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Motivo de Consulta</label>
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <select id="selEspecialidad" class="apple-input-modal" style="flex: 1; background: white; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; cursor: pointer; color: var(--blue-elegant); font-weight: 500;" onchange="actualizarAcciones()">
+                            <option value="">Especialidad...</option>
+                        </select>
+                        <select id="selAccion" class="apple-input-modal" style="flex: 1; background: white; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; outline: none; cursor: pointer; color: var(--blue-elegant); font-weight: 500;" onchange="sincronizarMotivoOculto()">
+                            <option value="">Acción...</option>
+                        </select>
+                    </div>
+                    <input type="hidden" id="manualMotivo" value="Diagnóstico y Prevención - Evaluación / Diagnóstico">
+                </div>
 
-            <div class="input-group-modal">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Duración de la atención</label>
-                <select id="manualDuracion" class="apple-input-modal" style="background: white;">
-                    <option value="30">30 min (1 bloque)</option>
-                    <option value="60" selected>60 min (2 bloques)</option>
-                    <option value="90">90 min (3 bloques)</option>
-                    <option value="120">120 min (4 bloques)</option>
-                </select>
+                <div class="input-group-modal">
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #475569;">Duración de la atención</label>
+                    <select id="manualDuracion" class="apple-input-modal" style="background: white;">
+                        <option value="30">30 min (1 bloque)</option>
+                        <option value="60" selected>60 min (2 bloques)</option>
+                        <option value="90">90 min (3 bloques)</option>
+                        <option value="120">120 min (4 bloques)</option>
+                    </select>
+                </div>
             </div>
-        </div>
-
-        <!-- Botones Fijos en la parte inferior -->
-        <div class="modal-footer-fixed">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-login-outline btn-full" id="btnBloquearManual" onclick="bloquearSlotManual()" style="margin:0; border-color: #cbd5e1; color: #64748b; font-size: 0.9rem;">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">block</span> Bloquear
-                </button>
-                <button class="btn-pixar btn-full" id="btnGuardarManual" onclick="guardarCitaManual()" style="margin:0; font-size: 0.9rem;">
-                    Agendar Paciente
-                </button>
+            <div class="modal-footer-fixed">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-login-outline btn-full" id="btnBloquearManual" onclick="bloquearSlotManual()" style="margin:0; border-color: #cbd5e1; color: #64748b; font-size: 0.9rem;">
+                        <span class="material-symbols-outlined" style="vertical-align: middle;">block</span> Bloquear
+                    </button>
+                    <button class="btn-pixar btn-full" id="btnGuardarManual" onclick="guardarCitaManual()" style="margin:0; font-size: 0.9rem;">
+                        Agendar Paciente
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-    <!-- ======================================================= -->
-    <!-- MODAL REGISTRO DE PAGO AL FINALIZAR CITA (MÓDULO SALDO) -->
-    <!-- ======================================================= -->
     <div id="modalRegistrarPago" class="modal-overlay" style="display:none; z-index: 1100;">
         <div class="modal-content" style="max-width: 480px; border-radius: 20px;">
             <button class="btn-close" onclick="cerrarModal('modalRegistrarPago')"><span class="material-symbols-outlined">close</span></button>
@@ -441,10 +203,13 @@
         </div>
     </div>
 
+    <!-- Scripts Base -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/app.js"></script>
 
+    <!-- Motor de la Agenda -->
     <script>
         function formatearRutInput(input) {
             let valor = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
@@ -459,22 +224,17 @@
         }
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('appSidebar');
+            const sidebar = document.querySelector('midental-sidebar aside');
             const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('open');
-            if (sidebar.classList.contains('open')) {
+            if(sidebar) sidebar.classList.toggle('open');
+            if (sidebar && sidebar.classList.contains('open')) {
                 overlay.classList.add('active');
             } else {
                 overlay.classList.remove('active');
             }
         }
-        // ==========================================
-        // CIERRE DE SESIÓN BLINDADO
-        // ==========================================
+
         window.cerrarSesionLocal = async function() {
-            const btn = document.querySelector('.btn-logout');
-            if(btn) btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Saliendo...';
-            
             try {
                 if (window.midental && window.midental.auth) {
                     await window.midental.auth.signOut();
@@ -483,9 +243,6 @@
                 console.error("Error al cerrar sesión:", err);
             } finally {
                 localStorage.removeItem('midental_user_id');
-                localStorage.removeItem('midental_user_tipo');
-                localStorage.removeItem('midental_user_name');
-                sessionStorage.removeItem('sesion_validada_hoy');
                 window.location.href = 'index.html';
             }
         };
@@ -494,9 +251,20 @@
         let citaEnCursoData = null; 
         let slotManualId = null;
         let pacienteManualEncontradoId = null;
+        let centroMedicoOficial = "nuestra clínica";
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userId = localStorage.getItem('midental_user_id');
+            if (!userId) return window.location.href = 'index.html';
+
+            try {
+                const datos = await window.MiDentalAPI.Perfil.obtenerDatosGlobales(userId);
+                if(datos.perfil && datos.perfil.avatar_url) document.getElementById('topbarAvatar').src = datos.perfil.avatar_url;
+                if(datos.sede) centroMedicoOficial = datos.sede;
+            } catch (err) { console.error(err); }
+
             irAHoy();
+            inicializarEspecialidades();
         });
 
         function irAHoy() {
@@ -529,7 +297,6 @@
             timeLabelsContainer.innerHTML = '<div class="time-header-spacer"></div>';
             daysContainer.innerHTML = '';
 
-            // Granularidad 30 min: 08:00, 08:30, 09:00, ..., 20:00, 20:30
             for(let h = 8; h <= 20; h++) {
                 timeLabelsContainer.innerHTML += `<div class="time-slot-label">${h.toString().padStart(2,'0')}:00</div>`;
                 timeLabelsContainer.innerHTML += `<div class="time-slot-label">${h.toString().padStart(2,'0')}:30</div>`;
@@ -546,16 +313,12 @@
                 let diaLetra = diasAbreviados[i];
 
                 let fechaRealStr = `${diaNum}/${mesNum}/${añoStr}`;
-
                 let colHTML = `<div class="day-col"><div class="day-header">${diaLetra}<small>${diaNum} ${mesStr}</small></div>`;
 
-                // Bloques cada 30 minutos desde 08:00 hasta 20:30
                 for(let hora = 8; hora <= 20; hora++) {
                     for(let min of [0, 30]) {
                         let horaStr = `${hora.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
                         let numDiaJS = fechaColumna.getDay() === 0 ? 7 : fechaColumna.getDay();
-
-                        // FORMATO EXACTO SINCRONIZADO: "Lun 04/05/2026 - 09:00" / "Lun 04/05/2026 - 09:30"
                         let slotRealId = `${diaLetra} ${fechaRealStr} - ${horaStr}`;
 
                         colHTML += `<div class="time-block" data-dia-semana="${numDiaJS}" data-hora="${horaStr}" data-slot-real="${slotRealId}"></div>`;
@@ -573,21 +336,16 @@
             if (!userId) return;
 
             try {
-                // 1. SINCRONIZACIÓN DE DISPONIBILIDAD (Igual que en el mapa del paciente)
-                const { data: perfil } = await window.midental.from('perfiles_dentistas').select('disponibilidad_json, horarios_json').eq('id', userId).single();
-                const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, disponibilidad_json, horarios_json').eq('dentista_id', userId);
-
+                const disp = await window.MiDentalAPI.Agenda.obtenerDisponibilidad(userId);
                 let slotsMap = {};
                 
-                // Mapeamos lo del perfil
-                if (perfil) {
-                    if (perfil.disponibilidad_json) perfil.disponibilidad_json.forEach(s => slotsMap[s] = 'Consulta Privada');
-                    if (perfil.horarios_json) perfil.horarios_json.forEach(s => slotsMap[s] = 'Consulta Privada');
+                if (disp.perfil) {
+                    if (disp.perfil.disponibilidad_json) disp.perfil.disponibilidad_json.forEach(s => slotsMap[s] = 'Consulta Privada');
+                    if (disp.perfil.horarios_json) disp.perfil.horarios_json.forEach(s => slotsMap[s] = 'Consulta Privada');
                 }
                 
-                // Mapeamos las sedes (sobrescribe si hay choque, mostrando el nombre correcto)
-                if (sedes) {
-                    sedes.forEach(s => {
+                if (disp.sedes) {
+                    disp.sedes.forEach(s => {
                         if (s.disponibilidad_json) s.disponibilidad_json.forEach(slot => slotsMap[slot] = s.nombre_sede);
                         if (s.horarios_json) s.horarios_json.forEach(slot => slotsMap[slot] = s.nombre_sede);
                     });
@@ -595,13 +353,12 @@
 
                 const numDiaMap = { 'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7 };
 
-                // Pintamos los bloques disponibles verdes
                 Object.keys(slotsMap).forEach(slotKey => {
-                    let partes = slotKey.split('-'); // Ej: ["Lun", "09:00"]
+                    let partes = slotKey.split('-'); 
                     if(partes.length !== 2) return;
                     
-                    let numDia = numDiaMap[partes[0]];
-                    let hora = partes[1];
+                    let numDia = numDiaMap[partes[0].trim()];
+                    let hora = partes[1].trim();
                     let nombreSede = slotsMap[slotKey];
 
                     let celda = document.querySelector(`[data-dia-semana="${numDia}"][data-hora="${hora}"]`);
@@ -617,30 +374,17 @@
                     }
                 });
 
-                // 2. EXTRAER CITAS AGENDADAS Y DIBUJARLAS ENCIMA
-                const { data: citas } = await window.midental
-                    .from('citas_agenda')
-                    .select('*, perfiles_pacientes(nombre_completo, telefono)')
-                    .eq('dentista_id', userId)
-                    .neq('estado', 'cancelada')
-                    .neq('estado', 'Rechazado'); // Ocultar rechazadas para limpiar visual
+                const citas = await window.MiDentalAPI.Agenda.obtenerCitasActivas(userId);
 
                 if (citas) {
                     citas.forEach(cita => {
-                        let slotIdBusqueda = cita.fecha_hora_formato_slot;
-                        let celda = document.querySelector(`[data-slot-real="${slotIdBusqueda}"]`);
+                        let celda = document.querySelector(`[data-slot-real="${cita.fecha_hora_formato_slot}"]`);
 
                         if (celda) {
                             const pctName = cita.paciente_nombre_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente');
                             const pctTel = cita.paciente_telefono_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '');
                             const estado = cita.estado || 'pendiente';
 
-                            // Cálculo dinámico del alto: cada bloque = 30 min.
-                            // 30 min => 1 bloque => height: calc(100% + 0px)
-                            // 60 min => 2 bloques => height: calc(200% + 1px)
-                            // 90 min => 3 bloques => height: calc(300% + 2px)
-                            // 120 min => 4 bloques => height: calc(400% + 3px)
-                            // Fallback a 60 min para citas históricas sin duracion_minutos (preserva look previo de 1h)
                             const duracionMin = parseInt(cita.duracion_minutos, 10) || 60;
                             const bloques = Math.max(1, Math.round(duracionMin / 30));
                             const alturaCss = `calc(${bloques * 100}% + ${bloques - 1}px)`;
@@ -653,7 +397,7 @@
                                 telefono: pctTel,
                                 rut: cita.paciente_rut_manual || '',
                                 estado: estado,
-                                fecha: slotIdBusqueda,
+                                fecha: cita.fecha_hora_formato_slot,
                                 duracion_minutos: duracionMin
                             }));
 
@@ -667,7 +411,7 @@
                     });
                 }
             } catch (err) {
-                console.error("Error cargando datos de agenda sincronizados:", err);
+                console.error("Error cargando datos de agenda:", err);
             }
         }
 
@@ -684,7 +428,6 @@
             document.getElementById('manualDuracion').value = "60";
             document.getElementById('statusBusquedaRut').innerText = "Ingresa RUT o Nombre para buscar en la red.";
             
-            // Limpiamos la lista de autocompletado si quedó abierta
             const listaAutocompletado = document.getElementById('listaAutocompletadoNombre');
             if (listaAutocompletado) listaAutocompletado.style.display = 'none';
             
@@ -701,28 +444,27 @@
             status.style.color = "var(--blue-elegant)";
 
             try {
-                // Buscamos si el RUT existe en la base de datos
-                const { data, error } = await window.midental.from('perfiles_pacientes').select('id, nombre_completo, telefono, user_id').eq('rut', rut).single();
+                const data = await window.MiDentalAPI.Pacientes.buscarPorRut(rut);
                 
                 if(data) {
-                    // Comprobamos si este dentista ya lo ha atendido antes
-                    const { data: citasHistorial } = await window.midental.from('citas_agenda')
-                        .select('id').eq('dentista_id', dentistaId).eq('paciente_id', data.id).limit(1);
+                    const pendientes = await window.MiDentalAPI.Agenda.obtenerPendientes(dentistaId);
+                    const activas = await window.MiDentalAPI.Agenda.obtenerCitasActivas(dentistaId);
+                    const citasHistorial = [...pendientes, ...activas].filter(c => c.paciente_id === data.id);
 
                     const esPacienteConocido = (citasHistorial && citasHistorial.length > 0);
-                    const esPacienteGlobalConApp = (data.user_id !== null); // El paciente tiene cuenta oficial de MiDental
+                    const esPacienteGlobalConApp = (data.user_id !== null);
+
+                    // AQUÍ LA CORRECCIÓN: Vinculamos al paciente y buscamos su recordatorio 
+                    // independientemente de si es un paciente antiguo o nuevo en la red.
+                    pacienteManualEncontradoId = data.id;
+                    verificarRecordatorioPaciente(data.id);
 
                     if (esPacienteConocido || esPacienteGlobalConApp) {
-                        // Es SEGURO mostrar los datos
-                        pacienteManualEncontradoId = data.id;
                         document.getElementById('manualNombre').value = data.nombre_completo || '';
                         document.getElementById('manualTelefono').value = data.telefono || '';
                         status.innerText = "✅ Paciente encontrado y vinculado.";
                         status.style.color = "var(--green-success)";
                     } else {
-                        // ALERTA DE PRIVACIDAD: Es un paciente manual de OTRO dentista. Ocultamos sus datos.
-                        pacienteManualEncontradoId = data.id; // Vinculamos el ID de forma invisible para no duplicar el RUT en la BD
-                        verificarRecordatorioPaciente(data.id);
                         document.getElementById('manualNombre').value = '';
                         document.getElementById('manualTelefono').value = '';
                         status.innerText = "Paciente registrado en otra clínica. Por favor ingresa su Nombre y Teléfono manualmente.";
@@ -730,11 +472,13 @@
                     }
                 } else {
                     pacienteManualEncontradoId = null;
+                    document.getElementById('cajaRecordatorioClinico').style.display = 'none';
                     status.innerText = "Paciente nuevo. Ingresa sus datos abajo.";
                     status.style.color = "var(--pixar-orange)";
                 }
             } catch(e) {
                 pacienteManualEncontradoId = null;
+                document.getElementById('cajaRecordatorioClinico').style.display = 'none';
                 status.innerText = "Paciente nuevo. Ingresa sus datos abajo.";
                 status.style.color = "var(--pixar-orange)";
             }
@@ -755,51 +499,19 @@
 
             try {
                 let telLimpio = telInput.replace(/[^0-9]/g, '');
-                if (telLimpio.length === 8) {
-                    telLimpio = '569' + telLimpio; 
-                } else if (telLimpio.length === 9 && telLimpio.startsWith('9')) {
-                    telLimpio = '56' + telLimpio; 
-                }
+                if (telLimpio.length === 8) telLimpio = '569' + telLimpio; 
+                else if (telLimpio.length === 9 && telLimpio.startsWith('9')) telLimpio = '56' + telLimpio; 
 
                 let pacienteIdFinal = pacienteManualEncontradoId;
                 let esPacienteNuevo = false;
 
-                // 1. MAGIA CLÍNICA: SI EL PACIENTE NO EXISTE, LE CREAMOS SU FICHA BASE
                 if (!pacienteIdFinal) {
-                    const nuevoId = crypto.randomUUID();
-                    const { error: insertPctError } = await window.midental.from('perfiles_pacientes').insert([{
-                        id: nuevoId,
-                        rut: rut || null, // Guardamos el RUT si lo ingresó para que luego lo reclame
-                        nombre_completo: nombre,
-                        telefono: telLimpio,
-                        enfermedades_cronicas: 'Ninguna',
-                        medicamentos: 'Ninguno',
-                        alergias: 'Ninguna',
-                        user_id: null // Paciente huérfano
-                    }]);
-
-                    if (insertPctError) {
-                        if(insertPctError.code === '23505') throw new Error("Este RUT ya existe. Por favor usa el botón de la lupa para buscarlo.");
-                        throw insertPctError;
-                    }
-                    
-                    pacienteIdFinal = nuevoId;
+                    pacienteIdFinal = await window.MiDentalAPI.Pacientes.crearPacienteManual(rut, nombre, telLimpio);
                     esPacienteNuevo = true;
                 }
 
-                // 2. CREAMOS LA CITA AMARRADA AL ID REAL DEL PACIENTE
-                const { error } = await window.midental.from('citas_agenda').insert([{
-                    dentista_id: dentistaId,
-                    paciente_id: pacienteIdFinal, // AHORA SIEMPRE TENDRÁ UN ID CLÍNICO
-                    fecha_hora_formato_slot: slotManualId,
-                    estado: 'Confirmado',
-                    motivo: motivo,
-                    duracion_minutos: duracion
-                }]);
+                await window.MiDentalAPI.Agenda.crearCita(dentistaId, pacienteIdFinal, slotManualId, motivo, duracion, 'Confirmado');
 
-                if(error) throw error;
-
-                // 3. MENSAJE DE WHATSAPP INTELIGENTE
                 let mensaje = `Hola ${nombre}, te hemos reservado una hora en MiDental para el día ${slotManualId.replace('-', ' a las ')}. `;
                 if(esPacienteNuevo && rut) {
                     mensaje += `Hemos creado tu ficha clínica. Te invitamos a registrarte gratis con tu RUT para gestionarla y ver tus documentos aquí: www.midental.cl`;
@@ -812,9 +524,9 @@
                 window.open(`https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`, '_blank');
 
             } catch (err) {
-                alert("Error al agendar: " + err.message);
+                alert("Error al agendar: " + (err.message || "Este RUT ya existe, búscalo con la lupa."));
             } finally {
-                btn.innerText = "Agendar y Enviar Invitación"; btn.disabled = false;
+                btn.innerText = "Agendar Paciente"; btn.disabled = false;
             }
         }
 
@@ -838,7 +550,6 @@
                 btnWhatsApp = `<button class="btn-pixar btn-green-whatsapp btn-full" onclick="window.open('https://wa.me/${telWA}', '_blank')"><span class="material-symbols-outlined">chat</span> Escribir por WhatsApp</button>`;
             }
 
-            // Si es un HORARIO BLOQUEADO
             if (citaEnCursoData.estado.toLowerCase() === 'bloqueado') {
                 badge.style.background = '#e2e8f0'; badge.style.color = '#475569';
                 badge.innerText = "HORARIO CERRADO";
@@ -851,7 +562,6 @@
                     </button>
                 `;
             }
-            // Si está PENDIENTE
             else if (citaEnCursoData.estado.toLowerCase() === 'pendiente') {
                 badge.style.background = '#fef3c7'; badge.style.color = '#92400e';
                 contenedorAcciones.innerHTML = `
@@ -860,7 +570,6 @@
                     <button class="btn-login-outline btn-full" style="color:red; border-color:red;" onclick="cancelarCita()">Rechazar Solicitud</button>
                 `;
             } 
-            // Si está CONFIRMADO (Incluye nueva anulación con WhatsApp)
             else if (citaEnCursoData.estado.toLowerCase() === 'confirmado' || citaEnCursoData.estado.toLowerCase() === 'confirmada') {
                 badge.style.background = '#dcfce7'; badge.style.color = '#166534';
                 contenedorAcciones.innerHTML = `
@@ -872,7 +581,6 @@
                     </div>
                 `;
             }
-            // Si EN ATENCIÓN
             else if (citaEnCursoData.estado.toLowerCase() === 'en_atencion') {
                 badge.style.background = '#e0e7ff'; badge.style.color = '#1e40af';
                 badge.innerText = "EN CURSO"; 
@@ -886,7 +594,6 @@
                     <button class="btn-login-outline btn-full" onclick="abrirModalPagoFinalizar()">Finalizar Atención</button>
                 `;
             }
-            // Si está COMPLETADA
             else if (citaEnCursoData.estado.toLowerCase() === 'completada') {
                 badge.style.background = '#f1f5f9'; badge.style.color = '#475569';
 
@@ -899,7 +606,6 @@
                     ${btnFichaHistorial}
                 `;
             }
-            // Inasistencia
             else if (citaEnCursoData.estado.toLowerCase() === 'no_asiste') {
                 badge.style.background = '#fef2f2'; badge.style.color = '#b91c1c';
                 badge.innerText = "NO ASISTIÓ";
@@ -915,8 +621,7 @@
         async function actualizarEstadoCita(nuevoEstado) {
             if(!citaEnCursoData || !citaEnCursoData.cita_id) return;
             try {
-                const { error } = await window.midental.from('citas_agenda').update({ estado: nuevoEstado }).eq('id', citaEnCursoData.cita_id);
-                if (error) throw error;
+                await window.MiDentalAPI.Agenda.actualizarEstadoCita(citaEnCursoData.cita_id, nuevoEstado);
                 cerrarModal('modalDetallePaciente');
                 renderizarSemanaActual(); 
             } catch (err) { alert("Error al actualizar: " + err.message); }
@@ -925,8 +630,7 @@
         async function cancelarCita() {
             if(!confirm("¿Seguro que deseas cancelar esta hora? El bloque quedará disponible para otro paciente.")) return;
             try {
-                const { error } = await window.midental.from('citas_agenda').update({ estado: 'cancelada' }).eq('id', citaEnCursoData.cita_id);
-                if (error) throw error;
+                await window.MiDentalAPI.Agenda.actualizarEstadoCita(citaEnCursoData.cita_id, 'cancelada');
                 cerrarModal('modalDetallePaciente');
                 renderizarSemanaActual();
             } catch (err) { alert("Error al cancelar."); }
@@ -934,27 +638,17 @@
 
         async function marcarNoAsiste() {
             if(!confirm("¿Marcar inasistencia? Esto afectará la reputación del paciente en la plataforma MiDental.")) return;
-            
             try {
-                // 1. Guardamos el estado explícito de Inasistencia
-                const { error } = await window.midental.from('citas_agenda')
-                    .update({ estado: 'no_asiste' })
-                    .eq('id', citaEnCursoData.cita_id);
-                
-                if (error) throw error;
-
-                // 2. (Opcional a futuro) Aquí conectaremos la función para restarle -1 a su reputación en la BD
-                
+                await window.MiDentalAPI.Agenda.actualizarEstadoCita(citaEnCursoData.cita_id, 'no_asiste');
                 cerrarModal('modalDetallePaciente');
                 renderizarSemanaActual();
-                
             } catch (err) {
                 alert("Error al registrar la inasistencia: " + err.message);
             }
         }
 
         function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-    // --- NUEVA FUNCIÓN: BLOQUEAR SLOT MANUALMENTE ---
+        
         async function bloquearSlotManual() {
             const dentistaId = localStorage.getItem('midental_user_id');
             const btn = document.getElementById('btnBloquearManual');
@@ -962,21 +656,9 @@
             btn.disabled = true;
 
             try {
-                // Creamos una cita fantasma con estado "bloqueado"
-                const { error } = await window.midental.from('citas_agenda').insert([{
-                    dentista_id: dentistaId,
-                    fecha_hora_formato_slot: slotManualId,
-                    estado: 'bloqueado',
-                    motivo: 'Bloqueo Personal',
-                    paciente_nombre_manual: 'BLOQUEADO',
-                    paciente_telefono_manual: '000000000'
-                }]);
-
-                if (error) throw error;
-
+                await window.MiDentalAPI.Agenda.crearCita(dentistaId, null, slotManualId, 'Bloqueo Personal', 30, 'bloqueado');
                 cerrarModal('modalAgendarManual');
                 renderizarSemanaActual();
-
             } catch (err) {
                 alert("Error al bloquear horario: " + err.message);
             } finally {
@@ -985,15 +667,12 @@
             }
         }
 
-        // --- NUEVA FUNCIÓN: ANULACIÓN POR FUERZA MAYOR (AVISA AL PACIENTE) ---
         async function anularCitaNotificando() {
             if(!confirm("¿Seguro que deseas ANULAR esta hora? Se cancelará en el sistema y se abrirá WhatsApp para notificar al paciente.")) return;
             
             try {
-                const { error } = await window.midental.from('citas_agenda').update({ estado: 'cancelada' }).eq('id', citaEnCursoData.cita_id);
-                if (error) throw error;
+                await window.MiDentalAPI.Agenda.actualizarEstadoCita(citaEnCursoData.cita_id, 'cancelada');
                 
-                // Si el paciente tiene un teléfono válido, le avisamos
                 if (citaEnCursoData.telefono && citaEnCursoData.telefono !== 'Sin registro' && citaEnCursoData.telefono !== '000000000') {
                     const telLimpio = citaEnCursoData.telefono.replace(/[^0-9]/g, '');
                     const partesFecha = citaEnCursoData.fecha.split('-');
@@ -1007,20 +686,17 @@
                 
                 cerrarModal('modalDetallePaciente');
                 renderizarSemanaActual();
-
             } catch (err) { alert("Error al anular la cita médica."); }
         }
 
-        // --- AUTOCOMPLETADO BLINDADO POR PRIVACIDAD ---
         let timeoutBusquedaNombre;
         
         async function buscarPacientePorNombre() {
             const input = document.getElementById('manualNombre');
             const termino = input.value.trim().toLowerCase();
             const lista = document.getElementById('listaAutocompletadoNombre');
-            const dentistaId = localStorage.getItem('midental_user_id'); // Identificador del Dentista
+            const dentistaId = localStorage.getItem('midental_user_id');
 
-            // Si el dentista empieza a escribir de nuevo, desvinculamos el ID anterior
             pacienteManualEncontradoId = null;
             document.getElementById('statusBusquedaRut').innerText = "";
 
@@ -1032,17 +708,9 @@
             clearTimeout(timeoutBusquedaNombre);
             timeoutBusquedaNombre = setTimeout(async () => {
                 try {
-                    // CAMBIO CLAVE DE SEGURIDAD: Buscamos SOLO en las citas de este dentista
-                    const { data, error } = await window.midental.from('citas_agenda')
-                        .select('paciente_id, perfiles_pacientes!inner(id, rut, nombre_completo, telefono)')
-                        .eq('dentista_id', dentistaId)
-                        .ilike('perfiles_pacientes.nombre_completo', `%${termino}%`)
-                        .limit(30); // Límite amplio por si hay múltiples citas de la misma persona
-
-                    if (error) throw error;
+                    const data = await window.MiDentalAPI.Pacientes.buscarPorNombre(dentistaId, termino);
 
                     if (data && data.length > 0) {
-                        // Limpiamos duplicados (un paciente puede tener 5 citas, solo queremos mostrarlo 1 vez)
                         const pacientesUnicos = [];
                         const idsVistos = new Set();
                         
@@ -1051,7 +719,7 @@
                             if (pct && !idsVistos.has(pct.id)) {
                                 idsVistos.add(pct.id);
                                 pacientesUnicos.push(pct);
-                                if (pacientesUnicos.length === 5) break; // Mostramos máximo 5 sugerencias
+                                if (pacientesUnicos.length === 5) break; 
                             }
                         }
 
@@ -1091,7 +759,6 @@
             status.style.color = "var(--green-success)";
         }
         
-        // Ocultar la lista si el usuario hace clic afuera del buscador
         document.addEventListener('click', function(e) {
             if(e.target.id !== 'manualNombre') {
                 const lista = document.getElementById('listaAutocompletadoNombre');
@@ -1108,7 +775,6 @@
             document.getElementById('pagoMonto').value = '';
             document.getElementById('pagoMedio').value = 'Efectivo';
             document.getElementById('pagoNotas').value = '';
-            // Ocultamos el modal de detalle para evitar superposición visual
             document.getElementById('modalDetallePaciente').style.display = 'none';
             document.getElementById('modalRegistrarPago').style.display = 'flex';
         }
@@ -1130,28 +796,15 @@
             btn.innerText = "Guardando...";
 
             try {
-                // 1) Registramos el pago respetando las columnas exactas de Supabase
                 if (monto > 0) {
                     if (!citaEnCursoData.paciente_id) {
                         alert("⚠️ Esta cita no está vinculada a un paciente registrado. El pago no se podrá asociar al saldo del paciente.");
                     } else {
-                        const { error: errPago } = await window.midental.from('pagos').insert([{
-                            paciente_id: citaEnCursoData.paciente_id,
-                            dentista_id: dentistaId,
-                            monto: monto,
-                            metodo_pago: medio, // Corregido: Coincide con tu SQL
-                            notas: notas || null
-                            // Eliminamos cita_id porque no existe en tu tabla de pagos
-                        }]);
-                        if (errPago) throw errPago;
+                        await window.MiDentalAPI.Finanzas.registrarPagoCita(dentistaId, citaEnCursoData.paciente_id, monto, medio, notas);
                     }
                 }
 
-                // 2) Cerramos la atención clínica
-                const { error: errEstado } = await window.midental.from('citas_agenda')
-                    .update({ estado: 'completada' })
-                    .eq('id', citaEnCursoData.cita_id);
-                if (errEstado) throw errEstado;
+                await window.MiDentalAPI.Agenda.actualizarEstadoCita(citaEnCursoData.cita_id, 'completada');
 
                 alert("✅ Atención finalizada" + (monto > 0 ? ` y pago de $${monto.toLocaleString('es-CL')} registrado.` : "."));
                 cerrarModal('modalRegistrarPago');
@@ -1171,100 +824,51 @@
             cerrarModal('modalRegistrarPago');
             await actualizarEstadoCita('completada');
         }
+
         async function verificarRecordatorioPaciente(pacienteId) {
-    const cajaRecordatorio = document.getElementById('cajaRecordatorioClinico');
-    const textoRecordatorio = document.getElementById('textoRecordatorioClinico');
-    const selectDuracion = document.getElementById('manualDuracion');
-    
-    if (!pacienteId) {
-        cajaRecordatorio.style.display = 'none';
-        return;
-    }
-
-    try {
-        const { data, error } = await window.midental
-            .from('perfiles_pacientes')
-            .select('proxima_sesion_nota, proxima_sesion_duracion_minutos')
-            .eq('id', pacienteId)
-            .single();
-
-        if (error && error.code !== 'PGRST116') throw error; // Ignorar si no hay datos
-
-        if (data && data.proxima_sesion_nota) {
-            cajaRecordatorio.style.display = 'block';
+            const cajaRecordatorio = document.getElementById('cajaRecordatorioClinico');
+            const textoRecordatorio = document.getElementById('textoRecordatorioClinico');
+            const selectDuracion = document.getElementById('manualDuracion');
             
-            let mensaje = data.proxima_sesion_nota;
-            if (data.proxima_sesion_duracion_minutos) {
-                mensaje += `<br><br>⏱️ <em>Tiempo sugerido: ${data.proxima_sesion_duracion_minutos} minutos.</em>`;
-                
-                // Auto-seleccionar la duración en el formulario
-                if(selectDuracion) {
-                    selectDuracion.value = data.proxima_sesion_duracion_minutos;
-                }
+            if (!pacienteId) {
+                cajaRecordatorio.style.display = 'none';
+                return;
             }
-            textoRecordatorio.innerHTML = mensaje;
-        } else {
-            cajaRecordatorio.style.display = 'none';
+
+            try {
+                const data = await window.MiDentalAPI.Pacientes.obtenerRecordatorio(pacienteId);
+
+                if (data && data.proxima_sesion_nota) {
+                    cajaRecordatorio.style.display = 'block';
+                    
+                    let mensaje = data.proxima_sesion_nota;
+                    if (data.proxima_sesion_duracion_minutos) {
+                        mensaje += `<br><br>⏱️ <em>Tiempo sugerido: ${data.proxima_sesion_duracion_minutos} minutos.</em>`;
+                        if(selectDuracion) {
+                            selectDuracion.value = data.proxima_sesion_duracion_minutos;
+                        }
+                    }
+                    textoRecordatorio.innerHTML = mensaje;
+                } else {
+                    cajaRecordatorio.style.display = 'none';
+                }
+            } catch (err) {
+                console.error("Error al buscar el recordatorio del paciente:", err);
+            }
         }
-    } catch (err) {
-        console.error("Error al buscar el recordatorio del paciente:", err);
-    }
-}
     </script>
     <script>
-    // ==========================================
-    // NORMALIZACIÓN DE MOTIVOS DE CONSULTA
-    // ==========================================
     const categoriasMotivos = {
-        "Diagnóstico y Prevención": [
-            "Evaluación / Diagnóstico", 
-            "Radiografía / Imagenología", 
-            "Prevención y Limpieza"
-        ],
-        "Odontología Restauradora": [
-            "Restauración", 
-            "Blanqueamiento"
-        ],
-        "Endodoncia": [
-            "Endodoncia", 
-            "Urgencia Endodóntica / Fase Previa", 
-            "Control Endodóntico"
-        ],
-        "Rehabilitación Oral": [
-            "Prótesis Removible", 
-            "Prótesis Fija", 
-            "Control de Prótesis", 
-            "Trastornos Temporomandibulares (TTM)"
-        ],
-        "Cirugía Bucal y Maxilofacial": [
-            "Exodoncia", 
-            "Cirugía Menor", 
-            "Control Post-Exodoncia"
-        ],
-        "Periodoncia": [
-            "Tratamiento Periodontal", 
-            "Cirugía Periodontal", 
-            "Mantención Periodontal"
-        ],
-        "Implantología": [
-            "Fase Quirúrgica (Implante)", 
-            "Fase Protésica", 
-            "Mantención de Implantes"
-        ],
-        "Ortodoncia y Ortopedia": [
-            "Estudio Quirúrgico / Inicial", 
-            "Instalación", 
-            "Control de Ortodoncia", 
-            "Contención"
-        ],
-        "Odontopediatría": [
-            "Atención Odontopediatrica", 
-            "Pulpotomía / Pulpectomía"
-        ],
-        "Estética y Armonización Facial": [
-            "Estética Facial", 
-            "Control Estética"
-        ]
+        "Diagnóstico y Prevención": ["Evaluación / Diagnóstico", "Radiografía / Imagenología", "Prevención y Limpieza"],
+        "Odontología Restauradora": ["Restauración", "Blanqueamiento"],
+        "Endodoncia": ["Endodoncia", "Urgencia Endodóntica / Fase Previa", "Control Endodóntico"],
+        "Rehabilitación Oral": ["Prótesis Removible", "Prótesis Fija", "Control de Prótesis", "Trastornos Temporomandibulares (TTM)"],
+        "Cirugía Bucal y Maxilofacial": ["Exodoncia", "Cirugía Menor", "Control Post-Exodoncia"],
+        "Periodoncia": ["Tratamiento Periodontal", "Cirugía Periodontal", "Mantención Periodontal"],
+        "Implantología": ["Fase Quirúrgica (Implante)", "Fase Protésica", "Mantención de Implantes"],
+        "Ortodoncia y Ortopedia": ["Estudio Quirúrgico / Inicial", "Instalación", "Control de Ortodoncia", "Contención"],
+        "Odontopediatría": ["Atención Odontopediatrica", "Pulpotomía / Pulpectomía"],
+        "Estética y Armonización Facial": ["Estética Facial", "Control Estética"]
     };
 
     function inicializarEspecialidades() {
@@ -1285,10 +889,8 @@
         const selAccion = document.getElementById('selAccion');
         const especialidadSeleccionada = selEspecialidad.value;
         
-        // Limpiamos las acciones anteriores
         selAccion.innerHTML = '<option value="">Acción...</option>';
         
-        // Llenamos con las nuevas acciones según la especialidad
         if (especialidadSeleccionada && categoriasMotivos[especialidadSeleccionada]) {
             categoriasMotivos[especialidadSeleccionada].forEach(accion => {
                 let option = document.createElement('option');
@@ -1305,18 +907,14 @@
         const selAccion = document.getElementById('selAccion').value;
         const manualMotivo = document.getElementById('manualMotivo');
         
-        // Formato final que se guardará en la base de datos: "Especialidad - Acción"
         if (selEspecialidad && selAccion) {
             manualMotivo.value = `${selEspecialidad} - ${selAccion}`;
         } else if (selEspecialidad) {
             manualMotivo.value = selEspecialidad;
         } else {
-            manualMotivo.value = "Evaluación General"; // Fallback por defecto
+            manualMotivo.value = "Evaluación General"; 
         }
     }
-
-    // Inicializamos los selectores cuando la página cargue
-    document.addEventListener('DOMContentLoaded', inicializarEspecialidades);
-</script>
+    </script>
 </body>
 </html>
