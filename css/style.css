@@ -1,3 +1,11 @@
+/* css/style.css - Inicio del archivo */
+
+html, body {
+    min-width: 1200px !important; /* Forza el lienzo a un mínimo de 1200 píxeles */
+    overflow-x: auto !important;  /* Habilita scroll si la pantalla física es minúscula */
+    margin: 0; 
+    padding: 0;
+}
 /* ========================================== */
 /* 1. VARIABLES GLOBALES Y RESETEO            */
 /* ========================================== */
