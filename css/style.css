@@ -242,27 +242,6 @@ body {
 .precio-new { color: var(--green-success); font-weight: bold; font-size: 1.2rem; }
 
 /* ========================================== */
-/* 7. RESPONSIVIDAD (MÓVILES)                 */
-/* ========================================== */
-@media (max-width: 900px) {
-    .nav-links { display: none; }
-    .nav-buttons { flex-wrap: wrap; justify-content: center; }
-    
-    .hero-section { min-height: 70vh; }
-    .hero-title { font-size: 2.5rem; }
-    
-    .search-pill-container { flex-direction: column; border-radius: 25px; padding: 15px; }
-    .search-input-group { width: 100%; }
-    .search-divider { width: 100%; height: 1px; margin: 5px 0; }
-    .btn-search-round { width: 100%; border-radius: 15px; margin-top: 10px; }
-    
-    .agenda-overlay { position: static; margin-top: -30px; padding: 0 20px; }
-    .oferta-card { flex-direction: column; }
-    .oferta-img { width: 100%; height: auto; max-height: 450px; object-fit: contain; background-color: #0b192c; }
-    
-    .b2b-info-box { flex-direction: column; text-align: center; }
-    .b2b-huge-icon { display: none; }
-}/* ========================================== */
 /* CARRUSEL DE DISPONIBILIDAD (PACIENTE)      */
 /* ========================================== */
 
@@ -438,18 +417,7 @@ body {
     font-size: 60px;
     color: white;
 }
-
-/* Responsividad para móviles */
-@media (max-width: 768px) {
-    .about-content {
-        flex-direction: column-reverse;
-        text-align: center;
-    }
-    
-    .about-text h2 {
-        font-size: 1.8rem;
-    }
-}/* =========================================
+/* =========================================
    DISEÑO DE BOTONES PRINCIPALES (AZUL CORPORATIVO)
    ========================================= */
 
@@ -565,11 +533,51 @@ body {
     /* Colchón extra para la barra de navegación nativa de iPhone/Android */
     padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
 }
+/* =========================================================
+   MODO "SaaS COMPACTO" Y BLINDAJE ESTRUCTURAL
+   ========================================================= */
 
-/* 4. Ajuste fino para celulares */
-@media (max-width: 600px) {
-    .modal-content, 
-    .modal-ofertas-content {
-        max-height: 92vh !important; 
-    }
+/* 1. Efecto Elegancia (Zoom-Out Global) */
+html {
+    font-size: 14px !important; /* El secreto del diseño ordenado y compacto */
+}
+
+/* 2. Blindaje de la Grilla (El menú no colapsa NUNCA con el zoom) */
+.dashboard-layout {
+    display: grid !important;
+    grid-template-columns: 220px 1fr !important; /* Menú un poco más ancho (220px) para que nada se divida en dos líneas */
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+}
+
+/* 3. Barra Lateral con Scroll Inteligente (Soluciona el corte inferior de la imagen) */
+.sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important; /* Habilita deslizar si la pantalla es bajita o hay mucho zoom */
+    overflow-x: hidden !important;
+    position: relative !important;
+    transform: none !important;
+    left: 0 !important;
+    z-index: 100 !important;
+    background: white !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+/* Scrollbar invisible y elegante para el menú */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+
+/* 4. Contenido Principal */
+.dashboard-content {
+    height: 100vh !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }

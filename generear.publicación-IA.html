@@ -2,143 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=1200">
     <title>MiDental - Studio de Marketing IA</title>
+    
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
-    <style>
-        /* =========================================================
-           DISEÑO CORPORATIVO "EXECUTIVE PIXAR" (Heredado)
-           ========================================================= */
-        body { background-color: #f4f7fb; margin: 0; font-family: system-ui, -apple-system, sans-serif; } 
-        .dashboard-content { padding-top: 20px; }
-        .topbar { background: white; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border-radius: 15px; }
-
-        /* Estilo Switch Apple (Heredado de la Topbar) */
-        .status-toggle-container { background: #f8fafc; padding: 12px 20px; border-radius: 15px; border: 1px solid #e2e8f0; }
-        .apple-switch { position: relative; display: inline-block; width: 54px; height: 30px; }
-        .apple-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; }
-        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 4px; bottom: 4px; background-color: white; transition: .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        input:checked + .slider { background-color: var(--red-urgency); }
-        input:checked + .slider:before { transform: translateX(24px); }
-        .slider.round { border-radius: 34px; }
-        .slider.round:before { border-radius: 50%; }
-        
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* =========================================================
-           ESTILOS ESPECÍFICOS DEL MOTOR DE MARKETING IA
-           ========================================================= */
-        .marketing-dashboard-container { max-width: 1200px; margin: 0 auto; padding: 0 25px 25px 25px; }
-        .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .module-header h1 { margin: 0 0 0.5rem 0; font-size: 1.8rem; font-weight: 900; color: var(--blue-elegant); display: flex; align-items: center; gap: 8px;}
-        .module-header p { margin: 0; color: #64748b; font-size: 0.95rem; }
-        
-        .token-balance-card { background: #fffbf1; border: 1px solid #fde68a; padding: 10px 20px; border-radius: 15px; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .token-count { font-size: 1.6rem; color: #d97706; font-weight: 900; }
-        
-        .workspace-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-        
-        .panel-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
-        .panel-card h2 { font-size: 1.25rem; margin-top: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; color: var(--blue-elegant); font-weight: 900;}
-        
-        .form-group { margin-bottom: 1.25rem; }
-        label { display: block; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; color: #334155; }
-        select, input[type="text"] { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; box-sizing: border-box; background: #f8fafc; color: var(--blue-elegant); font-weight: 600; outline: none; transition: 0.3s;}
-        select:focus, input[type="text"]:focus { border-color: var(--pixar-cyan); box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.1); background: white;}
-        .field-help { display: block; font-size: 0.8rem; color: #64748b; margin-top: 0.4rem; }
-        
-        /* Grid de Carga de Fotos */
-        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .upload-box { border: 2px dashed #cbd5e1; padding: 1.5rem 1rem; text-align: center; border-radius: 12px; background: white; transition: all 0.2s; }
-        .upload-box:hover { border-color: var(--pixar-cyan); background: #f0fdfa; }
-        .upload-box input[type="file"] { display: none; }
-        .upload-label span { display: block; font-weight: 700; color: var(--blue-elegant); margin-bottom: 0.5rem; }
-        
-        /* Tarjetas de Formato */
-        .format-options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-        .format-card { border: 2px solid #e2e8f0; border-radius: 12px; padding: 1rem; text-align: center; cursor: pointer; position: relative; background: #f8fafc; transition: 0.2s;}
-        .format-card input[type="radio"] { position: absolute; opacity: 0; }
-        .format-card:has(input:checked) { border-color: var(--pixar-cyan); background: #f0fdfa; box-shadow: 0 4px 10px rgba(0,180,216,0.1);}
-        .format-card:has(input:checked) .format-visual-indicator { background: var(--pixar-cyan); color: white; border-color: var(--pixar-cyan); }
-        .format-visual-indicator { background: white; border: 2px solid #e2e8f0; margin: 0 auto 0.5rem; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
-        .aspect-square { width: 40px; height: 40px; }
-        .aspect-portrait { width: 32px; height: 40px; }
-        .aspect-story { width: 22px; height: 40px; }
-        .format-title { display: block; font-weight: 800; font-size: 0.85rem; color: var(--blue-elegant); }
-        .format-subtitle { display: block; font-size: 0.75rem; color: #64748b; margin-top: 2px;}
-
-        /* Botón Principal */
-        .btn-action-primary { width: 100%; background: linear-gradient(135deg, var(--pixar-cyan), #0077b6); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 900; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 2rem; box-shadow: 0 6px 15px rgba(0,180,216,0.3); transition: transform 0.2s;}
-        .btn-action-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,180,216,0.4); }
-        
-        /* Previsualización */
-        .state-container { text-align: center; padding: 4rem 1rem; background: #f8fafc; border-radius: 15px; border: 1px dashed #cbd5e1;}
-        .placeholder-icon { font-size: 4rem; opacity: 0.3; }
-        .hidden { display: none; }
-        
-        .integration-footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0; }
-        .btn-social-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; border: none; padding: 12px 1rem; border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; margin-bottom: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 8px;}
-        .btn-social-instagram:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
-        
-        /* Modal Paywall */
-        .paywall-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
-        .paywall-overlay.activo { display: flex; opacity: 1; }
-        .paywall-box { background: #ffffff; border-radius: 16px; width: 90%; max-width: 450px; padding: 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position: relative; transform: translateY(20px); transition: transform 0.3s ease; }
-        .paywall-overlay.activo .paywall-box { transform: translateY(0); }
-        .paywall-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
-        .paywall-close:hover { color: #334155; }
-        .paywall-icon { background: linear-gradient(135deg, #FFD700, #FDB931); width: 70px; height: 70px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px auto; color: #453814; box-shadow: 0 4px 10px rgba(253, 185, 49, 0.3); }
-        .paywall-features { text-align: left; margin: 20px 0; padding: 0; list-style: none; }
-        .paywall-features li { margin-bottom: 12px; font-size: 0.95rem; color: #475569; display: flex; align-items: center; gap: 10px; }
-        .paywall-features li span { color: #10b981; font-weight: bold; }
-    </style>
+    <link rel="stylesheet" href="css/generar-publicacion.css">
+    
+    <script src="js/components.js"></script>
 </head>
 <body>
 
     <div class="dashboard-layout">
         
-        <!-- SIDEBAR IDÉNTICA AL DASHBOARD -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
-                <h2>MiDental</h2>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
-                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
-                <a href="perfil-dentista.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
-                <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
-                <a href="generear.publicación-IA.html" class="nav-item active"><span class="material-symbols-outlined">campaign</span> Generar Publicación IA</a>
-                <a href="Analisis Clinico IA.html" class="nav-item"><span class="material-symbols-outlined">insights</span> Análisis Clínico IA</a>
-                <a href="analisis de campañas y crm.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Analisis de CRM</a>
-            </nav>
-            <hr style="border-top: 1px solid #e2e8f0; margin: 15px 20px;">
-
-            <!-- Módulo de Plan en Sidebar -->
-            <div class="sidebar-plan-info" style="padding: 0 20px; margin-bottom: 20px;">
-                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px; font-weight: bold;">PLAN ACTUAL</p>
-                <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 0.9rem; font-weight: bold; color: #334155;">Básico</span>
-                    <span style="font-size: 0.75rem; background: #e2e8f0; padding: 3px 8px; border-radius: 12px; font-weight: bold;">45/50 Pacientes</span>
-                </div>
-                <button id="btn-upgrade-sidebar" style="width: 100%; margin-top: 10px; padding: 10px; background: linear-gradient(135deg, #FFD700, #FDB931); color: #453814; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 5px; box-shadow: 0 4px 6px rgba(253, 185, 49, 0.2); transition: transform 0.2s;">
-                    <span class="material-symbols-outlined" style="font-size: 1.2rem;">workspace_premium</span> Mejorar a PRO
-                </button>
-            </div>
-
-            <div class="sidebar-footer">
-                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
-            </div>
-        </aside>
+        <midental-sidebar></midental-sidebar>
 
         <!-- CONTENIDO PRINCIPAL -->
         <main class="dashboard-content">
             
-            <!-- TOPBAR IDÉNTICA AL DASHBOARD -->
             <header class="topbar" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
                 <div class="welcome-text" style="flex: 1; padding-right: 20px;">
                     <h1 id="dashGreeting" style="font-size: 1.8rem; margin: 0 0 5px 0; font-weight: 900; color: var(--blue-elegant);">Cargando...</h1>
@@ -366,9 +248,9 @@
         </div>
     </div>
 
-    <!-- Dependencias Originales -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/app.js"></script>
 
     <!-- Script Global: Topbar y Paywall -->
@@ -511,9 +393,6 @@
         });
     </script>
 
-   <!-- Conexión al motor de Inteligencia Artificial -->
     <script src="js/marketing-ia.js"></script>
-</body>
-</html>
 </body>
 </html>

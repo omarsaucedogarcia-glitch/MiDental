@@ -2,83 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=1200">
     <title id="pageTitle">MiDental - Mi Perfil Profesional</title>
+    
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
-    <style>
-        .profile-container { display: grid; grid-template-columns: 1fr 2fr; gap: 25px; max-width: 1200px; margin: 0 auto; }
-        
-        @media (max-width: 768px) {
-            .profile-container { grid-template-columns: 1fr; }
-        }
-        
-        .profile-sidebar { background: white; border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; height: fit-content; }
-        .profile-avatar-large { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--pixar-cyan); margin: 0 auto 15px; }
-        .profile-main-content { display: flex; flex-direction: column; gap: 25px; }
-        .profile-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; }
-        .profile-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; flex-wrap: wrap; gap: 10px; }
-        .profile-card-header h3 { color: var(--blue-elegant); margin: 0; display: flex; align-items: center; gap: 8px; }
-
-        .input-locked { background-color: #f5f7fa; color: #718096; border-color: #e2e8f0; cursor: not-allowed; opacity: 0.8; }
-
-        .workplace-list { display: flex; flex-direction: column; gap: 15px; }
-        .workplace-card { border: 1px solid #e0e0e0; border-radius: 15px; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; transition: all 0.2s; cursor: pointer; }
-        .workplace-card:hover { border-color: var(--pixar-cyan); background: #f0f8ff; box-shadow: 0 4px 10px rgba(0, 180, 216, 0.1); }
-        .workplace-info h4 { margin: 0 0 5px 0; color: var(--blue-elegant); font-size: 1.1rem; }
-        .workplace-info p { margin: 0; color: var(--text-light); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-        .workplace-hours { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
-        .hour-badge { background: var(--dentist-purple); color: white; font-size: 0.75rem; padding: 3px 8px; border-radius: 8px; font-weight: bold; }
-
-        .clinic-photos-area { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
-        .photo-upload-box { width: 100px; height: 100px; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; cursor: pointer; transition: 0.2s; flex-shrink: 0; background: #f8fafc; }
-        .photo-upload-box:hover { border-color: var(--pixar-cyan); color: var(--pixar-cyan); background: white; }
-        .photo-preview { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid #e2e8f0; flex-shrink: 0; }
-
-        /* Grilla Embebida Responsiva (MEJORADA) */
-        .embedded-cal-container {
-            height: 400px; /* Más alto: ahora son 26 filas (30 min) en vez de 13 (1 h) */
-            overflow-y: auto;
-            overflow-x: auto;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            background: #f8fafc;
-            margin-bottom: 10px;
-            user-select: none;
-            -webkit-overflow-scrolling: touch;
-        }
-        .embedded-grid { display: grid; grid-template-columns: 55px repeat(7, minmax(45px, 1fr)); gap: 1px; background: #cbd5e1; min-width: 420px; }
-        .embedded-cell { background: white; padding: 2px; text-align: center; font-size: 0.7rem; min-height: 32px; display: flex; align-items: center; justify-content: center; }
-        .embedded-header { font-weight: bold; color: var(--blue-elegant); position: sticky; top: 0; z-index: 10; background: #f8fafc; border-bottom: 2px solid #cbd5e1; font-size: 0.75rem; }
-        .embedded-time { font-weight: bold; color: #64748b; background: #f8fafc; position: sticky; left: 0; z-index: 5; font-size: 0.7rem; }
-        .slot-trabajando { background: var(--pixar-cyan); color: white; width: 100%; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; box-shadow: inset 0 0 5px rgba(0,0,0,0.1); }
-        .slot-vacio { background: #f1f5f9; color: #cbd5e1; width: 100%; height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .slot-vacio:hover { background: #e2e8f0; color: #94a3b8; }
-    </style>
+    <link rel="stylesheet" href="css/perfil-dentista.css">
+    
+    <script src="js/components.js"></script>
 </head>
 <body>
 
     <div class="dashboard-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="assets/LogoMiDental.png" alt="Logo MiDental" class="logo-img" style="height: 40px; margin-right: 10px;">
-                <h2>MiDental</h2>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="dashboard-dentista.html" class="nav-item"><span class="material-symbols-outlined">grid_view</span> Inicio</a>
-                <a href="agenda-dentista.html" class="nav-item"><span class="material-symbols-outlined">calendar_month</span> Mi Agenda</a>
-                <a href="perfil-dentista.html" class="nav-item active"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
-                <a href="mis-pacientes.html" class="nav-item"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
-                <a href="mis-arriendos.html" class="nav-item"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
-                <a href="generear.publicación-IA.html" class="nav-item"><span class="material-symbols-outlined">campaign</span> Generar Publicación IA</a>
-                <a href="Analisis Clinico IA.html" class="nav-item"><span class="material-symbols-outlined">insights</span> Análisis Clínico IA</a>
-                <a href="analisis de campañas y crm.html" class="nav-item"><span class="material-symbols-outlined">manage_accounts</span> Analisis de CRM</a>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="btn-logout" onclick="window.cerrarSesionLocal()"><span class="material-symbols-outlined">logout</span> Cerrar Sesión</button>
-            </div>
-        </aside>
+        
+        <midental-sidebar></midental-sidebar>
 
         <main class="dashboard-content">
             <header class="topbar">
@@ -177,7 +115,6 @@
                                     </select>
                                 </div>
 
-                                <!-- SECCIÓN NUEVA: PRESENTACIÓN DEL DENTISTA -->
                                 <div style="grid-column: 1 / -1;">
                                     <label class="input-label" style="display:flex; justify-content:space-between;">
                                         <span>Presentación Profesional (Visible para pacientes)</span>
@@ -267,6 +204,10 @@
                             <input type="text" id="inputComunaClinica" placeholder="Comuna" class="apple-input-modal">
                         </div>
                     </div>
+                    <div class="input-group-modal mb-10">
+                        <span class="material-symbols-outlined">call</span>
+                        <input type="tel" id="inputTelefonoClinica" placeholder="Teléfono recepción (Ej: 56912345678)" class="apple-input-modal">
+                    </div>
 
                     <h4 class="form-section-title mt-20 mb-10" style="color: var(--blue-elegant);">Fotos de la Clínica (Próximamente)</h4>
                     <div class="clinic-photos-area" id="contenedorFotosClinica">
@@ -292,6 +233,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/app.js"></script>
 
     <script>
@@ -303,8 +245,9 @@
             generarGrillaSieteDias(); 
             window.addEventListener('mouseup', () => { isDragging = false; });
             cargarSedesDentistaActual();
-            cargarDatosPerfilLocal(); // NUEVA FUNCIÓN PARA POBLAR EL FORMULARIO
+            cargarDatosPerfilLocal(); 
         });
+
         // ==========================================
         // SISTEMA DE SERVICIOS Y ARANCELES
         // ==========================================
@@ -356,7 +299,7 @@
         }
 
         // ==========================================
-        // NUEVO: OBTENER DATOS DE SUPABASE AL CARGAR
+        // OBTENER DATOS DE SUPABASE AL CARGAR
         // ==========================================
         async function cargarDatosPerfilLocal() {
             const userId = localStorage.getItem('midental_user_id');
@@ -380,20 +323,19 @@
                     if (data.especialidad) document.getElementById('dentistaEspecialidad').value = data.especialidad;
                     if (data.telefono) document.getElementById('dentistaTelefono').value = data.telefono;
                     if (data.valor_consulta) document.getElementById('dentistaValorConsulta').value = data.valor_consulta;
-                    // LLENAR LA LISTA DE SERVICIOS
+                    if (data.presentacion) document.getElementById('dentistaPresentacion').value = data.presentacion;
+                    
                     if (data.servicios_json && data.servicios_json.length > 0) {
                         listaServiciosLocal = data.servicios_json;
                         renderizarListaServicios();
                     }
-                    // LLENAR LA NUEVA CASILLA DE PRESENTACIÓN
-                    if (data.presentacion) document.getElementById('dentistaPresentacion').value = data.presentacion;
                     
-                    // Actualizar UI Lateral
                     document.getElementById('sidebarNombreCompleto').innerText = `${data.prefijo || 'Dr.'} ${data.nombre_completo}`;
                     document.getElementById('sidebarEspecialidad').innerText = data.especialidad || 'Especialista';
                     
                     if (data.avatar_url) {
                         document.getElementById('profileLargeAvatar').src = data.avatar_url;
+                        if(document.getElementById('topbarAvatar')) document.getElementById('topbarAvatar').src = data.avatar_url;
                     }
                 }
             } catch (e) {
@@ -402,7 +344,7 @@
         }
 
         // ==========================================
-        // 1. SUBIR FOTO DE PERFIL
+        // SUBIR FOTO DE PERFIL
         // ==========================================
         async function subirFotoPerfilDentista(event) {
             const file = event.target.files[0];
@@ -415,9 +357,7 @@
             btnSube.style.background = '#e2e8f0';
 
             try {
-                if (file.size > 3 * 1024 * 1024) {
-                    throw new Error("La imagen es muy pesada. El tamaño máximo permitido es 3MB.");
-                }
+                if (file.size > 3 * 1024 * 1024) throw new Error("La imagen es muy pesada. El tamaño máximo permitido es 3MB.");
 
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${userId}_${Date.now()}.${fileExt}`;
@@ -453,7 +393,7 @@
         }
 
         // ==========================================
-        // 2. ACTUALIZAR DATOS DE PERFIL (NOMBRE Y NACIMIENTO INCLUIDOS)
+        // ACTUALIZAR DATOS DE PERFIL
         // ==========================================
         async function guardarPerfilCompletoReal() {
             const userId = localStorage.getItem('midental_user_id');
@@ -476,8 +416,8 @@
                     .from('perfiles_dentistas')
                     .update({
                         prefijo: prefijo,
-                        nombre_completo: nombreCompleto,          // Guardamos Nombre Editable
-                        fecha_nacimiento: fechaNacimiento || null, // Guardamos Fecha de Nacimiento
+                        nombre_completo: nombreCompleto,
+                        fecha_nacimiento: fechaNacimiento || null,
                         especialidad: especialidad,
                         telefono: telefono.replace(/[^0-9]/g, ''),
                         valor_consulta: parseInt(valorConsulta) || 0,
@@ -488,15 +428,11 @@
 
                 if (error) throw error;
                 
-                // Actualizar visualmente la barra lateral y superior de inmediato
                 document.getElementById('sidebarNombreCompleto').innerText = `${prefijo} ${nombreCompleto}`;
                 localStorage.setItem('midental_user_name', nombreCompleto);
 
                 alert("✅ Perfil actualizado correctamente.");
                 
-                if (typeof window.sincronizarDatosGlobales === 'function') {
-                    window.sincronizarDatosGlobales();
-                }
             } catch (err) {
                 alert("Error al guardar: " + err.message);
             } finally {
@@ -505,7 +441,7 @@
         }
 
         // ==========================================
-        // 3. CARGAR SEDES DE TRABAJO
+        // CARGAR SEDES DE TRABAJO
         // ==========================================
         async function cargarSedesDentistaActual() {
             const userId = localStorage.getItem('midental_user_id');
@@ -533,13 +469,19 @@
                     
                     contenedor.innerHTML += `
                         <div class="workplace-card" onclick="abrirModalLugarEdicion('${cardDataStr}')">
-                            <div class="workplace-info">
-                                <h4>${sede.nombre_sede}</h4>
-                                <p><span class="material-symbols-outlined" style="font-size: 1rem;">location_on</span> ${sede.direccion}, ${sede.comuna}</p>
-                                <div class="workplace-hours">
-                                    <span class="hour-badge">${cantHoras} bloques activos</span>
-                                </div>
-                            </div>
+    <div class="workplace-info">
+        <h4>${sede.nombre_sede}</h4>
+        
+        <!-- Línea de Dirección -->
+        <p><span class="material-symbols-outlined" style="font-size: 1rem;">location_on</span> ${sede.direccion}, ${sede.comuna}</p>
+        
+        <!-- Línea de Teléfono (Nueva) -->
+        ${sede.telefono_sede ? `<p><span class="material-symbols-outlined" style="font-size: 1rem;">call</span> ${sede.telefono_sede}</p>` : ''}
+        
+        <div class="workplace-hours">
+            <span class="hour-badge">${cantHoras} bloques activos</span>
+        </div>
+    </div>
                             <button class="btn-text" style="color: red; padding: 10px;" onclick="event.stopPropagation(); eliminarSede('${sede.id}')" title="Eliminar Sede">
                                 <span class="material-symbols-outlined">delete</span>
                             </button>
@@ -550,7 +492,7 @@
         }
 
         // ==========================================
-        // 4. LÓGICA DEL MODAL DE SEDES
+        // LÓGICA DEL MODAL DE SEDES
         // ==========================================
         function abrirModalLugarNuevo() { 
             document.getElementById('tituloModalSede').innerText = "Vincular Nueva Sede";
@@ -559,6 +501,7 @@
             document.getElementById('inputNombreClinica').value = '';
             document.getElementById('inputDireccionClinica').value = '';
             document.getElementById('inputComunaClinica').value = '';
+            document.getElementById('inputTelefonoClinica').value = '';
             
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
                 el.className = 'slot-vacio'; el.innerText = '+';
@@ -576,6 +519,7 @@
             document.getElementById('inputNombreClinica').value = sede.nombre_sede;
             document.getElementById('inputDireccionClinica').value = sede.direccion;
             document.getElementById('inputComunaClinica').value = sede.comuna;
+            document.getElementById('inputTelefonoClinica').value = sede.telefono_sede || ''; 
 
             document.querySelectorAll('#gridHorarioTrabajo .slot-trabajando').forEach(el => {
                 el.className = 'slot-vacio'; el.innerText = '+';
@@ -601,6 +545,7 @@
             const nombre = document.getElementById('inputNombreClinica').value;
             const direccion = document.getElementById('inputDireccionClinica').value;
             const comuna = document.getElementById('inputComunaClinica').value;
+            const telefonoSede = document.getElementById('inputTelefonoClinica').value.trim();
 
             if (!nombre || !direccion || !comuna) return alert("Completa Nombre, Dirección y Comuna.");
 
@@ -617,7 +562,8 @@
                 const payload = { 
                     nombre_sede: nombre, 
                     direccion: direccion, 
-                    comuna: comuna, 
+                    comuna: comuna,
+                    telefono_sede: telefonoSede, 
                     horarios_json: horariosSeleccionados
                 };
 
@@ -652,7 +598,7 @@
         }
 
         // ==========================================
-        // 5. GENERADOR DE GRILLA INTERACTIVA
+        // GENERADOR DE GRILLA INTERACTIVA
         // ==========================================
         function generarGrillaSieteDias() {
             const grid = document.getElementById('gridHorarioTrabajo');
@@ -663,7 +609,6 @@
             grid.appendChild(createCell('Hora', 'embedded-cell embedded-header embedded-time'));
             dias.forEach(d => grid.appendChild(createCell(d, 'embedded-cell embedded-header')));
 
-            // Granularidad 30 min: 08:00, 08:30, ..., 20:00, 20:30 (coherente con agenda y mapa)
             for (let h = 8; h <= 20; h++) {
                 for (let m of [0, 30]) {
                     let horaStr = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
@@ -701,8 +646,10 @@
                 el.className = 'slot-vacio'; el.innerText = '+';
             }
         }
+        
         function createCell(t, c) { const d = document.createElement('div'); d.className = c; d.innerText = t; return d; }
-    function calcularYMostrarEdad(fechaString, labelId) {
+        
+        function calcularYMostrarEdad(fechaString, labelId) {
             if (!fechaString) return;
             const hoy = new Date();
             const nacimiento = new Date(fechaString);
