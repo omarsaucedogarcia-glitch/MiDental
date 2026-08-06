@@ -29,9 +29,9 @@
                 
                 <div class="topbar-right-area" style="display: flex; align-items: center; gap: 15px;">
                     
-                    <!-- Botón Pro Cabecera -->
+                    <!-- Botón Recargar Tokens -->
                     <button id="btn-upgrade-topbar" style="background: #fff; border: 2px solid #FFD700; color: #b89600; font-weight: bold; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
-                        <span class="material-symbols-outlined" style="font-size: 1rem;">star</span> Ser PRO
+                        <span class="material-symbols-outlined" style="font-size: 1rem;">star</span> Recargar Tokens
                     </button>
 
                     <!-- Switch de Urgencias -->
@@ -53,7 +53,7 @@
             </header>
 
             <!-- ============================================== -->
-            <!-- NUEVO MÓDULO: STUDIO DE MARKETING IA           -->
+            <!-- MÓDULO: STUDIO DE MARKETING IA                 -->
             <!-- ============================================== -->
             <div class="marketing-dashboard-container">
                 
@@ -169,6 +169,36 @@
                                 </select>
                             </div>
 
+                            <!-- CAPA DINÁMICA DE MARCA -->
+                            <div class="form-group mt-4" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <h5 style="font-size: 1rem; color: #333; margin-bottom: 15px;">Personalización de Marca</h5>
+                                <!-- CAMPOS EDITABLES PARA EL CANVAS -->
+<div style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+    <label style="font-size: 0.80rem; font-weight: bold; color: #475569;">Texto Personalizado en Imagen:</label>
+    
+    <input type="text" id="inputTextoNombre" class="form-control mb-2" placeholder="Ej: Dr. Tu Nombre" value="Dr(a). Omar Saucedo García">
+    
+    <input type="text" id="inputTextoDetalle" class="form-control mb-2" placeholder="Ej: Clínica / Sede / Especialidad" value="CENTRO MEDICO Y DENTAL LOS GLADIOLOS">
+    
+    <input type="text" id="inputTextoTelefono" class="form-control mb-2" placeholder="Teléfono o eslogan" value="📞 56931349820">
+</div>
+                                
+                                <label style="font-size: 0.85rem; font-weight: bold;">Sede Clínica a mostrar:</label>
+                                <select id="sedeSelect" class="form-control mb-3">
+                                    <option value="">Cargando tus sedes...</option>
+                                </select>
+
+                                <label style="font-size: 0.85rem; font-weight: bold;">Teléfono de Contacto:</label>
+                                <input type="text" id="telefonoContacto" class="form-control mb-3" placeholder="Cargando tu teléfono..." readonly>
+
+                                <div class="form-check" style="display: flex; align-items: center; gap: 8px;">
+                                    <input class="form-check-input" type="checkbox" id="mostrarBotonAgenda" checked style="width: 18px; height: 18px;">
+                                    <label class="form-check-label" style="font-size: 0.85rem; margin:0;">
+                                        Incluir diseño de botón "Agendar Hora"
+                                    </label>
+                                </div>
+                            </div>
+
                             <div class="form-group" style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1.5rem; background: #f0fdf4; padding: 12px; border-radius: 10px; border: 1px solid #bbf7d0;">
                                 <input type="checkbox" id="include-booking-link" checked style="width: 20px; height: 20px;">
                                 <label for="include-booking-link" style="margin: 0; color: #166534;">Incluir mi enlace automático de agenda</label>
@@ -195,7 +225,15 @@
                             </div>
 
                             <div id="preview-state-results" class="hidden">
-                                <!-- JS inyectará resultados aquí -->
+                                <!-- Imagen Base Original (Oculta cuando se usa el Canvas) -->
+                                <img id="imagenGenerada" src="" class="imagen-previsualizacion" style="max-width: 100%; border-radius: 8px; display: none;">
+                                
+                                <!-- Canvas donde se fusionará la marca -->
+                                <canvas id="canvasPreview" style="display: none; max-width: 100%; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"></canvas>
+                                
+                                <div id="textoGeneradoContenedor" style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                    <p id="textoGenerado" style="font-size: 0.95rem; color: #334155; white-space: pre-wrap;"></p>
+                                </div>
                             </div>
                         </div>
 
@@ -274,10 +312,25 @@
         // ==========================================
         // FUNCIONES DE LA BARRA SUPERIOR
         // ==========================================
+        // Variable global expuesta para que el Canvas la pueda leer
+        window.nombreDoctorActual = ""; 
+
+        // Variable global para usar el nombre y el teléfono en el Canvas si es necesario
+        window.nombreDoctorActual = ""; 
+
         async function cargarPerfilYCentroMedico(userId) {
             try {
-                const { data: dr } = await window.midental.from('perfiles_dentistas').select('nombre_completo, prefijo, avatar_url').eq('id', userId).single();
+                // 1. Consultar el perfil principal del dentista (Nombre y Teléfono)
+                const { data: dr, error: errorDr } = await window.midental
+                    .from('perfiles_dentistas')
+                    .select('nombre_completo, prefijo, avatar_url, telefono')
+                    .eq('id', userId)
+                    .single();
+
+                if(errorDr) console.error("Error cargando perfil:", errorDr);
+
                 if(dr) {
+                    // A. Cargar datos en la cabecera
                     if(dr.avatar_url) document.getElementById('topbarAvatar').src = dr.avatar_url;
                     
                     const primerNombre = dr.nombre_completo.split(' ')[0];
@@ -289,9 +342,42 @@
                     if (hrs >= 20 || hrs < 5) saludo = "¡Buenas noches";
                     
                     document.getElementById('dashGreeting').innerText = `${saludo}, ${prefijo} ${primerNombre}! 🦷`;
+
+                    // B. Cargar datos en el módulo de marketing
+                    window.nombreDoctorActual = dr.nombre_completo;
+                    
+                    const telefonoInput = document.getElementById('telefonoContacto');
+                    if(telefonoInput) telefonoInput.value = dr.telefono || "+56 9 0000 0000";
                 }
+
+                // 2. Consultar las sedes en la tabla independiente 'sedes_dentistas'
+                const { data: sedesData, error: errorSedes } = await window.midental
+                    .from('sedes_dentistas')
+                    .select('nombre_sede')
+                    .eq('dentista_id', userId);
+
+                if(errorSedes) console.error("Error cargando sedes:", errorSedes);
+
+                const selectSedes = document.getElementById('sedeSelect');
+                if(selectSedes) {
+                    selectSedes.innerHTML = ''; // Limpiar el "Cargando..."
+
+                    if (sedesData && sedesData.length > 0) {
+                        sedesData.forEach(item => {
+                            let option = document.createElement('option');
+                            option.value = item.nombre_sede;
+                            option.text = item.nombre_sede;
+                            selectSedes.appendChild(option);
+                        });
+                    } else {
+                        selectSedes.innerHTML = '<option value="Consulta Privada">Consulta Privada</option>';
+                    }
+                }
+
             } catch (err) {
-                console.error("Error al inicializar perfil:", err);
+                console.error("Error general al inicializar datos:", err);
+                const selectSedes = document.getElementById('sedeSelect');
+                if(selectSedes) selectSedes.innerHTML = '<option value="">Error de conexión</option>';
             }
         }
 
@@ -332,65 +418,20 @@
             }
         }
 
-        async function validarSesionActiva() {
+        async function cambiarEstadoUrgenciaDB(checkbox) {
+            // Actualizamos la interfaz inmediatamente
+            actualizarTextoUrgencia(checkbox.checked);
+            
+            // Guardamos en la base de datos de MiDental
             const userId = localStorage.getItem('midental_user_id');
-            if (!userId) return;
-            try {
-                const { data, error } = await window.midental.from('perfiles_dentistas').select('id').eq('id', userId).single();
-                if (error || !data) {
-                    window.cerrarSesionLocal();
-                }
-            } catch (err) {
-                console.error("Error validando sesión:", err);
+            if(userId) {
+                await window.midental.from('perfiles_dentistas')
+                    .update({ acepta_urgencias: checkbox.checked })
+                    .eq('id', userId);
             }
         }
 
-        // ==========================================
-        // PAYWALL LOGIC
-        // ==========================================
-        function abrirPaywall(mensajePersonalizado) {
-            if(mensajePersonalizado) {
-                document.getElementById('paywallMensajeDinamico').innerText = mensajePersonalizado;
-            }
-            document.getElementById('modalPaywall').classList.add('activo');
-        }
-
-        function cerrarPaywall() {
-            document.getElementById('modalPaywall').classList.remove('activo');
-        }
-
-        async function procesarSuscripcionPro(botonElemento) {
-            const contenidoOriginal = botonElemento.innerHTML;
-            botonElemento.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1rem; animation: spin 1s linear infinite;">sync</span> Procesando...';
-            botonElemento.disabled = true;
-
-            try {
-                const datosPrueba = { dentista_id: "ID_PRUEBA", email_dentista: "test@gmail.com" };
-                const respuesta = await fetch('http://127.0.0.1:54321/functions/v1/crear-checkout-suscripcion', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datosPrueba)
-                });
-                const resultado = await respuesta.json();
-
-                if (resultado.init_point) {
-                    window.location.href = resultado.init_point;
-                } else {
-                    alert("Hubo un problema al generar el enlace de pago.");
-                    botonElemento.innerHTML = contenidoOriginal;
-                    botonElemento.disabled = false;
-                }
-            } catch (error) {
-                alert("Error de red. Asegúrate de que tu servidor local esté activo.");
-                botonElemento.innerHTML = contenidoOriginal;
-                botonElemento.disabled = false;
-            }
-        }
-
-        ['btn-upgrade-sidebar', 'btn-upgrade-topbar', 'btn-paywall-suscribir'].forEach(id => {
-            const btn = document.getElementById(id);
-            if (btn) btn.addEventListener('click', function() { procesarSuscripcionPro(this); });
-        });
+        
     </script>
 
     <script src="js/marketing-ia.js"></script>

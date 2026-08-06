@@ -11,70 +11,82 @@ serve(async (req) => {
   }
 
   try {
-    const { especialidad, enfoque, formato, tono, incluirLink } = await req.json()
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
+    const {
+      especialidad,
+      enfoque,
+      origenImagen,
+      tono,
+      incluirLink,
+      imagenAntesBase64,
+      imagenDespuesBase64
+    } = await req.json()
 
-    if (!OPENAI_API_KEY) {
-      throw new Error("Clave de OpenAI no configurada en las variables de entorno.")
+    // Usaremos Gemini en lugar de OpenAI
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    if (!GEMINI_API_KEY) {
+      throw new Error("Clave de Gemini no configurada en las variables de entorno.")
     }
 
-    const size = "1024x1024"
+    // Prompt estructurado y calibrado para tu perfil
+    let promptText = `Eres un copywriter experto en marketing clínico odontológico. 
+    El perfil clínico para el que escribes se enfoca fuertemente en la rehabilitación oral y la recuperación funcional y estética del paciente, entregando resultados de alta calidad y confianza.
+    
+    Redacta un "Copy" para Instagram con estos parámetros:
+    - Tema/Tratamiento: ${especialidad}
+    - Enfoque del post: ${enfoque}
+    - Tono de comunicación: ${tono}
+    
+    ESTRUCTURA EXIGIDA:
+    1. Título atractivo con un emoji.
+    2. Cuerpo corto (2-3 párrafos) conectando el problema del paciente con la solución clínica.
+    3. Llamado a la acción (CTA) claro. ${incluirLink ? 'Termina con: "Reserva tu evaluación en el enlace de nuestra biografía 👆"' : 'Termina con: "Envíanos un mensaje directo para analizar tu caso 💬"'}
+    
+    REGLAS: No uses comillas al inicio o final. Escribe directo el texto listo para copiar. Usa máximo 3 hashtags específicos.`;
 
-    const promptTexto = `Eres un copywriter experto en marketing odontológico. Escribe un post para redes sociales (Instagram/Facebook) sobre ${especialidad} enfocado en ${enfoque}. 
-    El tono debe ser ${tono}. 
-    Estructura:
-    1. Un título atractivo con un emoji.
-    2. Un cuerpo de texto corto (2-3 párrafos breves) que eduque o resalte el beneficio clínico.
-    3. Un llamado a la acción (CTA) claro al final.
-    ${incluirLink ? 'El CTA debe terminar exactamente con esta frase: "Reserva tu hora directamente aquí: [ENLACE_MIDENTAL]"' : ''}
-    No uses hashtags genéricos, máximo 3 específicos.`
+    let contents: any[] = [];
+    
+    // Si enviaste fotos reales, le pedimos a la IA que las mire
+    if (origenImagen === 'user-uploaded' && (imagenAntesBase64 || imagenDespuesBase64)) {
+        promptText += "\n\nSe adjuntan fotos reales del caso clínico (Antes y/o Después). Analiza los cambios visuales y menciona sutilmente la mejora evidente en el texto para dar credibilidad clínica.";
+        const parts: any[] = [{ text: promptText }];
+        
+        if (imagenAntesBase64) parts.push({ inline_data: { mime_type: "image/jpeg", data: imagenAntesBase64 } });
+        if (imagenDespuesBase64) parts.push({ inline_data: { mime_type: "image/jpeg", data: imagenDespuesBase64 } });
+        
+        contents = [{ parts }];
+    } else {
+        contents = [{ parts: [{ text: promptText }] }];
+    }
 
-    const promptImagen = `Fotografía clínica dental, iluminación de estudio profesional, estilo editorial. Tema: ${especialidad}. Enfoque: ${enfoque}. Proporciones correctas, encías sanas color rosa coral, simetría.`
-
-    const [respuestaTexto, respuestaImagen] = await Promise.all([
-      fetch('https://api.openai.com/v1/chat/completions', {
+    // Llamada multimodal a Gemini 1.5 Flash
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const geminiResponse = await fetch(geminiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: promptTexto }],
-          temperature: 0.7
-        })
-      }),
-      fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "dall-e-2",
-          prompt: promptImagen,
-          n: 1,
-          size: size
-        })
-      })
-    ])
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents })
+    });
 
-    const dataTexto = await respuestaTexto.json()
-    const dataImagen = await respuestaImagen.json()
+    const geminiData = await geminiResponse.json();
+    if (!geminiResponse.ok) {
+        throw new Error(geminiData.error?.message || 'Error desconocido al contactar a Gemini.');
+    }
 
-    if (dataImagen.error) throw new Error(`DALL-E Error: ${dataImagen.error.message}`)
-    if (dataTexto.error) throw new Error(`GPT Error: ${dataTexto.error.message}`)
+    const copyFinal = geminiData.candidates[0].content.parts[0].text;
 
-    const copyFinal = dataTexto.choices[0].message.content
-    const urlImagenFinal = dataImagen.data[0].url
+    // Asignación de imágenes fotográficas reales (Fallback estético)
+    let urlImagenFinal = "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=600&q=80"; 
+    if (especialidad === 'blanqueamiento') urlImagenFinal = "https://images.unsplash.com/photo-1590625695029-79f977fc6d93?auto=format&fit=crop&w=600&q=80";
+    if (especialidad === 'ortodoncia') urlImagenFinal = "https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=600&q=80";
+    if (especialidad === 'rehabilitacion') urlImagenFinal = "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80";
 
     return new Response(
       JSON.stringify({ copy: copyFinal, imageUrl: urlImagenFinal }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
 
-  } catch (error) {
-    console.error("Error en generar-campana-ia:", error)
+  } catch (error: any) {
+    console.error("Error en generar-campana-ia:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

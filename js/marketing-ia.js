@@ -138,16 +138,18 @@ document.addEventListener('DOMContentLoaded', () => {
         let aspectClass = formatoStr === '1:1' ? 'aspect-ratio: 1/1;' : formatoStr === '9:16' ? 'aspect-ratio: 9/16; max-height: 500px;' : 'aspect-ratio: 4/5;';
 
         // Inyectamos el componente resultante en el DOM
+        // NOTA: En lugar de un <img> estático, ahora inyectamos el <canvas> que dibujará la imagen con la marca
         resultsState.innerHTML = `
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 15px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
                 
-                <!-- Área de la Imagen Generada -->
-                <div style="background: #f1f5f9; padding: 20px; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #e2e8f0; position: relative;">
-                    <img src="${respuestaIA.imageUrl}" style="${aspectClass} width: 100%; max-width: 350px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" alt="Imagen Generada por IA">
+                <!-- Área de la Imagen Generada (Ahora es un Canvas Dinámico) -->
+                <div style="background: #1e293b; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-bottom: 1px solid #e2e8f0; position: relative; min-height: 350px;">
                     
-                    <a href="${respuestaIA.imageUrl}" target="_blank" download="midental-ia-post.jpg" class="btn-pixar" style="position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); color: var(--blue-elegant); border: none; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-decoration: none;">
-                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span> Descargar
-                    </a>
+                    <canvas id="canvasPreview" style="${aspectClass} width: 100%; max-width: 350px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);"></canvas>
+                    
+                    <button id="btnDescargarCanvas" class="btn-pixar" style="margin-top: 15px; background: rgba(255,255,255,0.9); backdrop-filter: blur(4px); color: var(--blue-elegant); border: none; padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span> Descargar Imagen
+                    </button>
                 </div>
 
                 <!-- Área del Copy (Texto) -->
@@ -164,6 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        // Llamamos a la función mágica para pintar el lienzo con la foto y los datos del doctor
+        fusionarImagenYMarca(respuestaIA.imageUrl, formatoStr);
+
         // Activamos la zona de integración con Meta (Instagram)
         const btnPublish = document.getElementById('btn-publish-meta');
         if (btnPublish) {
@@ -174,4 +179,112 @@ document.addEventListener('DOMContentLoaded', () => {
             btnPublish.innerHTML = '<span class="material-symbols-outlined">send</span> Publicar ahora en Instagram';
         }
     }
+
+    // ==========================================
+    // CAPA DINÁMICA (CANVAS Y MARCA)
+    // ==========================================
+
+    function fusionarImagenYMarca(imagenFondoUrl, formatoStr) {
+        const canvas = document.getElementById('canvasPreview');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Obtenemos los valores de los controles del formulario
+        const sede = document.getElementById('sedeSelect') ? document.getElementById('sedeSelect').value : '';
+        const telefono = document.getElementById('telefonoContacto') ? document.getElementById('telefonoContacto').value : '';
+        const mostrarBoton = document.getElementById('mostrarBotonAgenda') ? document.getElementById('mostrarBotonAgenda').checked : false;
+
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Crucial para que el navegador permita la descarga del Canvas final
+        img.src = imagenFondoUrl;
+
+        img.onload = () => {
+            // Ajustamos el tamaño del Canvas según el formato elegido
+            if (formatoStr === '1:1') {
+                canvas.width = 1080;
+                canvas.height = 1080;
+            } else if (formatoStr === '4:5') {
+                canvas.width = 1080;
+                canvas.height = 1350;
+            } else if (formatoStr === '9:16') {
+                canvas.width = 1080;
+                canvas.height = 1920;
+            } else {
+                canvas.width = 1080;
+                canvas.height = 1080;
+            }
+
+            // 1. Dibujar la foto de fondo (Capa Base)
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // 2. Dibujar degradado oscuro inferior para legibilidad del texto
+            const altoDegradado = canvas.height * 0.35; // El degradado ocupa el 35% inferior
+            const gradient = ctx.createLinearGradient(0, canvas.height - altoDegradado, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0.9)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, canvas.height - altoDegradado, canvas.width, altoDegradado);
+
+            // 3. Escribir Datos del Profesional (Capa Dinámica Editable)
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            
+            // Leemos directamente desde los inputs editables creados por el usuario
+            const textoNombreCustom = document.getElementById('inputTextoNombre') ? document.getElementById('inputTextoNombre').value : `Dr(a). ${window.nombreDoctorActual || 'Profesional'}`;
+            const textoDetalleCustom = document.getElementById('inputTextoDetalle') ? document.getElementById('inputTextoDetalle').value : `${sede}  |  📞 ${telefono}`;
+            const textoTelCustom = document.getElementById('inputTextoTelefono') ? document.getElementById('inputTextoTelefono').value : '';
+
+            // Dibujar Título / Nombre
+            ctx.font = 'bold 42px "Segoe UI", Arial, sans-serif';
+            ctx.fillText(textoNombreCustom, canvas.width / 2, canvas.height - 180);
+
+            // Dibujar Sede / Teléfono
+            ctx.font = 'normal 28px "Segoe UI", Arial, sans-serif';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillText(textoDetalleCustom, canvas.width / 2, canvas.height - 125);
+
+            if(textoTelCustom) {
+                ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif';
+                ctx.fillStyle = '#38bdf8'; // Toque estético corporativo
+                ctx.fillText(textoTelCustom, canvas.width / 2, canvas.height - 80);
+            }
+
+            // Configuramos el botón de descarga para que guarde la imagen final procesada
+            configurarBotonDescarga(canvas);
+        };
+        
+        img.onerror = () => {
+            console.error("Error al cargar la imagen externa en el Canvas. Revisa las políticas CORS de Unsplash/Storage.");
+        };
+    }
+
+    function configurarBotonDescarga(canvas) {
+        const btnDescargar = document.getElementById('btnDescargarCanvas');
+        if(btnDescargar) {
+            btnDescargar.addEventListener('click', () => {
+                // Convertimos el lienzo a un archivo PNG y forzamos la descarga
+                const dataURL = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = `MiDental-Post-${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+        }
+    }
+    // Escuchar cambios en tiempo real en los inputs de texto de la imagen
+    ['inputTextoNombre', 'inputTextoDetalle', 'inputTextoTelefono', 'sedeSelect', 'telefonoContacto', 'mostrarBotonAgenda'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('input', () => {
+                // Si ya hay una imagen generada, la redibuja con los nuevos textos al instante
+                const imgElement = document.getElementById('canvasPreview');
+                if(imgElement && imgElement.style.display !== 'none' && window.ultimaUrlImagenIA) {
+                    fusionarImagenYMarca(window.ultimaUrlImagenIA, window.ultimoFormatoIA);
+                }
+            });
+        }
+    });
 });
