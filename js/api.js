@@ -42,15 +42,15 @@ window.MiDentalAPI = {
             return { perfil: perfil.data, sedes: sedes.data };
         },
         obtenerCitasActivas: async (userId) => {
-            const { data, error } = await window.midental.from('citas_agenda')
-                .select('*, perfiles_pacientes(nombre_completo, telefono)')
-                .eq('dentista_id', userId)
-                .neq('estado', 'cancelada')
-                .neq('estado', 'Rechazado')
-                .neq('estado', 'bloqueado');
-            if (error) throw error;
-            return data || [];
-        },
+    const { data, error } = await window.midental.from('citas_agenda')
+        .select('*, perfiles_pacientes(nombre_completo, telefono, proxima_sesion_nota, proxima_sesion_duracion_minutos)')
+        .eq('dentista_id', userId)
+        .neq('estado', 'cancelada')
+        .neq('estado', 'Rechazado')
+        .neq('estado', 'bloqueado');
+    if (error) throw error;
+    return data || [];
+},
         obtenerPendientes: async (userId) => {
             const { data, error } = await window.midental.from('citas_agenda')
                 .select('*, perfiles_pacientes(nombre_completo, telefono)')

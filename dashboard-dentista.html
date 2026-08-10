@@ -563,8 +563,17 @@
                 const generarHTMLCita = (cita, diaKey) => {
                     const argDia = diaKey === 'hoy' ? 'hoy' : 'mañana';
                     const estadoLower = cita.estado ? cita.estado.toLowerCase() : 'pendiente';
+                    
+                    // Datos básicos del paciente
                     const pctName = cita.paciente_nombre_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.nombre_completo : 'Paciente');
                     const pctTel = cita.paciente_telefono_manual || (cita.perfiles_pacientes ? cita.perfiles_pacientes.telefono : '');
+                    
+                    // ==========================================
+                    // 1. NUEVA EXTRACCIÓN DE DATOS CLÍNICOS PENDIENTES
+                    // ==========================================
+                    const notaPrevista = cita.perfiles_pacientes ? cita.perfiles_pacientes.proxima_sesion_nota : null;
+                    const duracionPrevista = cita.perfiles_pacientes ? cita.perfiles_pacientes.proxima_sesion_duracion_minutos : null;
+
                     const horaSolo = cita.fecha_hora_formato_slot.split('-')[1]?.trim() || cita.fecha_hora_formato_slot;
                     
                     let estadoLabel = 'Por Confirmar';
@@ -588,28 +597,78 @@
                         opacidad = "0.5"; 
                     }
 
-                    let btnRecordatorioHTML = "";
+                    // ==========================================
+                    // 2. RENDERIZADO DE LA NOTA Y LOS MINUTOS
+                    // ==========================================
+                    let notaAnteriorHTML = "";
+                    if (notaPrevista && notaPrevista.trim() !== "") {
+                        
+                        // Si hay duración, creamos un pequeño "badge" visual
+                        let badgeDuracion = "";
+                        if (duracionPrevista) {
+                            badgeDuracion = `
+                                <span style="background: white; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; color: #0284c7; border: 1px solid #bae6fd; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                    <span class="material-symbols-outlined" style="font-size: 0.9rem;">timer</span> ${duracionPrevista} min
+                                </span>
+                            `;
+                        }
+
+                        notaAnteriorHTML = `
+                            <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; padding: 12px; margin-top: 10px; border-radius: 8px; font-size: 0.85rem; color: #334155;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 5px; color: #0284c7; font-weight: bold;">
+                                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">history_edu</span>
+                                        Para esta sesión:
+                                    </div>
+                                    ${badgeDuracion}
+                                </div>
+                                <span style="font-style: italic; display: block; line-height: 1.4;">"${notaPrevista}"</span>
+                            </div>
+                        `;
+                    }
+
+                    // ==========================================
+                    // 3. BOTONES DE ACCIÓN (Ficha y Recordatorio)
+                    // ==========================================
+                    let accionesHTML = `<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">`;
+                    
+                    if (cita.paciente_id) {
+                        accionesHTML += `
+                            <button class="btn-pixar" style="background:var(--blue-elegant); color:white; display:inline-flex; align-items:center; gap:5px; padding:6px 12px; font-size:0.8rem; border:none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor:pointer;" 
+                                onclick="window.location.href='ficha-paciente.html?paciente=${cita.paciente_id}'">
+                                <span class="material-symbols-outlined" style="font-size:1rem;">folder_shared</span> Abrir Ficha
+                            </button>
+                        `;
+                    }
+
                     if ((estadoLower === 'confirmado' || estadoLower === 'confirmada' || estadoLower === 'pendiente') && pctTel) {
-                        btnRecordatorioHTML = `
-                            <button class="btn-pixar" style="background:#25d366; display:inline-flex; align-items:center; gap:5px; margin-top:8px; padding:6px 12px; font-size:0.8rem; border:none; box-shadow: 0 2px 5px rgba(37,211,102,0.2);" 
+                        accionesHTML += `
+                            <button class="btn-pixar" style="background:#25d366; color:white; display:inline-flex; align-items:center; gap:5px; padding:6px 12px; font-size:0.8rem; border:none; border-radius: 8px; box-shadow: 0 2px 5px rgba(37,211,102,0.2); cursor:pointer;" 
                                 onclick="enviarRecordatorioWhatsApp('${pctName}', '${pctTel.replace(/[^0-9]/g, '')}', '${horaSolo}', '${argDia}')">
                                 <span class="material-symbols-outlined" style="font-size:1rem;">chat</span> Recordar Cita
                             </button>
                         `;
                     }
+                    
+                    accionesHTML += `</div>`;
 
                     return `
                         <div class="appointment-card" style="opacity: ${opacidad}; border-left-color: ${borderIzquierdo};">
                             <div class="appointment-time" style="display: flex; flex-direction: column; justify-content: center;">
                                 ${horaSolo}
                             </div>
-                            <div class="appointment-info" style="flex:1; margin-left: 20px;">
+                            
+                            <!-- SE AGREGÓ margin-right: 30px para separar el bloque central del estado -->
+                            <div class="appointment-info" style="flex:1; margin-left: 20px; margin-right: 30px;">
                                 <h4 style="margin:0 0 5px 0; color: var(--blue-elegant); font-size: 1.1rem;">${pctName}</h4>
                                 <p style="margin:0; font-size:0.9rem; color:#64748b; font-weight: 500;">${cita.motivo || 'Consulta General'}</p>
-                                ${btnRecordatorioHTML}
+                                ${notaAnteriorHTML}
+                                ${accionesHTML}
                             </div>
-                            <div class="appointment-status">
-                                <span class="badge-status-verificado" style="padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid; ${colorBadge}">
+                            
+                            <!-- SE AGREGÓ min-width y alineación para que la etiqueta tenga su propio espacio protegido -->
+                            <div class="appointment-status" style="display: flex; flex-direction: column; justify-content: center; min-width: 110px; text-align: right;">
+                                <span class="badge-status-verificado" style="padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; border: 1px solid; display: inline-block; text-align: center; ${colorBadge}">
                                     ${estadoLabel}
                                 </span>
                             </div>
