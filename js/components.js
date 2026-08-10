@@ -20,9 +20,7 @@ class MiDentalSidebar extends HTMLElement {
                     <a href="perfil-dentista.html" class="nav-item ${isActive('perfil-dentista')}"><span class="material-symbols-outlined">manage_accounts</span> Mi Perfil</a>
                     <a href="mis-pacientes.html" class="nav-item ${isActive('mis-pacientes')}"><span class="material-symbols-outlined">folder_shared</span> Mis Pacientes</a>
                     <a href="mis-arriendos.html" class="nav-item ${isActive('mis-arriendos')}"><span class="material-symbols-outlined">real_estate_agent</span> Mis Espacios Coworking</a>
-                    <a href="generear.publicación-IA.html" class="nav-item ${isActive('generear.publicación-ia')}"><span class="material-symbols-outlined">campaign</span> Generar Publicación IA</a>
-                    <a href="Analisis Clinico IA.html" class="nav-item ${isActive('analisis clinico ia')}"><span class="material-symbols-outlined">insights</span> Análisis Clínico IA</a>
-                    <a href="analisis de campañas y crm.html" class="nav-item ${isActive('analisis de campañas y crm')}"><span class="material-symbols-outlined">manage_accounts</span> Analisis de CRM</a>
+                    <a href="laboratorio-marketing.html" class="nav-item ${isActive('laboratorio-marketing')}"><span class="material-symbols-outlined">science</span> Lab de Marketing</a>
                 </nav>
                 <hr style="border-top: 1px solid #e2e8f0; margin: 15px 20px;">
 

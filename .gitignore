@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Archivos de entorno (nunca subir claves: GEMINI_API_KEY, MP_ACCESS_TOKEN, etc.)
+.env
+.env.local
+.env.*.local
+.env.keys
+
+# Archivos de empaquetado y logs
+repomix-output.xml
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Supabase (estado local del CLI)
+supabase/.branches
+supabase/.temp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+# .vscode/ NO se ignora: settings.json y extensions.json se comparten en este repo.
+.idea/
+*.swp

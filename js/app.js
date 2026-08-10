@@ -193,7 +193,7 @@ async function iniciarSesion(tipo) {
             localStorage.setItem('midental_paciente_rut', rutLimpio);
             window.location.href = 'dashboard-paciente.html';
         } else {
-            window.location.href = 'dashboard-dentista.html';
+            window.location.href = 'Dashboard-dentista.html';
         }
 
     } catch (err) {
