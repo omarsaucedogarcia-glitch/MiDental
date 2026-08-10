@@ -593,6 +593,8 @@
                     <span id="modalPasadoProcedimiento">--</span>
                 </div>
                 
+                <div id="modalPasadoRiesgoPanel" style="display: none; background: #fdf4ff; border-left: 4px solid #8b5cf6; padding: 10px; border-radius: 8px; margin-bottom: 15px;"></div>
+
                 <div style="background: #f0fdfa; border: 2px dashed var(--green-success); padding: 20px; border-radius: 15px; text-align: right; margin-bottom: 5px;">
                     <span style="font-size: 1rem; color: #64748b; font-weight: bold;">Presupuesto Emitido:</span><br>
                     <strong style="font-size: 2rem; color: var(--green-success);">$ <span id="modalPasadoTotal">0</span></strong>
@@ -1339,12 +1341,17 @@
                 } else {
                     // MODO PACIENTE REGISTRADO OFICIAL
                     const { data: paciente, error } = await window.midental.from('perfiles_pacientes')
-                        // ---> AGREGAMOS fecha_nacimiento A LA CONSULTA <---
-                        .select('nombre_completo, rut, telefono, fecha_nacimiento, enfermedades_cronicas, medicamentos, alergias, avatar_url, notas_privadas, proxima_sesion_nota, proxima_sesion_duracion_minutos')
+                        .select(`
+                            nombre_completo, rut, telefono, fecha_nacimiento, enfermedades_cronicas, 
+                            medicamentos, alergias, avatar_url, notas_privadas, proxima_sesion_nota, 
+                            proxima_sesion_duracion_minutos,
+                            nivel_riesgo, control_meses, proximo_control_fecha, riesgo_integral, 
+                            odontograma_estado
+                        `)
                         .eq('id', pacienteIdURL).single();
-                        
+
                     if (error) throw error;
-                    
+
                     if (paciente) {
                         pacienteActual.nombre = paciente.nombre_completo || "Sin Nombre";
                         pacienteActual.rut = paciente.rut || "No registrado";
@@ -1402,6 +1409,44 @@
                         }
 
                         document.getElementById('alertaClinicaContainer').style.display = 'block';
+
+                        // --- RENDERIZAR RIESGO CLÍNICO DESDE LAS COLUMNAS EXISTENTES ---
+                        if (paciente.nivel_riesgo && paciente.riesgo_integral) {
+                            const rc = paciente.riesgo_integral; // El JSON con los detalles de colores y textos
+                            
+                            const badgeNivel = document.getElementById('aiNivelRiesgo');
+                            if (badgeNivel) {
+                                badgeNivel.innerText = paciente.nivel_riesgo;
+                                badgeNivel.style.background = rc.color_fondo || '#94a3b8';
+                            }
+                            
+                            const bCaries = document.getElementById('aiCariesBadge');
+                            if (bCaries) {
+                                bCaries.innerText = rc.caries_badge || '--';
+                                bCaries.style.background = rc.caries_color || '#94a3b8';
+                                document.getElementById('aiAreaCaries').style.borderLeftColor = rc.caries_color || '#94a3b8';
+                                document.getElementById('aiCariesReco').innerText = rc.caries_reco || '--';
+                            }
+                            
+                            const bPerio = document.getElementById('aiPerioBadge');
+                            if (bPerio) {
+                                bPerio.innerText = rc.perio_badge || '--';
+                                bPerio.style.background = rc.perio_color || '#94a3b8';
+                                document.getElementById('aiAreaPerio').style.borderLeftColor = rc.perio_color || '#94a3b8';
+                                document.getElementById('aiPerioReco').innerText = rc.perio_reco || '--';
+                            }
+                            
+                            document.getElementById('aiRecomendacion').innerText = rc.recomendacion_combinada || '';
+                            document.getElementById('aiMesesControl').innerText = paciente.control_meses || '';
+                            document.getElementById('aiFechaControl').innerText = paciente.proximo_control_fecha || '';
+                            
+                            document.getElementById('tarjetaInteligenciaClinica').style.display = 'block';
+                        }
+
+                        // --- GUARDAR ESTADO DEL ODONTOGRAMA EN MEMORIA ---
+                        // Esta variable la leerá odontograma.js al abrirse
+                        window.odontogramaEstadoGuardado = paciente.odontograma_estado || [];
+
                         // Mostrar recordatorio de próxima sesión si existe
 if (paciente.proxima_sesion_nota && paciente.proxima_sesion_nota.trim() !== '') {
     document.getElementById('txtRecordatorioNota').innerText = paciente.proxima_sesion_nota;
@@ -1464,7 +1509,7 @@ if (paciente.proxima_sesion_nota && paciente.proxima_sesion_nota.trim() !== '') 
                     const accionStr = histoJson.tratamiento || ficha.accion_realizada || 'Sin registro';
                     const presupuestoNum = ficha.presupuesto_total || 0;
 
-                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, diagnostico: diagStr, accion: accionStr, presupuesto: presupuestoNum }));
+                    const dataFichaStr = encodeURIComponent(JSON.stringify({ fecha: fechaAtencion, motivo: motivoStr, diagnostico: diagStr, accion: accionStr, presupuesto: presupuestoNum, inteligencia_clinica: histoJson.inteligencia_clinica }));
 
                     contenedor.innerHTML += `
                         <div class="evolucion-card" onclick="abrirBovedaPasada('${dataFichaStr}')" title="Clic para ver detalle completo">
@@ -2250,6 +2295,19 @@ async function generarCertificadoPagosPDF() {
             document.getElementById('modalPasadoDiagnostico').innerText = data.diagnostico;
             document.getElementById('modalPasadoProcedimiento').innerText = data.accion;
             document.getElementById('modalPasadoTotal').innerText = data.presupuesto.toLocaleString('es-CL');
+
+            // Nueva lógica para mostrar el Riesgo si existe
+            const panelRiesgoHist = document.getElementById('modalPasadoRiesgoPanel'); // <-- Debes agregar este div al HTML del modal
+            if (data.inteligencia_clinica) {
+                panelRiesgoHist.style.display = 'block';
+                panelRiesgoHist.innerHTML = `
+                    <strong style="color: #8b5cf6;">Riesgo Global en esta sesión:</strong> ${data.inteligencia_clinica.nivel_global}<br>
+                    <span style="font-size: 0.85rem; color: #64748b;">Recomendación IA: ${data.inteligencia_clinica.recomendacion}</span>
+                `;
+            } else {
+                panelRiesgoHist.style.display = 'none';
+            }
+
             document.getElementById('modalVerRegistroPasado').style.display = 'flex';
         }
 
@@ -2446,7 +2504,7 @@ async function generarCertificadoPagosPDF() {
             const motivo = document.getElementById('fichaMotivo').value.trim();
             const diagnostico = document.getElementById('fichaDiagnostico').value.trim();
             const accion = document.getElementById('fichaAccion').value.trim();
-            
+
             if (!motivo || !diagnostico || !accion) return alert("⚠️ Debes ingresar Motivo, Diagnóstico y Procedimiento para guardar la ficha.");
 
             const btn = document.getElementById('btnGuardarFicha');
@@ -2454,6 +2512,7 @@ async function generarCertificadoPagosPDF() {
             btn.disabled = true;
 
             try {
+                // --- 0. GUARDAR PRESUPUESTO EN PDF SI EXISTE ---
                 let hayPresupuesto = false;
                 document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => { const ref = parseFloat(tr.querySelector('.input-ref').value) || 0; if (ref > 0) hayPresupuesto = true; });
 
@@ -2472,18 +2531,113 @@ async function generarCertificadoPagosPDF() {
                     }
                 }
 
+                // --- 1. CAPTURAR EL ODONTOGRAMA (CON LIMPIEZA DE SEGURIDAD Y PROTECCIÓN VACÍA) ---
+                let snapshotOdontograma = [];
+                if (window.MiDentalOdontograma && typeof window.MiDentalOdontograma.getEvents === 'function') {
+                    // Si getEvents() devuelve undefined o null, usamos || [] para que sea un array vacío
+                    const rawEvents = window.MiDentalOdontograma.getEvents() || [];
+                    
+                    // Limpieza forzada para evitar el error de "Circular JSON" en Supabase
+                    snapshotOdontograma = rawEvents.map(e => {
+                        if (!e) return e;
+                        const { surfaceEl, ...eventoSeguro } = e;
+                        return eventoSeguro;
+                    });
+                }
+
+                // --- 2. CAPTURAR EL RIESGO CLÍNICO Y CORREGIR FORMATOS ---
+                const nivelRiesgoTexto = document.getElementById('aiNivelRiesgo')?.innerText;
+                const mesesControlTexto = document.getElementById('aiMesesControl')?.innerText;
+                
+                // Transformar meses a fecha SQL (YYYY-MM-DD)
+                let fechaControlSql = null;
+                const mesesInt = parseInt(mesesControlTexto);
+                if (!isNaN(mesesInt)) {
+                    const fechaCalc = new Date();
+                    fechaCalc.setMonth(fechaCalc.getMonth() + mesesInt);
+                    fechaControlSql = fechaCalc.toISOString().split('T')[0]; 
+                }
+
+                // NUEVO: Traducir el texto de la interfaz a la regla estricta de Supabase
+                let nivelRiesgoDB = null;
+                if (nivelRiesgoTexto) {
+                    const textoLower = nivelRiesgoTexto.toLowerCase();
+                    if (textoLower.includes('alto')) nivelRiesgoDB = 'alto';
+                    else if (textoLower.includes('moderado') || textoLower.includes('medio')) nivelRiesgoDB = 'medio';
+                    else if (textoLower.includes('bajo')) nivelRiesgoDB = 'bajo';
+                }
+
+                const riesgoIntegralDetalle = {
+                    nivel_global: nivelRiesgoTexto, // En el JSON guardamos el texto bonito completo
+                    color_fondo: document.getElementById('aiNivelRiesgo')?.style.backgroundColor,
+                    caries_badge: document.getElementById('aiCariesBadge')?.innerText,
+                    caries_color: document.getElementById('aiCariesBadge')?.style.backgroundColor,
+                    caries_reco: document.getElementById('aiCariesReco')?.innerText,
+                    perio_badge: document.getElementById('aiPerioBadge')?.innerText,
+                    perio_color: document.getElementById('aiPerioBadge')?.style.backgroundColor,
+                    perio_reco: document.getElementById('aiPerioReco')?.innerText,
+                    recomendacion_combinada: document.getElementById('aiRecomendacion')?.innerText
+                };
+
+                // --- 3. GUARDAR EL ESTADO EN VIVO (TABLA: perfiles_pacientes) ---
+                if (!isLocal) {
+                    const payloadActualizacion = {
+                        odontograma_estado: snapshotOdontograma, 
+                        riesgo_integral: riesgoIntegralDetalle,
+                        riesgo_calculado_en: new Date().toISOString()
+                    };
+
+                    // Verificamos usando nivelRiesgoDB ("alto", "medio" o "bajo")
+                    if (nivelRiesgoDB) {
+                        payloadActualizacion.nivel_riesgo = nivelRiesgoDB; // En la columna estricta enviamos el texto limpio
+                        payloadActualizacion.control_meses = mesesInt || null;
+                        payloadActualizacion.proximo_control_fecha = fechaControlSql; 
+                    }
+
+                    const { error: errUpdatePerfil } = await window.midental
+                        .from('perfiles_pacientes')
+                        .update(payloadActualizacion)
+                        .eq('id', pacienteIdURL);
+                    
+                    if (errUpdatePerfil) {
+                        console.error("Error guardando estado en el perfil:", errUpdatePerfil);
+                        throw errUpdatePerfil; 
+                    } else {
+                        window.odontogramaEstadoGuardado = snapshotOdontograma;
+                    }
+                }
+                // --- 4. GUARDAR LA FOTOGRAFÍA HISTÓRICA (TABLA: fichas_clinicas) ---
                 const totalPresupuestoCalculado = calcularGranTotal();
                 const { error: fichaError } = await window.midental.from('fichas_clinicas').insert([{
-                    dentista_id: dentistaId, paciente_id: isLocal ? null : pacienteIdURL, paciente_nombre: pacienteActual.nombre,
+                    dentista_id: dentistaId, 
+                    paciente_id: isLocal ? null : pacienteIdURL, 
+                    paciente_nombre: pacienteActual.nombre,
                     paciente_rut: pacienteActual.rut !== "" && pacienteActual.rut !== "No registrado" ? pacienteActual.rut : null,
-                    motivo_consulta: `${motivo} | ${diagnostico}`, accion_realizada: accion, presupuesto_total: totalPresupuestoCalculado,
-                    ultima_atencion: new Date().toISOString(), historial_json: { motivo: motivo, diagnostico: diagnostico, tratamiento: accion, fecha: new Date().toLocaleDateString('es-CL') }
+                    motivo_consulta: `${motivo} | ${diagnostico}`, 
+                    accion_realizada: accion, 
+                    presupuesto_total: totalPresupuestoCalculado,
+                    ultima_atencion: new Date().toISOString(), 
+                    odontograma_json: snapshotOdontograma, // Respaldo legal inmutable
+                    historial_json: { 
+                        motivo: motivo, 
+                        diagnostico: diagnostico, 
+                        tratamiento: accion, 
+                        fecha: new Date().toLocaleDateString('es-CL'),
+                        inteligencia_clinica: riesgoIntegralDetalle
+                    }
                 }]);
 
-                if (fichaError) throw fichaError;
+                if (fichaError) {
+                    console.error("Error guardando ficha histórica:", fichaError);
+                    throw fichaError;
+                }
+
                 if (isLocal && citaId) await window.midental.from('citas_agenda').update({ estado: 'completada' }).eq('id', citaId);
 
-                document.getElementById('fichaMotivo').value = ''; document.getElementById('fichaDiagnostico').value = ''; document.getElementById('fichaAccion').value = '';
+                // --- 5. LIMPIAR PANTALLA ---
+                document.getElementById('fichaMotivo').value = ''; 
+                document.getElementById('fichaDiagnostico').value = ''; 
+                document.getElementById('fichaAccion').value = '';
                 document.getElementById('tbodyPresupuesto').innerHTML = `
                     <tr>
                         <td><input type="text" class="input-diente" placeholder="Ej: 1.4"></td>
@@ -2494,108 +2648,20 @@ async function generarCertificadoPagosPDF() {
                         <td><input type="text" class="ref-val input-total input-readonly" placeholder="0" readonly></td>
                     </tr>`;
                 document.getElementById('granTotalPagar').innerText = '0';
+                
                 alert(isLocal ? "✅ Ficha Local Guardada. Historial protegido." : "✅ Ficha Oficial guardada y presupuesto asegurado.");
+                
                 cargarHistorialPaciente(); 
                 if(!isLocal) cargarDocumentosPaciente(); 
-            } catch (err) { alert("Hubo un error técnico: " + err.message); } 
-            finally { btn.innerHTML = '<span class="material-symbols-outlined">save</span> Firmar y Guardar Ficha Oficial'; btn.disabled = false; }
-        }
-
-        async function emitirPresupuestoPDF() {
-    const dentistaId = localStorage.getItem('midental_user_id');
-    if (!dentistaId) return alert("Error de sesión.");
-
-    let hayPresupuesto = false;
-    document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-        const ref = parseFloat(tr.querySelector('.input-ref').value) || 0;
-        if (ref > 0) hayPresupuesto = true;
-    });
-
-    if (!hayPresupuesto) return alert("Debes agregar al menos una prestación con valor al presupuesto.");
-
-    // SOLUCIÓN 1: Captura el botón mediante su atributo onclick sin requerir ID en el HTML
-    const btn = document.querySelector('button[onclick="emitirPresupuestoPDF()"]');
-    const textoOriginal = btn ? btn.innerHTML : '<span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">request_quote</span> PDF Ppto.';
-    
-    if (btn) {
-        btn.innerHTML = '<span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span> Generando Documento...';
-        btn.disabled = true;
-    }
-
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const { data: dr } = await window.midental.from('perfiles_dentistas').select('prefijo, nombre_completo, rut, registro_sis').eq('id', dentistaId).single();
-        
-        // SOLUCIÓN 2: Corregido 'nombre' por 'nombre_sede' para mantener la consistencia con la tabla
-        const { data: sedes } = await window.midental.from('sedes_dentistas').select('nombre_sede, direccion, comuna').eq('dentista_id', dentistaId).limit(1);
-        
-        const drName = dr ? `${dr.prefijo || 'Dr.'} ${dr.nombre_completo}` : '';
-        const nombreCentro = (sedes && sedes.length > 0 && sedes[0].nombre_sede) ? sedes[0].nombre_sede : 'Presupuesto Dental';
-        
-        doc.setFontSize(22); doc.setTextColor(0, 180, 216); doc.text("MiDental", 14, 20);
-        doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text("Red de Salud Digital", 14, 26);
-        
-        doc.setFontSize(16); doc.setTextColor(30, 58, 138); doc.text(nombreCentro, 200, 20, { align: "right" });
-        doc.setFontSize(10); doc.setTextColor(85, 85, 85); doc.text(`Fecha Emisión: ${new Date().toLocaleDateString('es-CL')}`, 200, 26, { align: "right" });
-        doc.setDrawColor(200, 200, 200); doc.line(14, 30, 200, 30);
-
-        doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Datos del Paciente", 14, 40);
-        doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Nombre: ${pacienteActual.nombre}`, 14, 47); doc.text(`RUT: ${pacienteActual.rut}`, 14, 53);
-
-        doc.setFontSize(12); doc.setTextColor(30, 58, 138); doc.text("Profesional Tratante", 110, 40);
-        doc.setFontSize(10); doc.setTextColor(50, 50, 50); doc.text(`Dentista: ${drName}`, 110, 47); if(dr) doc.text(`RUT: ${dr.rut}`, 110, 53);
-
-        const tableColumn = ["Pieza", "Diagnóstico", "Prestación", "Valor Ref.", "Dscto", "Total"];
-        const tableRows = [];
-        
-        document.querySelectorAll('#tbodyPresupuesto tr').forEach(tr => {
-            const piezaVal = tr.querySelector('.input-diente').value.trim();
-            const diagVal = tr.querySelector('.input-diag').value.trim();
-            const tratVal = tr.querySelector('.input-tratamiento').value.trim();
-            const refInput = parseFloat(tr.querySelector('.input-ref').value) || 0;
-            const descInput = parseFloat(tr.querySelector('.input-desc').value) || 0;
-            
-            let totalInput = 0;
-            const elTotal = tr.querySelector('.input-total');
-            if(elTotal.dataset.valorReal) totalInput = parseFloat(elTotal.dataset.valorReal);
-            else if (elTotal.value) totalInput = parseFloat(elTotal.value);
-
-            if (!piezaVal && !diagVal && !tratVal && refInput === 0 && totalInput === 0) return;
-
-            const tdDesc = descInput <= 100 && descInput > 0 ? `${descInput}%` : (descInput > 100 ? `$${descInput.toLocaleString('es-CL')}` : '0%');
-            tableRows.push([piezaVal || '-', diagVal || '-', tratVal || '-', `$${refInput.toLocaleString('es-CL')}`, tdDesc, `$${totalInput.toLocaleString('es-CL')}`]);
-        });
-
-        doc.autoTable({ startY: 65, head: [tableColumn], body: tableRows, theme: 'grid', headStyles: { fillColor: [30, 58, 138] }, styles: { fontSize: 9 } });
-
-        const finalY = doc.lastAutoTable.finalY || 70;
-        doc.setFontSize(14); doc.setTextColor(30, 58, 138); doc.text(`TOTAL A PAGAR: $${document.getElementById('granTotalPagar').innerText}`, 200, finalY + 15, { align: "right" });
-
-        const nombrePuro = pacienteActual.nombre.replace(/[^a-zA-Z0-9]/g, '_');
-        const nombreArchivo = `Presupuesto_Comercial_${nombrePuro}_${Date.now()}.pdf`;
-        doc.save(nombreArchivo); 
-
-        if (!isLocal) {
-            const pdfBlob = doc.output('blob');
-            const { error: uploadError } = await window.midental.storage.from('documentos_clinicos').upload(nombreArchivo, pdfBlob, { contentType: 'application/pdf' });
-            if (!uploadError) {
-                await window.midental.from('documentos_pacientes').insert([{ paciente_id: pacienteIdURL, dentista_id: dentistaId, nombre_archivo: `Presupuesto Cotización ${new Date().toLocaleDateString('es-CL')}.pdf`, tipo: 'pdf', archivo_url: nombreArchivo }]);
-                if(typeof cargarDocumentosPaciente === 'function') cargarDocumentosPaciente(); 
+                
+            } catch (err) { 
+                alert("Hubo un error técnico: " + err.message); 
+            } 
+            finally { 
+                btn.innerHTML = '<span class="material-symbols-outlined">save</span> Firmar y Guardar Ficha Oficial'; 
+                btn.disabled = false; 
             }
         }
-        alert("✅ Presupuesto generado y resguardado con éxito en los documentos del paciente.");
-    } catch (err) { 
-        alert("Error al generar el presupuesto: " + err.message); 
-        console.error(err); 
-    } finally { 
-        if (btn) {
-            btn.innerHTML = textoOriginal; 
-            btn.disabled = false; 
-        }
-    }
-}
-
       // ==========================================
 // RECETAS MÉDICAS Y VADEMÉCUM
 // ==========================================
@@ -3406,18 +3472,44 @@ async function generarEpicrisisImprimiblePDF() {
         // ODONTOGRAMA: APERTURA Y CIERRE
         // ==========================================
         function abrirOdontograma() {
-            const modal = document.getElementById('odontogramaModal');
-            if (!modal) return;
-            const nombre = (pacienteActual && pacienteActual.nombre) ? pacienteActual.nombre : 'Paciente';
-            const rut    = (pacienteActual && pacienteActual.rut)    ? pacienteActual.rut    : '--';
-            document.getElementById('odnNombrePaciente').innerText = nombre;
-            document.getElementById('odnRutPaciente').innerText    = 'RUT: ' + rut;
-            document.getElementById('odnAvatar').innerText         = (nombre.charAt(0) || '?').toUpperCase();
-            modal.classList.add('odn-active');
-            document.getElementById('btnAbrirOdontograma').setAttribute('aria-expanded', 'true');
-            document.body.style.overflow = 'hidden';
-            document.dispatchEvent(new CustomEvent('odontograma:open', { detail: { pacienteId: pacienteIdURL, isLocal: isLocal, paciente: pacienteActual } }));
+    const modal = document.getElementById('odontogramaModal');
+    if (!modal) return;
+    const nombre = (pacienteActual && pacienteActual.nombre) ? pacienteActual.nombre : 'Paciente';
+    const rut    = (pacienteActual && pacienteActual.rut)    ? pacienteActual.rut    : '--';
+    document.getElementById('odnNombrePaciente').innerText = nombre;
+    document.getElementById('odnRutPaciente').innerText    = 'RUT: ' + rut;
+    document.getElementById('odnAvatar').innerText         = (nombre.charAt(0) || '?').toUpperCase();
+    modal.classList.add('odn-active');
+    document.getElementById('btnAbrirOdontograma').setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    
+    // Despachamos el evento con el JSON exacto de la base de datos
+    document.dispatchEvent(new CustomEvent('odontograma:open', { 
+        detail: { 
+            pacienteId: pacienteIdURL, 
+            isLocal: isLocal, 
+            paciente: pacienteActual,
+            estadoPrevio: window.odontogramaEstadoGuardado || []
+        } 
+    }));
+
+
+    // 2. Inyectar forzosamente los datos visuales al motor del SVG
+    if (window.MiDentalOdontograma && window.odontogramaEstadoGuardado && window.odontogramaEstadoGuardado.length > 0) {
+        
+        // Ejecutamos la función de carga inversa a getEvents()
+        if (typeof window.MiDentalOdontograma.loadEvents === 'function') {
+            window.MiDentalOdontograma.loadEvents(window.odontogramaEstadoGuardado);
+        } else if (typeof window.MiDentalOdontograma.setEvents === 'function') {
+            window.MiDentalOdontograma.setEvents(window.odontogramaEstadoGuardado);
+        } else if (typeof window.MiDentalOdontograma.importData === 'function') {
+            window.MiDentalOdontograma.importData(window.odontogramaEstadoGuardado);
         }
+        
+        // Actualizamos los contadores de arriba (Patología, Plan, Existente)
+        actualizarContadoresOdontograma();
+    }
+}
 
         function cerrarOdontograma() {
             const modal = document.getElementById('odontogramaModal');

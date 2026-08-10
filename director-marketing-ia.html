@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>MiDental - Centro de Inteligencia Clínica</title>
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="js/components.js"></script>
+
+    <style>
+        /* ========================================================= */
+        /* ESTILOS DEL CENTRO DE INTELIGENCIA                        */
+        /* ========================================================= */
+        
+        /* 1. Sincronización Clínica (Pantalla de Carga) */
+        #pantalla-sincronizacion {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            color: var(--blue-elegant);
+        }
+        .audit-panel {
+            width: 100%;
+            max-width: 450px;
+            background: #f8fafc;
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+        .audit-step {
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #64748b;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+        .audit-step.active { opacity: 1; transform: translateY(0); color: #334155; }
+        .spin-icon { animation: spin 1.5s linear infinite; }
+
+        /* 2. El Comité Estratégico */
+        .comite-estrategico {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            margin-bottom: 30px;
+        }
+        .comite-header {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 25px;
+        }
+        .ia-avatar {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            padding: 15px;
+            border-radius: 50%;
+            color: #0284c7;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
+        }
+        
+        /* Tarjetas de Prioridad */
+        .prioridades-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .card-prioridad {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-prioridad:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.04); }
+        .card-prioridad.top-priority {
+            background: #f0f9ff;
+            border: 2px solid #7dd3fc;
+        }
+        .badge-priority {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        .top-priority .badge-priority { background: #0284c7; color: white; }
+        .normal-priority .badge-priority { background: #cbd5e1; color: #475569; }
+        
+        .confidence-bar { display: flex; gap: 4px; margin-top: 5px; margin-bottom: 15px; }
+        .confidence-segment { height: 8px; width: 100%; border-radius: 4px; background: #e2e8f0; }
+        .confidence-segment.high { background: var(--green-success); }
+        .confidence-segment.medium { background: var(--pixar-orange); }
+
+        .memory-box {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #475569;
+            border: 1px dashed #cbd5e1;
+            line-height: 1.5;
+        }
+
+        /* 3. Estudio Creativo (El Laboratorio Multicanal) */
+        .estudio-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px; /* Estrategia | Canvas | Copy */
+            gap: 25px;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            min-height: 600px;
+        }
+        
+        /* Paneles internos del estudio */
+        .estudio-panel {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #f1f5f9;
+        }
+        
+        /* Detalles Estrategia */
+        .estrategia-item {
+            margin-bottom: 15px;
+        }
+        .estrategia-label {
+            display: block;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 900;
+            margin-bottom: 3px;
+        }
+        .estrategia-valor {
+            font-size: 0.95rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        /* Área Central (Canvas) */
+        .canvas-area {
+            background: #e2e8f0;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 30px;
+        }
+        #canvasPreview {
+            max-width: 100%;
+            height: auto;
+            max-height: 500px;
+            background: white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            border-radius: 8px;
+        }
+
+        /* Variaciones Multicanal */
+        .channel-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        .channel-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .channel-tab.active {
+            background: white;
+            color: var(--blue-elegant);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <midental-sidebar></midental-sidebar>
+
+        <main class="dashboard-content">
+            <!-- TOPBAR -->
+            <header class="topbar" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+                <div class="welcome-text" style="flex: 1; padding-right: 20px;">
+                    <h1 id="dashGreeting" style="font-size: 1.8rem; margin: 0 0 5px 0; font-weight: 900; color: var(--blue-elegant);">Centro de Inteligencia</h1>
+                    <p style="color: #64748b; font-size: 0.95rem; margin: 0; font-style: italic; line-height: 1.4;">Dirección Estratégica Clínica y Comercial</p>
+                </div>
+                
+                <div class="topbar-right-area" style="display: flex; align-items: center; gap: 15px;">
+                    <div class="token-balance-card" style="display: flex; align-items: center; gap: 10px; background: #fffbeb; padding: 8px 15px; border-radius: 20px; border: 1px solid #fef3c7;">
+                        <span style="font-size: 1.5rem;">🪙</span>
+                        <div class="token-info">
+                            <span style="display: block; font-size: 0.7rem; color: #92400e; font-weight: bold; text-transform: uppercase;">Tokens</span>
+                            <strong class="token-count" style="font-size: 1.1rem; color: #b45309;">12</strong>
+                        </div>
+                    </div>
+                    <div class="topbar-profile">
+                        <img src="assets/avatar-default-doctor.png" alt="Perfil" id="topbarAvatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--pixar-cyan);">
+                    </div>
+                </div>
+            </header>
+
+            <div class="marketing-dashboard-container">
+
+                <!-- ========================================== -->
+                <!-- PANTALLA 1: SINCRONIZACIÓN CLÍNICA (LOADER)-->
+                <!-- ========================================== -->
+                <div id="pantalla-sincronizacion">
+                    <div class="audit-panel">
+                        <h3 style="margin-top: 0; color: var(--blue-elegant); text-align: center; margin-bottom: 30px; font-size: 1.3rem;">Sincronizando Clínica...</h3>
+                        
+                        <div class="audit-step" id="sync-1">
+                            <span class="material-symbols-outlined spin-icon" style="color: var(--pixar-cyan);">sync</span> 
+                            <span>Analizando 214 pacientes en base de datos...</span>
+                        </div>
+                        <div class="audit-step" id="sync-2">
+                            <span class="material-symbols-outlined spin-icon" style="color: var(--pixar-cyan);">sync</span> 
+                            <span>Revisando 38 tratamientos terminados...</span>
+                        </div>
+                        <div class="audit-step" id="sync-3">
+                            <span class="material-symbols-outlined spin-icon" style="color: var(--pixar-cyan);">sync</span> 
+                            <span>Detectando 52 pacientes sin control agendado...</span>
+                        </div>
+                        <div class="audit-step" id="sync-4">
+                            <span class="material-symbols-outlined spin-icon" style="color: var(--pixar-cyan);">sync</span> 
+                            <span>Comparando historial de campañas recientes...</span>
+                        </div>
+                        <div class="audit-step" id="sync-5">
+                            <span class="material-symbols-outlined spin-icon" style="color: var(--pixar-cyan);">sync</span> 
+                            <span>Calculando probabilidad de conversión...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- PANTALLA 2: EL COMITÉ ESTRATÉGICO          -->
+                <!-- ========================================== -->
+                <div id="pantalla-comite" style="display: none;">
+                    
+                    <div class="comite-estrategico">
+                        <div class="comite-header">
+                            <div class="ia-avatar">
+                                <span class="material-symbols-outlined" style="font-size: 2.5rem;">psychology</span>
+                            </div>
+                            <div>
+                                <h2 style="margin: 0 0 8px 0; color: var(--blue-elegant); font-size: 1.5rem;">Buenos días, Dr. Omar.</h2>
+                                <p style="margin: 0; color: #475569; font-size: 1.05rem; line-height: 1.6; max-width: 900px;">
+                                    He analizado la actividad clínica y comercial de esta semana. Tenemos capacidad instalada disponible en la agenda. Aquí están mis tres recomendaciones prioritarias para optimizar el rendimiento:
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="prioridades-grid">
+                            
+                            <!-- Prioridad 1 (Principal) -->
+                            <div class="card-prioridad top-priority">
+                                <span class="badge-priority">PRIORIDAD #1</span>
+                                
+                                <h3 style="margin: 15px 0 5px 0; color: #0369a1; font-size: 1.3rem;">Reactivar Pacientes</h3>
+                                <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #475569;">Foco en Rehabilitación Oral</p>
+                                
+                                <div style="margin-bottom: 20px;">
+                                    <span style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 4px; font-weight: bold;">
+                                        <span>Nivel de Confianza: ALTO</span>
+                                        <span>87%</span>
+                                    </span>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-segment high"></div>
+                                        <div class="confidence-segment high"></div>
+                                        <div class="confidence-segment high"></div>
+                                        <div class="confidence-segment high"></div>
+                                        <div class="confidence-segment"></div>
+                                    </div>
+                                </div>
+
+                                <div class="memory-box">
+                                    <strong style="color: #0284c7; display: flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+                                        <span class="material-symbols-outlined" style="font-size: 1.1rem;">memory</span> Aprendizaje IA:
+                                    </strong>
+                                    La última vez que usamos este enfoque (hace 2 meses) conseguimos:
+                                    <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #334155; font-weight: 600;">
+                                        <li>+12 Consultas</li>
+                                        <li>+8 Controles asistidos</li>
+                                    </ul>
+                                </div>
+
+                                <button class="btn-action-primary btn-ejecutar-plan" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;">
+                                    Explorar Estrategia
+                                </button>
+                            </div>
+
+                            <!-- Prioridad 2 -->
+                            <div class="card-prioridad normal-priority">
+                                <span class="badge-priority">PRIORIDAD #2</span>
+                                
+                                <h3 style="margin: 15px 0 5px 0; color: var(--blue-elegant); font-size: 1.2rem;">Promocionar Casos</h3>
+                                <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #64748b;">Antes y Después</p>
+                                
+                                <div style="margin-bottom: 20px;">
+                                    <span style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 4px; font-weight: bold;">
+                                        <span>Nivel de Confianza: MODERADO</span>
+                                        <span>65%</span>
+                                    </span>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-segment medium"></div>
+                                        <div class="confidence-segment medium"></div>
+                                        <div class="confidence-segment medium"></div>
+                                        <div class="confidence-segment"></div>
+                                        <div class="confidence-segment"></div>
+                                    </div>
+                                </div>
+
+                                <div class="memory-box" style="background: transparent; border: none; padding: 0;">
+                                    <ul style="margin: 0; padding-left: 20px; color: #64748b;">
+                                        <li style="margin-bottom: 5px;">Ideal para construir confianza técnica.</li>
+                                        <li>Requiere subir fotos propias.</li>
+                                    </ul>
+                                </div>
+
+                                <button class="btn-ejecutar-plan" style="width: 100%; margin-top: 35px; background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s;">
+                                    Explorar Estrategia
+                                </button>
+                            </div>
+
+                            <!-- Prioridad 3 -->
+                            <div class="card-prioridad normal-priority">
+                                <span class="badge-priority">PRIORIDAD #3</span>
+                                
+                                <h3 style="margin: 15px 0 5px 0; color: var(--blue-elegant); font-size: 1.2rem;">Campaña Preventiva</h3>
+                                <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #64748b;">Foco en Odontopediatría</p>
+                                
+                                <div style="margin-bottom: 20px;">
+                                    <span style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b; margin-bottom: 4px; font-weight: bold;">
+                                        <span>Nivel de Confianza: BAJO</span>
+                                        <span>30%</span>
+                                    </span>
+                                    <div class="confidence-bar">
+                                        <div class="confidence-segment" style="background: #94a3b8;"></div>
+                                        <div class="confidence-segment" style="background: #94a3b8;"></div>
+                                        <div class="confidence-segment"></div>
+                                        <div class="confidence-segment"></div>
+                                        <div class="confidence-segment"></div>
+                                    </div>
+                                </div>
+
+                                <div class="memory-box" style="background: transparent; border: none; padding: 0;">
+                                    <ul style="margin: 0; padding-left: 20px; color: #64748b;">
+                                        <li style="margin-bottom: 5px;">Bajo volumen histórico de pacientes infantiles.</li>
+                                        <li>Rentabilidad a largo plazo.</li>
+                                    </ul>
+                                </div>
+
+                                <button class="btn-ejecutar-plan" style="width: 100%; margin-top: 35px; background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 8px; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s;">
+                                    Explorar Estrategia
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <!-- DIRECCIÓN MANUAL (OVERRIDE) -->
+                        <div class="direccion-manual-box" style="margin-top: 35px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.01);">
+                            <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: var(--blue-elegant); display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: var(--pixar-cyan);">edit_note</span> 
+                                ¿Tienes otro objetivo en mente para hoy?
+                            </h3>
+                            <p style="margin: 0 0 15px 0; font-size: 0.9rem; color: #64748b; line-height: 1.5;">
+                                Como director de la clínica, tú tienes la última palabra. Escribe lo que necesitas promocionar hoy y yo me encargaré de adaptar tu idea a nuestro tono de marca y perfil de pacientes.
+                            </p>
+                            
+                            <div style="display: flex; gap: 15px; align-items: flex-start;">
+                                <div style="flex: 1; position: relative;">
+                                    <textarea id="input-instruccion-manual" rows="2" class="form-control" style="width: 100%; padding: 15px 20px; border-radius: 12px; font-size: 0.95rem; resize: none; border: 2px solid #cbd5e1; box-sizing: border-box;" placeholder="Ej: Acabo de comprar una lámpara láser. Haz una campaña promocionando blanqueamientos rápidos para pacientes que tienen eventos importantes."></textarea>
+                                </div>
+                                <button class="btn-action-primary" id="btn-estrategia-manual" style="padding: 15px 25px; border-radius: 12px; height: 100%; white-space: nowrap;">
+                                    <span class="material-symbols-outlined">auto_awesome</span> Ejecutar mi idea
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- PANTALLA 3: EL ESTUDIO CREATIVO (LAB)      -->
+                <!-- ========================================== -->
+                <div id="pantalla-estudio" style="display: none;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h2 style="font-size: 1.6rem; color: var(--blue-elegant); margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <span class="material-symbols-outlined" style="color: var(--pixar-cyan); font-size: 2rem;">design_services</span> 
+                            Estudio Creativo Multicanal
+                        </h2>
+                        <button id="btn-volver-comite" style="background: white; border: 1px solid #cbd5e1; color: #475569; padding: 8px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                            <span class="material-symbols-outlined" style="font-size: 1.1rem;">arrow_back</span> Volver a la Reunión
+                        </button>
+                    </div>
+
+                    <div class="estudio-layout">
+                        
+                        <!-- COLUMNA 1: ESTRATEGIA (Inmutable visualmente) -->
+                        <div class="estudio-panel" style="background: white;">
+                            <h3 style="margin: 0 0 20px 0; font-size: 1.1rem; color: #334155; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: #64748b;">assignment</span> El Plan
+                            </h3>
+                            
+                            <div class="estrategia-item">
+                                <span class="estrategia-label">Objetivo</span>
+                                <span class="estrategia-valor" id="lab-objetivo">Reactivar pacientes sin control</span>
+                            </div>
+                            <div class="estrategia-item">
+                                <span class="estrategia-label">Enfoque Clínico</span>
+                                <span class="estrategia-valor" id="lab-enfoque">Rehabilitación Oral</span>
+                            </div>
+                            <div class="estrategia-item">
+                                <span class="estrategia-label">Audiencia</span>
+                                <span class="estrategia-valor" id="lab-audiencia">Pacientes antiguos inactivos</span>
+                            </div>
+                            <div class="estrategia-item">
+                                <span class="estrategia-label">Emoción Dominante</span>
+                                <span class="estrategia-valor">Confianza y Seguridad</span>
+                            </div>
+                            <div class="estrategia-item">
+                                <span class="estrategia-label">Formato Principal</span>
+                                <span class="estrategia-valor">Publicación Estática (1:1)</span>
+                            </div>
+                            <div class="estrategia-item">
+                                <span class="estrategia-label">CTA (Llamado a Acción)</span>
+                                <span class="estrategia-valor" style="color: #0284c7;">Agenda tu evaluación de control</span>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA 2: CANVAS (El Diseño) -->
+                        <div class="canvas-area">
+                            
+                            <!-- Loader del diseño -->
+                            <div id="diseño-loading" style="text-align: center; color: #64748b;">
+                                <span class="material-symbols-outlined spin-icon" style="font-size: 4rem; margin-bottom: 15px; color: var(--pixar-cyan);">palette</span>
+                                <h3 style="margin: 0 0 5px 0; color: var(--blue-elegant);">Pintando el lienzo...</h3>
+                                <p style="margin: 0; font-size: 0.9rem;">Aplicando paleta corporativa y textos.</p>
+                            </div>
+
+                            <!-- Canvas Real -->
+                            <canvas id="canvasPreview" style="display: none; width: 100%; max-width: 450px; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.15); border-radius: 8px;"></canvas>
+
+                            <!-- Mini controles del Canvas -->
+                            <div id="controles-canvas" style="display: none; position: absolute; bottom: 20px; width: 90%; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                    <input type="text" id="inputFirma" class="form-control" style="font-size: 0.8rem; padding: 6px 10px;" placeholder="Dr. Omar Saucedo García">
+                                    <input type="text" id="inputSede" class="form-control" style="font-size: 0.8rem; padding: 6px 10px;" placeholder="Centro Médico Los Gladiolos">
+                                </div>
+                                <button id="btn-descargar-hd" class="btn-pixar" style="width: 100%; justify-content: center; padding: 8px; font-size: 0.9rem;">
+                                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">download</span> Descargar Imagen
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA 3: VARIACIONES Y DISTRIBUCIÓN -->
+                        <div class="estudio-panel" style="background: white; display: flex; flex-direction: column;">
+                            <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #334155; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                                <span class="material-symbols-outlined" style="color: #64748b;">campaign</span> Distribución
+                            </h3>
+                            
+                            <!-- Pestañas Multicanal -->
+                            <div class="channel-tabs">
+                                <div class="channel-tab active" onclick="cambiarCanal(this, 'instagram')">Instagram</div>
+                                <div class="channel-tab" onclick="cambiarCanal(this, 'whatsapp')">WhatsApp</div>
+                            </div>
+
+                            <!-- Área de Textos Dinámicos -->
+                            <div style="flex: 1; display: flex; flex-direction: column;">
+                                
+                                <!-- Copy Instagram -->
+                                <div id="copy-instagram" style="flex: 1; display: flex; flex-direction: column;">
+                                    <textarea rows="12" style="flex: 1; padding: 15px; border: 1px solid #cbd5e1; border-radius: 12px; resize: none; font-family: inherit; font-size: 0.9rem; color: #334155; line-height: 1.6;">Generando mensaje largo para Instagram...</textarea>
+                                </div>
+
+                                <!-- Copy WhatsApp (Oculto inicialmente) -->
+                                <div id="copy-whatsapp" style="display: none; flex: 1; flex-direction: column;">
+                                    <textarea rows="12" style="flex: 1; padding: 15px; border: 1px solid #cbd5e1; border-radius: 12px; resize: none; font-family: inherit; font-size: 0.95rem; color: #334155; line-height: 1.6;">Generando mensaje corto para difusión en WhatsApp...</textarea>
+                                </div>
+
+                            </div>
+
+                            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                <button class="btn-action-primary" onclick="alert('¡Mensaje copiado al portapapeles!')" style="justify-content: center; padding: 12px; background: var(--green-success);">
+                                    <span class="material-symbols-outlined">content_copy</span> Copiar Mensaje
+                                </button>
+                                <button class="btn-action-primary" style="justify-content: center; padding: 12px; background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; box-shadow: none;">
+                                    <span class="material-symbols-outlined">send</span> Publicar en Meta
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts Base -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    
+    <!-- Script de Interfaz Interactiva -->
+    <script>
+        // ----------------------------------------------------
+        // LÓGICA DE UI: Flujo de las 3 Pantallas
+        // ----------------------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Iniciar Animación de Carga Auditable
+            iniciarAuditoriaClinica();
+
+            // 2. Escuchar clics en los botones "Aprobar Estrategia" (Recomendación IA)
+            const botonesAprobar = document.querySelectorAll('.btn-ejecutar-plan');
+            botonesAprobar.forEach(btn => {
+                btn.addEventListener('click', () => abrirLaboratorioCreativo('ia'));
+            });
+
+            // 3. Escuchar clic en el botón de "Dirección Manual" (Instrucción del Odontólogo)
+            const btnManual = document.getElementById('btn-estrategia-manual');
+            if(btnManual) {
+                btnManual.addEventListener('click', () => {
+                    const instruccion = document.getElementById('input-instruccion-manual').value;
+                    if(instruccion.trim() === '') {
+                        alert("Por favor, escribe qué te gustaría promocionar para que pueda ayudarte.");
+                        return;
+                    }
+                    abrirLaboratorioCreativo('manual', instruccion);
+                });
+            }
+
+            // 4. Botón de Volver
+            document.getElementById('btn-volver-comite').addEventListener('click', () => {
+                document.getElementById('pantalla-estudio').style.display = 'none';
+                document.getElementById('pantalla-comite').style.display = 'block';
+            });
+        });
+
+        // Simula la lectura rápida de datos (Knowledge Layer)
+        function iniciarAuditoriaClinica() {
+            const pasos = [
+                { id: 'sync-1', delay: 400 },
+                { id: 'sync-2', delay: 1200 },
+                { id: 'sync-3', delay: 1800 },
+                { id: 'sync-4', delay: 2400 },
+                { id: 'sync-5', delay: 3000 }
+            ];
+
+            pasos.forEach(paso => {
+                setTimeout(() => {
+                    const el = document.getElementById(paso.id);
+                    if(el) {
+                        el.classList.add('active');
+                        // Transformar el loader en check
+                        const icon = el.querySelector('.material-symbols-outlined');
+                        setTimeout(() => {
+                            icon.classList.remove('spin-icon');
+                            icon.innerText = 'check_circle';
+                            icon.style.color = 'var(--green-success)';
+                        }, 500);
+                    }
+                }, paso.delay);
+            });
+
+            // Terminar carga y mostrar el Comité Estratégico
+            setTimeout(() => {
+                document.getElementById('pantalla-sincronizacion').style.display = 'none';
+                document.getElementById('pantalla-comite').style.display = 'block';
+            }, 4500);
+        }
+
+        // Simula la llamada a la IA y carga del Canvas (Execution Layer)
+        function abrirLaboratorioCreativo(origen, instruccionManual = "") {
+            document.getElementById('pantalla-comite').style.display = 'none';
+            document.getElementById('pantalla-estudio').style.display = 'block';
+            
+            // Ocultar elementos para simular carga nueva
+            document.getElementById('diseño-loading').style.display = 'block';
+            document.getElementById('canvasPreview').style.display = 'none';
+            document.getElementById('controles-canvas').style.display = 'none';
+
+            // Ajustar los labels de la estrategia si viene de instrucción manual
+            if (origen === 'manual') {
+                document.getElementById('lab-objetivo').innerText = "Instrucción Directa del Profesional";
+                document.getElementById('lab-enfoque').innerText = "Adaptado al Contexto Clínico";
+                document.getElementById('lab-audiencia').innerText = "Audiencia General de la Clínica";
+            } else {
+                document.getElementById('lab-objetivo').innerText = "Reactivar pacientes sin control";
+                document.getElementById('lab-enfoque').innerText = "Rehabilitación Oral";
+                document.getElementById('lab-audiencia').innerText = "Pacientes antiguos inactivos";
+            }
+            
+            // Simular tiempo de pintura del Canvas por la IA (Generación)
+            setTimeout(() => {
+                document.getElementById('diseño-loading').style.display = 'none';
+                
+                const canvas = document.getElementById('canvasPreview');
+                canvas.style.display = 'block';
+                
+                // Dibujar maqueta en el Canvas
+                const ctx = canvas.getContext('2d');
+                canvas.width = 1080;
+                canvas.height = 1080;
+                
+                // Fondo
+                ctx.fillStyle = '#f1f5f9';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Textos
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 50px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(origen === 'manual' ? '🖼️ Diseño Basado en tu Idea' : '🖼️ Espacio Generado por IA', canvas.width/2, canvas.height/2 - 50);
+                
+                ctx.font = '30px Arial';
+                ctx.fillText('Aquí se dibujará la foto clínica', canvas.width/2, canvas.height/2 + 20);
+                
+                ctx.fillStyle = '#0284c7';
+                ctx.font = 'bold 40px Arial';
+                ctx.fillText('Dr. Omar Saucedo García', canvas.width/2, canvas.height - 150);
+
+                // Mostrar controles
+                document.getElementById('controles-canvas').style.display = 'block';
+                document.getElementById('inputFirma').value = "Dr. Omar Saucedo García";
+                document.getElementById('inputSede').value = "Centro Médico Los Gladiolos";
+
+                // Llenar Textos Multicanal
+                if (origen === 'manual') {
+                    document.querySelector('#copy-instagram textarea').value = "Tu sonrisa es tu mejor carta de presentación. ✨\n\n" + instruccionManual + "\n\nAgenda tu evaluación hoy mismo en el enlace de nuestra biografía.\n\n#Odontología #EstéticaDental #SaludDental";
+                    document.querySelector('#copy-whatsapp textarea').value = "¡Hola! 👋 Soy el Dr. Omar.\n\nTe escribo para contarte que " + instruccionManual + " 🦷\n\n¿Te gustaría agendar una hora para esta semana? Confírmame por aquí. 📅";
+                } else {
+                    document.querySelector('#copy-instagram textarea').value = "Volver a sonreír con confianza es posible. ✨\n\nSi hace tiempo terminaste tu tratamiento de rehabilitación, es fundamental realizar un control de mantenimiento para asegurar que todo esté en perfectas condiciones y proteger tu inversión a largo plazo.\n\nEvita complicaciones futuras y agenda tu hora de revisión esta semana. Tenemos espacios disponibles en nuestra agenda.\n\n👇 Haz clic en el enlace de nuestra biografía para agendar.\n\n#SaludDental #RehabilitaciónOral #DentistaChile";
+                    document.querySelector('#copy-whatsapp textarea').value = "¡Hola! 👋 Soy el Dr. Omar.\n\nNoté en nuestra agenda que hace tiempo no realizamos un control de tu tratamiento de rehabilitación.\n\nEs fundamental revisarlo para asegurar que todo siga perfecto. 🦷\n\n¿Te gustaría agendar una evaluación de control para esta semana? Confírmame por aquí y buscamos un espacio. 📅";
+                }
+
+            }, 2500);
+        }
+
+        // Función para las Pestañas Multicanal
+        function cambiarCanal(elemento, canal) {
+            // Quitar clase activa de todos
+            document.querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
+            // Agregar activa al seleccionado
+            elemento.classList.add('active');
+            
+            // Ocultar todos los textareas
+            document.getElementById('copy-instagram').style.display = 'none';
+            document.getElementById('copy-whatsapp').style.display = 'none';
+            
+            // Mostrar el correcto
+            document.getElementById(`copy-${canal}`).style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

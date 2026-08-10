@@ -974,6 +974,55 @@
      * Retorna sólo los eventos que representan condiciones/patologías activas
      * (no incluye tratamientos, ni piezas existentes/históricas).
      */
+    /**
+     * Restaura el estado visual y la memoria del odontograma desde un JSON.
+     */
+    function setEvents(savedEvents) {
+        if (!savedEvents || !Array.isArray(savedEvents) || savedEvents.length === 0) return;
+
+        // 1. Limpiar lienzo y memoria
+        engine.events = [];
+        engine.surfaceLatest.clear();
+        document.querySelectorAll('polygon.odn-surface').forEach(p => {
+            ALL_SURFACE_STATES.forEach(s => p.classList.remove('odn-' + s));
+            p.style.fill = '';
+        });
+        document.querySelectorAll('g.odn-tooth .odn-custom-marker').forEach(el => el.remove());
+
+        // 2. Repintar eventos guardados
+        const piezasExtraidas = new Set();
+        const piezasAusentes = new Set();
+
+        savedEvents.forEach(evt => {
+            // Recuperar el objeto Date
+            evt.timestamp = new Date(evt.timestamp);
+            engine.events.push(evt);
+
+            if (evt.surface) {
+                engine.surfaceLatest.set(`${evt.fdi}|${evt.surface}`, evt);
+                const poly = document.querySelector(`polygon.odn-surface[data-fdi="${evt.fdi}"][data-surface="${evt.surface}"]`);
+                if (poly) applyStateToSurface(poly, evt.state);
+            } else if (evt.fdi && evt.fdi !== 'GENERAL') {
+                const polys = document.querySelectorAll(`polygon.odn-surface[data-fdi="${evt.fdi}"]`);
+                polys.forEach(p => applyStateToSurface(p, evt.state));
+                
+                if (evt.code === 'exodoncia_simple' || evt.code === 'exodoncia_compleja' || evt.code === 'extraccion' || evt.code === 'fractura_existente') {
+                    piezasExtraidas.add(evt.fdi);
+                } else if (evt.code === 'ausente') {
+                    piezasAusentes.add(evt.fdi);
+                }
+            }
+        });
+
+        piezasExtraidas.forEach(fdi => drawExtractionMarker(fdi));
+        piezasAusentes.forEach(fdi => {
+             document.querySelectorAll(`polygon.odn-surface[data-fdi="${fdi}"]`).forEach(p => p.style.fill = '#0f172a');
+        });
+
+        recomputeLayerCounters();
+        renderTimeline();
+        renderGroupedHistorial();
+    }
     function getHallazgos() {
         return engine.events.filter(e => e.state === 'active' || e.state === 'review');
     }
@@ -1656,10 +1705,25 @@
         // 13.4 Apertura del modal → renderizar si aún no se ha hecho + inicializar datos
         document.addEventListener('odontograma:open', (e) => {
             if (!engine.rendered) renderOdontogram();
-            renderTimeline();
-            const pId = (e.detail && e.detail.pacienteId) || null;
-            if (pId) {
-                inicializarDesdeBaseDeDatos(pId);
+            
+            // Forzamos la lectura del JSON inyectado desde el HTML
+            const estadoPrevio = e.detail && e.detail.estadoPrevio;
+            
+            if (estadoPrevio && Array.isArray(estadoPrevio) && estadoPrevio.length > 0) {
+                // Si la columna odontograma_estado tiene datos, usamos NUESTRA función setEvents
+                // Ignoramos por completo inicializarDesdeBaseDeDatos para que no limpie el lienzo
+                if (typeof setEvents === 'function') {
+                    setEvents(estadoPrevio);
+                } else if (typeof api.setEvents === 'function') {
+                    api.setEvents(estadoPrevio);
+                }
+            } else {
+                // Fallback original: solo si la columna JSON está vacía, intenta buscar en el esquema edr
+                renderTimeline();
+                const pId = (e.detail && e.detail.pacienteId) || null;
+                if (pId && engine.events.length === 0) {
+                    inicializarDesdeBaseDeDatos(pId);
+                }
             }
         });
 
@@ -1755,12 +1819,14 @@
         setDentition:             setDentition,
         getDentition:             () => engine.dentition,
         selectTooth:              selectTooth,
-        getEvents:                () => engine.events.slice(),
+        getEvents:                () => engine.events.map(e => {
+            const { surfaceEl, ...eventoSeguro } = e; // Extrae el polígono problemático
+            return eventoSeguro; // Retorna solo el texto plano
+        }),
+        setEvents:                setEvents, 
         getHallazgos:             getHallazgos,
         getPerio:                 getPerio,
         calcularRiesgoIntegral:   calcularRiesgoIntegral,
-        calcularPerfilRiesgo:     calcularPerfilRiesgo,
-        guardarOdontogramaEnNube: guardarOdontogramaEnNube,
         getState:         () => ({
             activeState:    engine.activeState,
             activeSeverity: engine.activeSeverity,
